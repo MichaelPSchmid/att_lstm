@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd technical documentation for EPS torque prediction project\n\nDocumentation covers:\n- Project overview and goals\n- Data pipeline \\(features, target, preprocessing\\)\n- Model architectures \\(LSTM, Attention variants, CNN\\)\n- Training configuration and Optuna hyperparameter tuning\n- Evaluation metrics and interpretation\n- Setup and configuration guide\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit:*)"
+    ]
+  }
+}
