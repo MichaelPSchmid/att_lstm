@@ -1,0 +1,61 @@
+import optuna
+from pytorch_lightning import Trainer
+from pytorch_lightning.callbacks import EarlyStopping
+from model.LSTM_attention import LSTMAttentionModel
+from data_module import TimeSeriesDataModule
+import torch
+
+def objective(trial):
+    # Suggest hyperparameters for tuning
+    hidden_size = trial.suggest_int("hidden_size", 32, 128, step=16)
+    num_layers = trial.suggest_int("num_layers", 1, 5)
+    lr = trial.suggest_loguniform("lr", 1e-5, 1e-3)
+
+    batch_size = 16
+
+    # File paths
+    feature_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/15_1_1_s/feature_15_1_1_s.pkl"
+    target_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/15_1_1_s/target_15_1_1_s.pkl"
+
+    # Initialize the data module with the suggested batch size
+    data_module = TimeSeriesDataModule(feature_path, target_path, batch_size=batch_size)
+
+    # Initialize the model with suggested hyperparameters
+    input_size = 5
+    output_size = 1
+    model = LSTMAttentionModel(input_size, hidden_size, num_layers, output_size, lr)
+
+    # Early stopping callback
+    early_stop_callback = EarlyStopping(
+        monitor="val_loss",
+        patience=5,
+        mode="min",
+    )
+
+    # Trainer setup
+    trainer = Trainer(
+        max_epochs=10,
+        accelerator="gpu" if torch.cuda.is_available() else "cpu",
+        devices=1,
+        callbacks=[early_stop_callback],
+        logger=False,
+        enable_checkpointing=False,
+    )
+
+    # Fit the model
+    trainer.fit(model, data_module)
+
+    # Evaluate the model on the validation set
+    val_result = trainer.validate(model, dataloaders=data_module.val_dataloader(), verbose=False)
+    val_loss = val_result[0]["val_loss"]
+
+    return val_loss
+
+if __name__ == "__main__":
+    # Create a study and optimize the objective function
+    study = optuna.create_study(direction="minimize")
+    study.optimize(objective, n_trials=50)
+
+    # Print the best hyperparameters
+    print("Best hyperparameters found:")
+    print(study.best_params)
