@@ -2,6 +2,15 @@
 *.ckpt
 logs/
 
+# Datasets, Evaluations and Plots
+prepared_dataset/ 
+evaluation/
+plot/HYUNDAI_SONATA_2020/
+attention_visualization/
+*.pkl
+*.csv
+*.png
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
