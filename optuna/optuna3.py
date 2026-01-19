@@ -1,10 +1,16 @@
 import optuna
+import sys
+import os
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping
-from model.LSTM_attention import LSTMAttentionModel
-from data_module import TimeSeriesDataModule
 import torch
 import gc
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from model.LSTM_attention import LSTMAttentionModel
+from data_module import TimeSeriesDataModule
+from config import get_preprocessed_paths
 
 # Set PyTorch optimization strategy to reduce CPU computation burden
 torch.set_float32_matmul_precision('medium')
@@ -19,11 +25,12 @@ def objective(trial):
     lr = trial.suggest_float("lr", 1e-5, 1e-3, log=True)
 
     # Set a fixed batch size
-    batch_size = 16  
+    batch_size = 16
 
-    # Dataset file paths
-    feature_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF_NewFeatures/feature_50_1_1_sF_nF.pkl"
-    target_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF_NewFeatures/target_50_1_1_sF_nF.pkl"
+    # Dataset file paths (from config)
+    paths = get_preprocessed_paths("HYUNDAI_SONATA_2020", window_size=50, predict_size=1, step_size=1, suffix="sF_NewFeatures")
+    feature_path = str(paths["features"])
+    target_path = str(paths["targets"])
 
     # Configure data loading parameters to reduce memory usage
     data_module = TimeSeriesDataModule(feature_path, target_path, batch_size=batch_size)

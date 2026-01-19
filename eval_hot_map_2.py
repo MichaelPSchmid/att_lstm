@@ -5,27 +5,28 @@ import seaborn as sns
 import numpy as np
 from model.attention_visualization.scaled_dot_product_attention_visualize import LSTMScaledDotAttentionModel
 from data_module import TimeSeriesDataModule
-import os
 
-# 设置随机种子确保实验可重复性
+from config import FEATURE_PATH, TARGET_PATH, LIGHTNING_LOGS_DIR, ATTENTION_VIS_DIR
+
+# Set random seed for reproducibility
 pl.seed_everything(3407)
 torch.set_float32_matmul_precision('medium')
 
-# 文件路径
-checkpoint_dir = "/home/wudamu/MA_tianze/lightning_logs/LSTMScaledDotAttentionModel/win50_128_5_seed3407/checkpoints"
-best_checkpoint = os.path.join(checkpoint_dir, "LSTMScaledDotAttentionModel-epoch=60-val_loss=0.0011.ckpt")
-feature_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/feature_50_1_1_sF.pkl"
-target_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/target_50_1_1_sF.pkl"
-output_dir = "attention_visualization/matrix"
-os.makedirs(output_dir, exist_ok=True)
+# File paths (from config)
+checkpoint_dir = LIGHTNING_LOGS_DIR / "LSTMScaledDotAttentionModel" / "win50_128_5_seed3407" / "checkpoints"
+best_checkpoint = checkpoint_dir / "LSTMScaledDotAttentionModel-epoch=60-val_loss=0.0011.ckpt"
+feature_path = FEATURE_PATH
+target_path = TARGET_PATH
+output_dir = ATTENTION_VIS_DIR / "matrix"
+output_dir.mkdir(parents=True, exist_ok=True)
 
-# 加载数据
-data_module = TimeSeriesDataModule(feature_path, target_path, batch_size=32)
+# Load data
+data_module = TimeSeriesDataModule(str(feature_path), str(target_path), batch_size=32)
 data_module.setup("test")
 test_dataloader = data_module.test_dataloader()
 
-# 加载模型
-model = LSTMScaledDotAttentionModel.load_from_checkpoint(best_checkpoint, strict=False)
+# Load model
+model = LSTMScaledDotAttentionModel.load_from_checkpoint(str(best_checkpoint), strict=False)
 model.eval()
 
 # # ---------- ✅ 可视化函数：单样本 ----------
@@ -61,10 +62,11 @@ def visualize_average_attention_matrix(model, dataloader, save_path=None):
     all_attentions_tensor = torch.cat(all_attentions, dim=0)  # (N, S, S)
     avg_attention = torch.mean(all_attentions_tensor, dim=0)  # (S, S)
 
-    # 保存为 numpy 文件
+    # Save as numpy file
     avg_attention_np = avg_attention.numpy()
-    np.save("attention_visualization/matrix/avg_attention.npy", avg_attention_np)
-    print("✅ Saved avg_attention_np to attention_visualization/matrix/avg_attention.npy")
+    save_npy_path = output_dir / "avg_attention.npy"
+    np.save(save_npy_path, avg_attention_np)
+    print(f"Saved avg_attention_np to {save_npy_path}")
 
     seq_len = avg_attention_np.shape[0]
     time_labels = [f"t-{seq_len - i}" for i in range(seq_len)]
@@ -91,9 +93,9 @@ def visualize_average_attention_matrix(model, dataloader, save_path=None):
 #     save_path=os.path.join(output_dir, "attention_matrix_sample0.png")
 # )
 
-# ---------- ✅ 可视化：平均注意力矩阵 ----------
+# ---------- Visualize average attention matrix ----------
 visualize_average_attention_matrix(
-    model, 
-    test_dataloader, 
-    save_path=os.path.join(output_dir, "average_attention_matrix.png")
+    model,
+    test_dataloader,
+    save_path=str(output_dir / "average_attention_matrix.png")
 )

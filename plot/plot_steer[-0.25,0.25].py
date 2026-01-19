@@ -1,9 +1,15 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
+import os
+
+# Add parent directory to path for config import
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_raw_data_path
 
 # Load data
-input_path = '/home/wudamu/MA_tianze/prepared_dataset/TOYOTA_HIGHLANDER_2020/20399csv_with_sequence_id.pkl'
+input_path = get_raw_data_path("TOYOTA_HIGHLANDER_2020", 20399)
 all_data = pd.read_pickle(input_path)
 
 # Define interval bins (refined range from -0.25 to 0.25 with 0.05 steps)

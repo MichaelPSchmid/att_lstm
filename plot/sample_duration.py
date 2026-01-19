@@ -1,5 +1,11 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import sys
+import os
+
+# Add parent directory to path for config import
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_raw_data_path, PROJECT_ROOT
 
 # Configure Matplotlib to use LaTeX and match LaTeX paper fonts
 plt.rcParams.update({
@@ -52,7 +58,10 @@ def visualize_features(data, sequence_id):
     
     # Adjust layout and save the first figure
     plt.tight_layout()
-    plt.savefig('/mnt/c/Users/wudamu/Desktop/MA/Thesis/chapter3/plot/primary_features.pdf', format='pdf', bbox_inches='tight')
+    output_path1 = PROJECT_ROOT / "plot" / "output" / "primary_features.pdf"
+    output_path1.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_path1, format='pdf', bbox_inches='tight')
+    print(f"Saved plot to {output_path1}")
     plt.close(fig1)  # Close the first figure
     
     # Create the second figure with 3x1 subplots - remaining three features
@@ -76,13 +85,15 @@ def visualize_features(data, sequence_id):
     
     # Adjust layout and save the second figure
     plt.tight_layout()
-    plt.savefig('/mnt/c/Users/wudamu/Desktop/MA/Thesis/chapter3/plot/secondary_features.pdf', format='pdf', bbox_inches='tight')
-    
+    output_path2 = PROJECT_ROOT / "plot" / "output" / "secondary_features.pdf"
+    plt.savefig(output_path2, format='pdf', bbox_inches='tight')
+    print(f"Saved plot to {output_path2}")
+
     # Display the figures (if running in an interactive environment)
     plt.show()
 
 # Load the data from the pickle file
-data_file = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/5001csv_with_sequence_id.pkl'
+data_file = get_raw_data_path("HYUNDAI_SONATA_2020", 5001)
 data = pd.read_pickle(data_file)
 
 # Visualize the data for sequence_id 4751

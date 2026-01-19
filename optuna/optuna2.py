@@ -1,10 +1,16 @@
 import optuna
+import sys
+import os
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping
-from model.LSTM import LSTMModel
-from data_module import TimeSeriesDataModule
 import torch
 import gc
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from model.LSTM import LSTMModel
+from data_module import TimeSeriesDataModule
+from config import FEATURE_PATH, TARGET_PATH
 
 # Enable Tensor Cores optimization
 torch.set_float32_matmul_precision('medium')
@@ -18,9 +24,9 @@ def objective(trial):
     # Fixed batch_size
     batch_size = 32  # Fixed value
 
-    # File paths/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/15_1_1_s/feature_15_1_1_s.pkl
-    feature_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/feature_50_1_1_sF.pkl"
-    target_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/target_50_1_1_sF.pkl"
+    # File paths (from config)
+    feature_path = str(FEATURE_PATH)
+    target_path = str(TARGET_PATH)
 
     # Initialize data module with fixed batch size
     data_module = TimeSeriesDataModule(feature_path, target_path, batch_size=batch_size)

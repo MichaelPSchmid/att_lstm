@@ -1,11 +1,21 @@
 import pickle
 import random
+import sys
+import os
+
+# Add parent directory to path for config import
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_preprocessed_paths
+
+# Configuration
+VEHICLE = "HYUNDAI_SONATA_2020"
+paths = get_preprocessed_paths(VEHICLE, window_size=50, predict_size=1, step_size=1, suffix="sF_NewFeatures")
 
 # File paths
-feature_test_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF_NewFeatures/feature_50_1_1_sF_nF.pkl'
-target_test_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF_NewFeatures/target_50_1_1_sF_nF.pkl'
-sequence_ids_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF_NewFeatures/sequence_ids_50_1_1_sF_nF.pkl'
-time_steps_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF_NewFeatures/time_steps_50_1_1_sF_nF.pkl'
+feature_test_path = paths["features"]
+target_test_path = paths["targets"]
+sequence_ids_path = paths["sequence_ids"]
+time_steps_path = paths["time_steps"]
 
 # Load the saved data
 with open(feature_test_path, 'rb') as x_file:

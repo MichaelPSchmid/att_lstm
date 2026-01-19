@@ -1,25 +1,37 @@
 import pickle
 import pandas as pd
+import sys
+import os
 from tqdm import tqdm
 
-input_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/20999csv_with_sequence_id.pkl'
+# Add parent directory to path for config import
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_raw_data_path, PREPARED_DATASET_DIR
 
+# Configuration
+VEHICLE = "HYUNDAI_SONATA_2020"
+NUM_CSVS = 20999
+
+input_path = get_raw_data_path(VEHICLE, NUM_CSVS)
 all_data = pd.read_pickle(input_path)
 
 # Set window size and prediction size
-window_size = 50 
+window_size = 50
 predict_size = 1
-step_size = 1  
+step_size = 1
 
 # Select features and target
 features = ['vEgo', 'aEgo', 'steeringAngleDeg', 'roll', 'latAccelLocalizer']
 target = ['steerFiltered']
 
 # Define paths
-feature_test_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/20999csv/50_1_1_sF/feature_50_1_1_sF.pkl'
-target_test_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/20999csv/50_1_1_sF/target_50_1_1_sF.pkl'
-sequence_ids_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/20999csv/50_1_1_sF/sequence_ids_50_1_1_sF.pkl'
-time_steps_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/20999csv/50_1_1_sF/time_steps_50_1_1_sF.pkl'
+output_dir = PREPARED_DATASET_DIR / VEHICLE / f"{NUM_CSVS}csv" / f"{window_size}_{predict_size}_{step_size}_sF"
+output_dir.mkdir(parents=True, exist_ok=True)
+
+feature_test_path = output_dir / f"feature_{window_size}_{predict_size}_{step_size}_sF.pkl"
+target_test_path = output_dir / f"target_{window_size}_{predict_size}_{step_size}_sF.pkl"
+sequence_ids_path = output_dir / f"sequence_ids_{window_size}_{predict_size}_{step_size}_sF.pkl"
+time_steps_path = output_dir / f"time_steps_{window_size}_{predict_size}_{step_size}_sF.pkl"
 
 
 with open(feature_test_path, 'wb') as x_file, \

@@ -1,16 +1,18 @@
 import pandas as pd
 import pickle
 
-test_predictions_path = "/home/wudamu/MA_tianze/evaluation/test_predictions.pkl"
-test_targets_path = "/home/wudamu/MA_tianze/evaluation/test_targets.pkl"
+from config import EVALUATION_DIR
+
+test_predictions_path = EVALUATION_DIR / "test_predictions.pkl"
+test_targets_path = EVALUATION_DIR / "test_targets.pkl"
 
 with open(test_predictions_path, "rb") as f:
     test_predictions = pickle.load(f)
 with open(test_targets_path, "rb") as f:
     test_targets = pickle.load(f)
 
-sequence_ids_path = "/home/wudamu/MA_tianze/evaluation/test_sequence_ids.pkl"
-time_steps_path = "/home/wudamu/MA_tianze/evaluation/test_time_steps.pkl"
+sequence_ids_path = EVALUATION_DIR / "test_sequence_ids.pkl"
+time_steps_path = EVALUATION_DIR / "test_time_steps.pkl"
 
 with open(sequence_ids_path, "rb") as f:
     sequence_ids = pickle.load(f)
@@ -36,11 +38,10 @@ df = pd.DataFrame(data)
 
 print(df.head())
 
-csv_path = "/home/wudamu/MA_tianze/evaluation/test_results.csv"
-pkl_path = "/home/wudamu/MA_tianze/evaluation/test_results.pkl"
+csv_path = EVALUATION_DIR / "test_results.csv"
+pkl_path = EVALUATION_DIR / "test_results.pkl"
 
-import os
-os.makedirs(os.path.dirname(csv_path), exist_ok=True)
+EVALUATION_DIR.mkdir(parents=True, exist_ok=True)
 
 df.to_csv(csv_path, index=False)
 print(f"DataFrame saved to '{csv_path}'.")

@@ -1,9 +1,15 @@
 import optuna
+import sys
+import os
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping
+import torch
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from model.LSTM_attention import LSTMAttentionModel
 from data_module import TimeSeriesDataModule
-import torch
+from config import get_preprocessed_paths
 
 def objective(trial):
     # Suggest hyperparameters for tuning
@@ -13,9 +19,10 @@ def objective(trial):
 
     batch_size = 16
 
-    # File paths
-    feature_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/15_1_1_s/feature_15_1_1_s.pkl"
-    target_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/15_1_1_s/target_15_1_1_s.pkl"
+    # File paths (from config)
+    paths = get_preprocessed_paths("HYUNDAI_SONATA_2020", window_size=15, predict_size=1, step_size=1, suffix="s")
+    feature_path = str(paths["features"])
+    target_path = str(paths["targets"])
 
     # Initialize the data module with the suggested batch size
     data_module = TimeSeriesDataModule(feature_path, target_path, batch_size=batch_size)

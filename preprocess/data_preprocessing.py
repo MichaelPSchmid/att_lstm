@@ -1,9 +1,14 @@
 import pandas as pd
 import os
+import sys
 from tqdm import tqdm
 
-# Specify the folder path in Google Drive
-folder_path = '/home/wudamu/MA_tianze/dataset/HYUNDAI_SONATA_2020'  # Change to your actual folder path
+# Add parent directory to path for config import
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import HYUNDAI_SONATA_RAW, HYUNDAI_SONATA_PREPARED
+
+# Specify the folder path
+folder_path = HYUNDAI_SONATA_RAW
 
 # Initialize an empty DataFrame
 all_data = pd.DataFrame()
@@ -49,7 +54,9 @@ for seq_id, file_name in tqdm(enumerate(files), total=len(files), desc='Processi
 # Print the first 10 rows of the result
 print(all_data.head(10))
 
-# Save the merged data to Google Drive (optional)
-output_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/20999csv_with_sequence_id.pkl'
+# Save the merged data
+num_files = len(files)
+output_path = HYUNDAI_SONATA_PREPARED / f"{num_files}csv_with_sequence_id.pkl"
+output_path.parent.mkdir(parents=True, exist_ok=True)
 all_data.to_pickle(output_path)
 print(f"Saved merged data to {output_path}")

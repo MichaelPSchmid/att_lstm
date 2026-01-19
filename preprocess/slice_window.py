@@ -1,8 +1,18 @@
 import pickle
 import pandas as pd
+import sys
+import os
 from tqdm import tqdm
 
-input_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/5000csv_with_sequence_id.pkl'
+# Add parent directory to path for config import
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_raw_data_path, get_preprocessed_paths
+
+# Configuration
+VEHICLE = "HYUNDAI_SONATA_2020"
+NUM_CSVS = 5000  # Number of CSV files in the dataset
+
+input_path = get_raw_data_path(VEHICLE, NUM_CSVS)
 all_data = pd.read_pickle(input_path)
 
 # Set window size and prediction size
@@ -59,11 +69,14 @@ if len(X) > 0:
 # Save data
 import pickle
 
-# File paths for saving
-feature_test_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/feature_50_1_1_sF.pkl'
-target_test_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/target_50_1_1_sF.pkl'
-sequence_ids_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/sequence_ids_50_1_1_sF.pkl'
-time_steps_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/time_steps_50_1_1_sF.pkl'
+# File paths for saving (from config)
+paths = get_preprocessed_paths(VEHICLE, window_size, predict_size, step_size, "sF")
+paths["dir"].mkdir(parents=True, exist_ok=True)
+
+feature_test_path = paths["features"]
+target_test_path = paths["targets"]
+sequence_ids_path = paths["sequence_ids"]
+time_steps_path = paths["time_steps"]
 
 # Save X, Y, sequence_ids, and time_steps
 with open(feature_test_path, 'wb') as x_file:

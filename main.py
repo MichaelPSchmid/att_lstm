@@ -5,20 +5,20 @@ from data_module import TimeSeriesDataModule
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 import torch
 from pytorch_lightning.loggers import TensorBoardLogger
-import os
-import pickle
+
+from config import FEATURE_PATH, TARGET_PATH, LIGHTNING_LOGS_DIR, EVALUATION_DIR
 
 # Set random seed to ensure experiment reproducibility
-pl.seed_everything(3407)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+pl.seed_everything(3407)
 
 # Enable Tensor Cores optimization
 torch.set_float32_matmul_precision('medium')
 
-# File paths
-feature_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/feature_50_1_1_sF.pkl"
-target_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/target_50_1_1_sF.pkl"
+# File paths (from config.py)
+feature_path = FEATURE_PATH
+target_path = TARGET_PATH
 
-data_module = TimeSeriesDataModule(feature_path, target_path, batch_size=32)
+data_module = TimeSeriesDataModule(str(feature_path), str(target_path), batch_size=32)
 
 # # Manually call prepare_data to load X and Y
 # data_module.prepare_data()
@@ -34,7 +34,7 @@ model = LSTMModel(
 )
 
 # Checkpoint path - adjust this to your specific checkpoint filename
-# checkpoint_path = "/home/wudamu/MA_tianze/lightning_logs/LSTMAttentionModel/version_0/checkpoints/LSTMAttentionModel-epoch=26-val_loss=0.0014.ckpt"
+# checkpoint_path = LIGHTNING_LOGS_DIR / "LSTMAttentionModel/version_0/checkpoints/LSTMAttentionModel-epoch=26-val_loss=0.0014.ckpt"
 
 
 # Callbacks
@@ -51,7 +51,7 @@ checkpoint_callback = ModelCheckpoint(
 
 
 # Logger
-logger = TensorBoardLogger("lightning_logs", name="LSTMModel")
+logger = TensorBoardLogger(str(LIGHTNING_LOGS_DIR), name="LSTMModel")
 
 # Trainer setup with additional options
 trainer = pl.Trainer(
@@ -70,8 +70,8 @@ trainer.fit(model, data_module)
 # Test the model after continued training
 trainer.test(model, dataloaders=data_module.test_dataloader())
 
-# predictions_path = "/home/wudamu/MA_tianze/evaluation/test_predictions.pkl"
-# targets_path = "/home/wudamu/MA_tianze/evaluation/test_targets.pkl"
+# predictions_path = EVALUATION_DIR / "test_predictions.pkl"
+# targets_path = EVALUATION_DIR / "test_targets.pkl"
 
 # # Switch to evaluation mode to ensure the model does not update gradients
 # model.eval()

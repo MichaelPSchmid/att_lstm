@@ -133,21 +133,38 @@ DataLoader(
 
 ## Dateipfade
 
-Die aktuellen Pfade im Code sind für ein Linux-System konfiguriert:
+Alle Pfade werden zentral in `config.py` verwaltet und sind plattformunabhängig:
 
-```
-/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/
-├── 5000csv_with_sequence_id.pkl          # Roh-DataFrame
-├── 50_1_1_sF/
-│   ├── feature_50_1_1_sF.pkl             # Features (X)
-│   ├── target_50_1_1_sF.pkl              # Targets (Y)
-│   ├── sequence_ids_50_1_1_sF.pkl        # Sequence IDs
-│   └── time_steps_50_1_1_sF.pkl          # Zeitstempel
-└── 15_1_1_s/                             # Alternative Fenstergröße
-    └── ...
+```python
+from config import get_preprocessed_paths, get_raw_data_path, PREPARED_DATASET_DIR
+
+# Standard-Pfade abrufen
+paths = get_preprocessed_paths("HYUNDAI_SONATA_2020", window_size=50)
+feature_path = paths["features"]
+target_path = paths["targets"]
 ```
 
-**Namenskonvention:** `{window_size}_{predict_size}_{step_size}_sF`
+### Verzeichnisstruktur
+
+```
+att_project/data/
+├── dataset/
+│   └── HYUNDAI_SONATA_2020/              # Rohe CSV-Dateien
+│       ├── *.csv
+│       └── ...
+└── prepared_dataset/
+    └── HYUNDAI_SONATA_2020/
+        ├── {N}csv_with_sequence_id.pkl   # Roh-DataFrame
+        ├── 50_1_1_sF/
+        │   ├── feature_50_1_1_sF.pkl     # Features (X)
+        │   ├── target_50_1_1_sF.pkl      # Targets (Y)
+        │   ├── sequence_ids_50_1_1_sF.pkl
+        │   └── time_steps_50_1_1_sF.pkl
+        └── 15_1_1_s/                     # Alternative Fenstergröße
+            └── ...
+```
+
+**Namenskonvention:** `{window_size}_{predict_size}_{step_size}_{suffix}`
 
 ---
 

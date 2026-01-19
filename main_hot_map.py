@@ -4,12 +4,11 @@ from data_module import TimeSeriesDataModule
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 import torch
 from pytorch_lightning.loggers import TensorBoardLogger
-import os
 import matplotlib.pyplot as plt
-import pytorch_lightning as pl
 import numpy as np
-import os
 import json
+
+from config import FEATURE_PATH, TARGET_PATH, LIGHTNING_LOGS_DIR, ATTENTION_VIS_DIR
 
 class AttentionWeightSaveCallback(pl.Callback):
     def __init__(self, output_dir="attention_weights", filename="all_epochs_attention_weights.npz"):
@@ -74,15 +73,15 @@ pl.seed_everything(3407)
 # Enable Tensor Cores optimization
 torch.set_float32_matmul_precision('medium')
 
-# File paths
-feature_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/feature_50_1_1_sF.pkl"
-target_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/target_50_1_1_sF.pkl"
+# File paths (from config)
+feature_path = FEATURE_PATH
+target_path = TARGET_PATH
 
 # Create attention visualization directory
-attention_vis_dir = "attention_visualization"
-os.makedirs(attention_vis_dir, exist_ok=True)
+attention_vis_dir = ATTENTION_VIS_DIR
+attention_vis_dir.mkdir(parents=True, exist_ok=True)
 
-data_module = TimeSeriesDataModule(feature_path, target_path, batch_size=32)
+data_module = TimeSeriesDataModule(str(feature_path), str(target_path), batch_size=32)
 
 # Initialize model
 model = LSTMScaledDotAttentionModel(
@@ -103,10 +102,10 @@ checkpoint_callback = ModelCheckpoint(
 )
 
 # Add attention visualization callback
-attention_callback = AttentionWeightSaveCallback(output_dir=attention_vis_dir)
+attention_callback = AttentionWeightSaveCallback(output_dir=str(attention_vis_dir))
 
 # Logger
-logger = TensorBoardLogger("lightning_logs", name="LSTMScaledDotAttentionModel")
+logger = TensorBoardLogger(str(LIGHTNING_LOGS_DIR), name="LSTMScaledDotAttentionModel")
 
 # Trainer setup with additional options
 trainer = pl.Trainer(
@@ -134,14 +133,14 @@ if hasattr(model, 'test_avg_attention_weights'):
         test_weights = test_weights.flatten()
     
     # Save as NumPy compressed file (.npz)
-    npz_path = os.path.join(attention_vis_dir, "test_attention_weights.npz")
+    npz_path = attention_vis_dir / "test_attention_weights.npz"
     np.savez(npz_path, test_attention_weights=test_weights)
     print(f"Saved test attention weights to {npz_path}")
-    
+
     # Optional: Save as CSV for easy viewing
     try:
         import pandas as pd
-        csv_path = os.path.join(attention_vis_dir, "test_attention_weights.csv")
+        csv_path = attention_vis_dir / "test_attention_weights.csv"
         pd.DataFrame(test_weights, columns=['attention_weight']).to_csv(csv_path, index=False)
         print(f"Saved test attention weights to CSV: {csv_path}")
     except ImportError:

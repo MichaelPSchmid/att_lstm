@@ -1,8 +1,14 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import sys
+import os
 
-# 配置Matplotlib使用LaTeX和Arial字体
+# Add parent directory to path for config import
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_raw_data_path, PROJECT_ROOT
+
+# Configure Matplotlib to use LaTeX and Arial font
 plt.rcParams.update({
     "text.usetex": True,        # 启用LaTeX文本渲染
     "font.family": "sans-serif", # 指定使用无衬线字体族
@@ -37,16 +43,18 @@ def visualize_vego(data, sequence_id):
     # 调整布局
     plt.tight_layout()
     
-    # 保存为JPG格式
-    plt.savefig('/mnt/c/Users/wudamu/Desktop/MA/Thesis/chapter3/plot/vEgo.jpg', 
-                format='jpg', bbox_inches='tight', dpi=300)
-    
-    # 显示图形（如果在交互式环境中运行）
+    # Save as JPG format
+    output_path = PROJECT_ROOT / "plot" / "output" / "vEgo.jpg"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_path, format='jpg', bbox_inches='tight', dpi=300)
+    print(f"Saved plot to {output_path}")
+
+    # Show figure (if running in interactive environment)
     plt.show()
 
-# 从pickle文件加载数据
-data_file = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/5001csv_with_sequence_id.pkl'
+# Load data from pickle file
+data_file = get_raw_data_path("HYUNDAI_SONATA_2020", 5001)
 data = pd.read_pickle(data_file)
 
-# 可视化sequence_id为4751的数据
+# Visualize data for sequence_id 4751
 visualize_vego(data, 4751)

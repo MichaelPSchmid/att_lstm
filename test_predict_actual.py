@@ -9,9 +9,12 @@ from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 import pytorch_lightning as pl
 import torch
 
-# File paths
-feature_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/5_1_5_sF/feature_5_1_5_sF.pkl"
-target_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/5_1_5_sF/target_5_1_5_sF.pkl"
+from config import get_preprocessed_paths
+
+# File paths (from config)
+paths = get_preprocessed_paths("HYUNDAI_SONATA_2020", window_size=5, predict_size=1, step_size=5, suffix="sF")
+feature_path = str(paths["features"])
+target_path = str(paths["targets"])
 
 # Initialize the data module
 data_module = TimeSeriesDataModule(feature_path, target_path, batch_size=32)

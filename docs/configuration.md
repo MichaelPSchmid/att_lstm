@@ -36,41 +36,103 @@ pip install torch --index-url https://download.pytorch.org/whl/cu118
 
 ---
 
-## Dateipfade
+## Zentrale Pfad-Konfiguration
 
-### Aktuell konfigurierte Pfade (Linux)
+Alle Pfade werden zentral in `config.py` verwaltet. Das Projekt ist plattformunabhängig (Windows/Linux/macOS).
 
-Die Pfade im Code sind für ein Linux-System konfiguriert:
-
-```python
-# In main.py
-feature_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/feature_50_1_1_sF.pkl"
-target_path = "/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/target_50_1_1_sF.pkl"
-```
-
-### Anpassung für Windows
-
-Für lokale Verwendung müssen die Pfade angepasst werden:
+### config.py
 
 ```python
-# Beispiel für Windows
-feature_path = r"C:\Users\...\prepared_dataset\HYUNDAI_SONATA_2020\50_1_1_sF\feature_50_1_1_sF.pkl"
-target_path = r"C:\Users\...\prepared_dataset\HYUNDAI_SONATA_2020\50_1_1_sF\target_50_1_1_sF.pkl"
+from config import (
+    PROJECT_ROOT,           # Projektverzeichnis
+    DATA_ROOT,              # data/
+    DATASET_DIR,            # data/dataset/
+    PREPARED_DATASET_DIR,   # data/prepared_dataset/
+    EVALUATION_DIR,         # evaluation/
+    LIGHTNING_LOGS_DIR,     # lightning_logs/
+    ATTENTION_VIS_DIR,      # attention_visualization/
+    FEATURE_PATH,           # Standard-Feature-Pfad
+    TARGET_PATH,            # Standard-Target-Pfad
+)
+
+# Für spezifische Konfigurationen:
+from config import get_preprocessed_paths, get_raw_data_path
 ```
 
-### Pfad-Struktur
+### Pfade konfigurieren
+
+Die Daten liegen standardmäßig im `data/` Verzeichnis innerhalb des Projekts:
 
 ```
-prepared_dataset/
-└── HYUNDAI_SONATA_2020/
-    ├── 5000csv_with_sequence_id.pkl     # Rohdaten
-    ├── 50_1_1_sF/                        # Window=50, Predict=1, Step=1
-    │   ├── feature_50_1_1_sF.pkl
-    │   ├── target_50_1_1_sF.pkl
-    │   ├── sequence_ids_50_1_1_sF.pkl
-    │   └── time_steps_50_1_1_sF.pkl
-    └── 15_1_1_s/                         # Window=15 Variante
-        └── ...
+att_project/
+└── data/
+    ├── dataset/                    # Rohe CSV-Dateien
+    │   └── HYUNDAI_SONATA_2020/
+    └── prepared_dataset/           # Vorverarbeitete Pickle-Dateien
+        └── HYUNDAI_SONATA_2020/
+            └── 50_1_1_sF/
+```
+
+### Verzeichnisse erstellen
+
+```bash
+python -c "from config import ensure_dirs_exist; ensure_dirs_exist()"
+```
+
+Oder:
+```python
+from config import ensure_dirs_exist
+ensure_dirs_exist()
+```
+
+### Konfiguration anzeigen
+
+```bash
+python config.py
+```
+
+Output:
+```
+============================================================
+Project Configuration
+============================================================
+PROJECT_ROOT:         C:\Users\...\att_project
+DATA_ROOT:            C:\Users\...\att_project\data
+FEATURE_PATH:         C:\Users\...\att_project\data\prepared_dataset\...
+============================================================
+```
+
+---
+
+## Verzeichnisstruktur
+
+```
+att_project/
+├── config.py                       # Zentrale Pfad-Konfiguration
+├── data/                           # Datenverzeichnis
+│   ├── dataset/                    # Rohe CSV-Dateien
+│   │   └── HYUNDAI_SONATA_2020/
+│   └── prepared_dataset/           # Vorverarbeitete Daten
+│       └── HYUNDAI_SONATA_2020/
+│           ├── {N}csv_with_sequence_id.pkl
+│           └── 50_1_1_sF/
+├── model/                          # Modell-Implementierungen
+│   ├── LSTM.py
+│   ├── LSTM_attention.py
+│   ├── CNN_eval.py
+│   └── diff_attention/
+├── preprocess/                     # Datenaufbereitung
+│   ├── data_preprocessing.py
+│   └── slice_window.py
+├── optuna/                         # Hyperparameter-Tuning
+├── evaluation/                     # Ergebnisse
+├── lightning_logs/                 # Training Logs & Checkpoints
+├── attention_visualization/        # Attention Heatmaps
+├── plot/                           # Visualisierungen
+├── docs/                           # Dokumentation
+├── main.py                         # Haupt-Trainingsscript
+├── main_hot_map.py                # Attention Visualisierung
+└── data_module.py                  # PyTorch Lightning DataModule
 ```
 
 ---
@@ -125,50 +187,18 @@ target = ['steerFiltered']
 
 ---
 
-## Verzeichnisstruktur
-
-```
-att_project/
-├── model/                          # Modell-Implementierungen
-│   ├── LSTM.py
-│   ├── LSTM_attention.py
-│   ├── CNN_eval.py
-│   ├── diff_attention/
-│   │   ├── additive_attention.py
-│   │   └── scaled_dot_product.py
-│   └── attention_visualization/
-├── preprocess/                     # Datenaufbereitung
-│   ├── data_preprocessing.py
-│   ├── slice_window.py
-│   └── slice_window_*.py
-├── optuna/                         # Hyperparameter-Tuning
-│   ├── optuna1.py
-│   ├── optuna2.py
-│   └── optuna3.py
-├── evaluation/                     # Ergebnisse
-├── lightning_logs/                 # Training Logs
-├── plot/                           # Visualisierungen
-├── attention_visualization/        # Attention Heatmaps
-├── comparison/                     # Modellvergleiche
-├── prepared_dataset/               # Vorverarbeitete Daten
-├── docs/                           # Dokumentation
-├── main.py                         # Haupt-Trainingsscript
-├── main_hot_map.py                # Attention Visualisierung
-├── data_module.py                  # DataModule
-└── CLAUDE.md                       # Projekt-Leitfaden
-```
-
----
-
 ## Ausführung
 
-### Preprocessing
+### Ersteinrichtung
 
 ```bash
-# 1. CSV zu DataFrame (falls Rohdaten vorhanden)
-python preprocess/data_preprocessing.py
+# 1. Verzeichnisse erstellen
+python -c "from config import ensure_dirs_exist; ensure_dirs_exist()"
 
-# 2. Sliding Window Extraktion
+# 2. Rohdaten in data/dataset/HYUNDAI_SONATA_2020/ kopieren
+
+# 3. Preprocessing
+python preprocess/data_preprocessing.py
 python preprocess/slice_window.py
 ```
 
@@ -227,14 +257,14 @@ trainer = pl.Trainer(
 
 ## Bekannte Probleme
 
-### 1. Pfade nicht gefunden
+### 1. Daten nicht gefunden
 
 **Problem:** FileNotFoundError bei Datenpfaden
 
-**Lösung:** Pfade in den Scripts anpassen:
-- `main.py`
-- `optuna/*.py`
-- `preprocess/slice_window.py`
+**Lösung:**
+1. Verzeichnisse erstellen: `python -c "from config import ensure_dirs_exist; ensure_dirs_exist()"`
+2. Daten in `data/dataset/` kopieren
+3. Preprocessing ausführen
 
 ### 2. CUDA out of memory
 
@@ -262,8 +292,11 @@ if __name__ == '__main__':
 Optional für bessere Kontrolle:
 
 ```bash
-# CUDA Device auswählen
+# CUDA Device auswählen (Linux/macOS)
 export CUDA_VISIBLE_DEVICES=0
+
+# Windows PowerShell
+$env:CUDA_VISIBLE_DEVICES=0
 
 # Deterministische Operationen
 export CUBLAS_WORKSPACE_CONFIG=:4096:8
@@ -282,8 +315,11 @@ export CUBLAS_WORKSPACE_CONFIG=:4096:8
 ### Logs aufräumen
 
 ```bash
-# Alte Logs löschen (Vorsicht!)
+# Linux/macOS
 rm -rf lightning_logs/*/version_*/
+
+# Windows PowerShell
+Remove-Item -Recurse lightning_logs\*\version_*
 ```
 
 ---
@@ -292,13 +328,24 @@ rm -rf lightning_logs/*/version_*/
 
 ### Git-ignorierte Dateien
 
-Typisch zu ignorieren (in `.gitignore`):
+In `.gitignore`:
 ```
-lightning_logs/
+# Daten (zu groß für Git)
+data/dataset/
+data/prepared_dataset/
 *.pkl
+
+# Logs und Checkpoints
+lightning_logs/
+
+# Python
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
 ```
 
 ### Checkpoint-Management

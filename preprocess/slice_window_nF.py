@@ -1,11 +1,19 @@
 import pickle
 import pandas as pd
-from tqdm import tqdm
-import pickle
+import sys
 import os
+from tqdm import tqdm
+
+# Add parent directory to path for config import
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_raw_data_path, get_preprocessed_paths
+
+# Configuration
+VEHICLE = "HYUNDAI_SONATA_2020"
+NUM_CSVS = 5001
 
 # Load the dataset
-input_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/5001csv_with_sequence_id.pkl'
+input_path = get_raw_data_path(VEHICLE, NUM_CSVS)
 all_data = pd.read_pickle(input_path)
 
 # Compute the first and second derivatives of `steeringAngleDeg`
@@ -68,13 +76,14 @@ if len(X) > 0:
     print(f"Sample target (Y): {Y[random_index]}")
 
 
-# File paths for saving
-feature_test_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF_NewFeatures/feature_50_1_1_sF_nF.pkl'
-target_test_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF_NewFeatures/target_50_1_1_sF_nF.pkl'
-sequence_ids_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF_NewFeatures/sequence_ids_50_1_1_sF_nF.pkl'
-time_steps_path = '/home/wudamu/MA_tianze/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF_NewFeatures/time_steps_50_1_1_sF_nF.pkl'
+# File paths for saving (from config)
+paths = get_preprocessed_paths(VEHICLE, window_size, predict_size, step_size, "sF_NewFeatures")
+paths["dir"].mkdir(parents=True, exist_ok=True)
 
-os.makedirs(os.path.dirname(feature_test_path), exist_ok=True)
+feature_test_path = paths["features"]
+target_test_path = paths["targets"]
+sequence_ids_path = paths["sequence_ids"]
+time_steps_path = paths["time_steps"]
 
 # Save X, Y, sequence_ids, and time_steps
 with open(feature_test_path, 'wb') as x_file:
