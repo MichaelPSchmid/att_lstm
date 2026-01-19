@@ -1,14 +1,20 @@
 # Project-specific
 *.ckpt
 logs/
+lightning_logs/
 
-# Datasets, Evaluations and Plots
-prepared_dataset/ 
-evaluation/
-plot/HYUNDAI_SONATA_2020/
-attention_visualization/
+# Datasets and large files
+data/
+!data/README.md
+prepared_dataset/
 *.pkl
 *.csv
+
+# Evaluation and visualization outputs
+evaluation/
+attention_visualization/
+plot/output/
+plot/HYUNDAI_SONATA_2020/
 *.png
 
 # Byte-compiled / optimized / DLL files
