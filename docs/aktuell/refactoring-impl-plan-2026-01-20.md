@@ -33,7 +33,7 @@
 - [x] CPU Inference-Messung mit Warm-up (in evaluate_model.py integriert)
 
 ### Training (läuft/geplant)
-- [x] M1 Small Baseline - **läuft gerade** (~2h)
+- [x] M1 Small Baseline - **fertig** (R²=0.86, Acc=82.5%, Inference=0.93ms)
 - [ ] M2 Small + Simple Attention
 - [ ] M3 Small + Additive Attention
 - [ ] M4 Small + Scaled Dot-Product
@@ -46,9 +46,12 @@
 |-----|------|
 | Configs | `config/base_config.yaml`, `config/model_configs/` |
 | Training-Skript | `scripts/train_model.py` |
+| Evaluation-Skript | `scripts/evaluate_model.py` |
 | Checkpoints | `lightning_logs/{model_name}/version_X/checkpoints/` |
 | Paper-Dataset | `data/prepared_dataset/` (5001 files, 4.2GB) |
 | Full-Dataset | `data/prepared_dataset_full/` (21000 files, 18GB) |
+| **Evaluation Report** | `docs/reports/model_evaluation_results.md` |
+| **Results JSON** | `results/m1_results.json` |
 
 ## Kommandos
 

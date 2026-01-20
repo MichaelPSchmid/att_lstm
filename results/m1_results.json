@@ -1,0 +1,36 @@
+{
+  "model": {
+    "name": "M1_Small_Baseline",
+    "type": "baseline",
+    "parameters": 84801,
+    "checkpoint": "lightning_logs/M1_Small_Baseline/version_0/checkpoints/M1_Small_Baseline-epoch=14-val_loss=0.0017.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.0016681058332324028,
+    "rmse": 0.0408424511551857,
+    "mae": 0.030081206932663918,
+    "mape": 205988.703125,
+    "r2": 0.8602478504180908,
+    "accuracy": 82.54462196822743,
+    "accuracy_threshold": 0.05,
+    "num_samples": 220127
+  },
+  "inference": {
+    "mean_ms": 0.9309166009770706,
+    "std_ms": 0.11299681077933242,
+    "min_ms": 0.8120000129565597,
+    "max_ms": 1.6670000040903687,
+    "p50_ms": 0.895050005055964,
+    "p95_ms": 1.1291049828287212,
+    "p99_ms": 1.3200620393035933,
+    "device": "cpu",
+    "warmup_iterations": 100,
+    "num_samples": 1000
+  },
+  "config_path": "config/model_configs/m1_small_baseline.yaml"
+}
