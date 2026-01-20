@@ -20,17 +20,12 @@
     "accuracy_threshold": 0.05,
     "num_samples": 220127
   },
-  "inference": {
-    "mean_ms": 0.9309166009770706,
-    "std_ms": 0.11299681077933242,
-    "min_ms": 0.8120000129565597,
-    "max_ms": 1.6670000040903687,
-    "p50_ms": 0.895050005055964,
-    "p95_ms": 1.1291049828287212,
-    "p99_ms": 1.3200620393035933,
-    "device": "cpu",
-    "warmup_iterations": 100,
-    "num_samples": 1000
+  "inference": null,
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\figures\\M1_Small_Baseline\\M1_Small_Baseline_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\figures\\M1_Small_Baseline\\M1_Small_Baseline_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\figures\\M1_Small_Baseline\\M1_Small_Baseline_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\figures\\M1_Small_Baseline\\M1_Small_Baseline_error_distribution.png"
   },
   "config_path": "config/model_configs/m1_small_baseline.yaml"
 }
