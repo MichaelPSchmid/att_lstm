@@ -1,5 +1,0 @@
-hidden_size: 128
-input_size: 5
-lr: 0.000247399
-num_layers: 4
-output_size: 1
