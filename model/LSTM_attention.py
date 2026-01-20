@@ -31,9 +31,12 @@ class LSTMAttentionModel(pl.LightningModule):
         self.criterion = nn.MSELoss()
         self.lr = lr
 
-        # Accumulation variables
+        # Accumulation variables for metrics
         self.sum_abs_correct = 0.0
         self.total_samples = 0
+        self.sum_squared_error = 0.0      # For RMSE and R² (SS_res)
+        self.sum_targets = 0.0            # For R² (to compute mean)
+        self.sum_targets_squared = 0.0    # For R² (SS_tot)
 
     def forward(self, x):
         """
@@ -79,11 +82,17 @@ class LSTMAttentionModel(pl.LightningModule):
         loss = self.criterion(outputs, Y_batch)
         self.log("val_loss", loss, prog_bar=True, on_epoch=True)
 
-        # Calculate absolute error accuracy
+        # Accumulate for epoch-level metrics
+        squared_errors = (outputs - Y_batch) ** 2
+        self.sum_squared_error += squared_errors.sum().item()
+        self.sum_targets += Y_batch.sum().item()
+        self.sum_targets_squared += (Y_batch ** 2).sum().item()
+
+        # Accuracy calculation
         abs_threshold = 0.05
         abs_correct = torch.abs(outputs - Y_batch) < abs_threshold
         self.sum_abs_correct += abs_correct.sum().item()
-        self.total_samples += Y_batch.numel()  # Accumulate total sample count
+        self.total_samples += Y_batch.numel()
 
         return loss
 
@@ -91,16 +100,31 @@ class LSTMAttentionModel(pl.LightningModule):
         """
         Operations at the end of each validation epoch
         """
-        # Calculate the average absolute error accuracy for the epoch
-        avg_abs_accuracy = self.sum_abs_correct / self.total_samples
+        n = self.total_samples
 
-        # Log and print
-        self.log("avg_val_abs_accuracy", avg_abs_accuracy, prog_bar=True)
-        print(f"Validation Absolute Accuracy (epoch): {avg_abs_accuracy:.4f}")
+        # Accuracy
+        accuracy = self.sum_abs_correct / n
 
-        # Reset accumulation variables
+        # RMSE: sqrt(SS_res / n)
+        rmse = (self.sum_squared_error / n) ** 0.5
+
+        # R²: 1 - SS_res / SS_tot
+        ss_res = self.sum_squared_error
+        ss_tot = self.sum_targets_squared - (self.sum_targets ** 2) / n
+        r2 = 1 - ss_res / (ss_tot + 1e-8)
+
+        self.log("val_accuracy", accuracy, prog_bar=True)
+        self.log("val_rmse", rmse, prog_bar=True)
+        self.log("val_r2", r2, prog_bar=True)
+
+        print(f"Validation - Accuracy: {accuracy:.4f}, RMSE: {rmse:.4f}, R²: {r2:.4f}")
+
+        # Reset accumulators
         self.sum_abs_correct = 0.0
         self.total_samples = 0
+        self.sum_squared_error = 0.0
+        self.sum_targets = 0.0
+        self.sum_targets_squared = 0.0
 
     def test_step(self, batch, batch_idx):
         """
@@ -111,11 +135,17 @@ class LSTMAttentionModel(pl.LightningModule):
         loss = self.criterion(outputs, Y_batch)
         self.log("test_loss", loss, prog_bar=True, on_epoch=True)
 
-        # Calculate absolute error accuracy
+        # Accumulate for epoch-level metrics
+        squared_errors = (outputs - Y_batch) ** 2
+        self.sum_squared_error += squared_errors.sum().item()
+        self.sum_targets += Y_batch.sum().item()
+        self.sum_targets_squared += (Y_batch ** 2).sum().item()
+
+        # Accuracy calculation
         abs_threshold = 0.05
         abs_correct = torch.abs(outputs - Y_batch) < abs_threshold
         self.sum_abs_correct += abs_correct.sum().item()
-        self.total_samples += Y_batch.numel()  # Accumulate total sample count
+        self.total_samples += Y_batch.numel()
 
         return loss
 
@@ -123,16 +153,31 @@ class LSTMAttentionModel(pl.LightningModule):
         """
         Operations at the end of the test phase
         """
-        # Calculate the average absolute error accuracy for the entire test phase
-        avg_abs_accuracy = self.sum_abs_correct / self.total_samples
+        n = self.total_samples
 
-        # Log and print
-        self.log("avg_test_abs_accuracy", avg_abs_accuracy, prog_bar=True)
-        print(f"Test Absolute Accuracy (epoch): {avg_abs_accuracy:.4f}")
+        # Accuracy
+        accuracy = self.sum_abs_correct / n
 
-        # Reset accumulation variables
+        # RMSE: sqrt(SS_res / n)
+        rmse = (self.sum_squared_error / n) ** 0.5
+
+        # R²: 1 - SS_res / SS_tot
+        ss_res = self.sum_squared_error
+        ss_tot = self.sum_targets_squared - (self.sum_targets ** 2) / n
+        r2 = 1 - ss_res / (ss_tot + 1e-8)
+
+        self.log("test_accuracy", accuracy, prog_bar=True)
+        self.log("test_rmse", rmse, prog_bar=True)
+        self.log("test_r2", r2, prog_bar=True)
+
+        print(f"Test - Accuracy: {accuracy:.4f}, RMSE: {rmse:.4f}, R²: {r2:.4f}")
+
+        # Reset accumulators
         self.sum_abs_correct = 0.0
         self.total_samples = 0
+        self.sum_squared_error = 0.0
+        self.sum_targets = 0.0
+        self.sum_targets_squared = 0.0
 
     def configure_optimizers(self):
         """
