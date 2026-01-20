@@ -1,0 +1,42 @@
+{
+  "model": {
+    "name": "M2_Small_Simple_Attention",
+    "type": "simple_attention",
+    "parameters": 84866,
+    "checkpoint": "lightning_logs/M2_Small_Simple_Attention/version_0/checkpoints/M2_Small_Simple_Attention-epoch=06-val_loss=0.0018.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.0017873391043394804,
+    "rmse": 0.042276933789253235,
+    "mae": 0.030920937657356262,
+    "mape": 203696.15625,
+    "r2": 0.8502585887908936,
+    "accuracy": 81.49840773735161,
+    "accuracy_threshold": 0.05,
+    "num_samples": 220127
+  },
+  "inference": {
+    "mean_ms": 1.0221408993238583,
+    "std_ms": 0.12598939410607157,
+    "min_ms": 0.8735000155866146,
+    "max_ms": 1.7792999860830605,
+    "p50_ms": 0.9678500064183027,
+    "p95_ms": 1.2513400375610215,
+    "p99_ms": 1.3878489728085694,
+    "device": "cpu",
+    "warmup_iterations": 100,
+    "num_samples": 1000
+  },
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\figures\\M2_Small_Simple_Attention\\M2_Small_Simple_Attention_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\figures\\M2_Small_Simple_Attention\\M2_Small_Simple_Attention_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\figures\\M2_Small_Simple_Attention\\M2_Small_Simple_Attention_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\figures\\M2_Small_Simple_Attention\\M2_Small_Simple_Attention_error_distribution.png"
+  },
+  "config_path": "config/model_configs/m2_small_simple_attn.yaml"
+}

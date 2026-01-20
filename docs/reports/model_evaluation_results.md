@@ -10,12 +10,15 @@
 
 | Modell | Typ | Parameter | R² | Accuracy | RMSE | Inference (ms) | Status |
 |--------|-----|-----------|-----|----------|------|----------------|--------|
-| M1 Small Baseline | LSTM | 84,801 | 0.860 | 82.54% | 0.0408 | 0.93 | ✅ |
-| M2 Small + Simple Attn | LSTM + Attention | - | - | - | - | - | ⬜ |
-| M3 Small + Additive Attn | LSTM + Additive | - | - | - | - | - | ⬜ |
-| M4 Small + Scaled DP | LSTM + Scaled Dot | - | - | - | - | - | ⬜ |
-| M5 Medium Baseline | LSTM | - | - | - | - | - | ⬜ |
-| M6 Large Baseline | LSTM | - | - | - | - | - | ⬜ |
+| M1 Small Baseline | LSTM (64, 3) | 84,801 | 0.860 | 82.54% | 0.0408 | 0.93 | ✅ |
+| M2 Small + Simple Attn | LSTM + Attention (64, 3) | 84,866 | 0.850 | 81.50% | 0.0423 | 1.02 | ✅ |
+| M3 Medium Baseline | LSTM (128, 5) | - | - | - | - | - | ⬜ |
+| M4 Medium + Simple Attn | LSTM + Attention (128, 5) | - | - | - | - | - | ⬜ |
+| M5 Medium + Additive Attn | LSTM + Additive (128, 5) | - | - | - | - | - | ⬜ |
+| M6 Medium + Scaled DP | LSTM + Scaled DP (128, 5) | - | - | - | - | - | ⬜ |
+
+> **Plan-Änderung:** Basierend auf Paper-Erkenntnissen (Kapitel 5) wurde der Fokus von kleinen auf mittlere Modelle verschoben.
+> Bei hidden=64, layers=3 zeigt Attention keinen Vorteil. Bei hidden=128, layers=5 übertrifft Attention die Baseline.
 
 ---
 
@@ -95,6 +98,74 @@ tensorboard --logdir lightning_logs/M1_Small_Baseline
 
 ---
 
+## M2: Small + Simple Attention
+
+### Modell-Konfiguration
+
+| Parameter | Wert |
+|-----------|------|
+| Typ | LSTM + Simple Attention |
+| Input Size | 5 Features |
+| Hidden Size | 64 |
+| Num Layers | 3 |
+| Output Size | 1 |
+| **Total Parameters** | **84,866** |
+
+**Relevante Dateien:**
+- Config: [`config/model_configs/m2_small_simple_attn.yaml`](../../config/model_configs/m2_small_simple_attn.yaml)
+- Model: [`model/LSTM_attention.py`](../../model/LSTM_attention.py)
+
+### Training
+
+| Parameter | Wert |
+|-----------|------|
+| Dataset | Paper (5001 files) |
+| Samples | 2,201,265 |
+| Train/Val/Test Split | 70/20/10 |
+| Batch Size | 32 |
+| Learning Rate | 0.001 |
+| Optimizer | Adam |
+| Early Stopping | patience=5, monitor=val_loss |
+| **Epochs trained** | **17** (Early Stop bei Epoch 6) |
+
+**Relevante Dateien:**
+- Training Script: [`scripts/train_model.py`](../../scripts/train_model.py)
+- Base Config: [`config/base_config.yaml`](../../config/base_config.yaml)
+- Checkpoint: [`lightning_logs/M2_Small_Simple_Attention/version_0/checkpoints/M2_Small_Simple_Attention-epoch=06-val_loss=0.0018.ckpt`](../../lightning_logs/M2_Small_Simple_Attention/version_0/checkpoints/)
+
+### Test Set Evaluation
+
+| Metrik | Wert | Vergleich zu M1 |
+|--------|------|-----------------|
+| **R²** | **0.8503** | -1.15% |
+| **Accuracy** | **81.50%** | -1.26% |
+| **RMSE** | 0.0423 | +3.68% |
+| **MAE** | 0.0309 | +2.66% |
+| **MSE** | 0.00179 | +7.18% |
+| Test Samples | 220,127 | - |
+
+> **Hinweis:** Die Simple Attention (nur die letzte LSTM-Ausgabe mit Attention gewichten) bringt bei kleinen Modellen keinen Vorteil. Dies bestätigt die Ergebnisse aus dem Paper (Experiment 1).
+
+### CPU Inference Zeit
+
+| Metrik | Wert |
+|--------|------|
+| **Mean** | **1.02 ms** |
+| Std | 0.13 ms |
+| Min | 0.87 ms |
+| Max | 1.78 ms |
+| P50 | 0.97 ms |
+| P95 | 1.25 ms |
+| P99 | 1.39 ms |
+| **Target (<10 ms)** | **✅ PASS** |
+
+**Relevante Dateien:**
+- Evaluation Script: [`scripts/evaluate_model.py`](../../scripts/evaluate_model.py)
+- Results JSON: [`results/m2_results.json`](../../results/m2_results.json)
+- Training Curves: [`results/figures/M2_Small_Simple_Attention/training_curves.png/`](../../results/figures/M2_Small_Simple_Attention/training_curves.png/)
+
+---
+
 ## Daten
 
 ### Dataset
@@ -162,13 +233,15 @@ python scripts/compare_results.py results/*.json --latex --output docs/reports/c
 
 ## Nächste Schritte
 
-1. [ ] M2 Training starten (Small + Simple Attention)
-2. [ ] M3 Training (Small + Additive Attention)
-3. [ ] M4 Training (Small + Scaled Dot-Product)
-4. [ ] M5 Training (Medium Baseline)
-5. [ ] M6 Training (Large Baseline)
-6. [ ] Vergleichstabellen generieren
-7. [ ] Attention-Visualisierung erstellen
+1. [x] M1 Training (Small Baseline) - ✅ R²=0.860, Acc=82.54%
+2. [x] M2 Training (Small + Simple Attention) - ✅ R²=0.850, Acc=81.50%
+   - Bestätigt: Attention hilft nicht bei kleinen Modellen
+3. [ ] M3 Training (Medium Baseline, hidden=128, layers=5)
+4. [ ] M4 Training (Medium + Simple Attention)
+5. [ ] M5 Training (Medium + Additive Attention)
+6. [ ] M6 Training (Medium + Scaled Dot-Product)
+7. [ ] Vergleichstabellen generieren
+8. [ ] Attention-Visualisierung erstellen
 
 ---
 

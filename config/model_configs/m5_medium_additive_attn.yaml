@@ -1,0 +1,21 @@
+# M5: Medium LSTM + Additive (Bahdanau) Attention
+# Architecture matching Paper Experiment 2
+# Expected parameters: ~700K (attention adds parameters)
+# Expected training time: ~5h
+
+model:
+  name: "M5_Medium_Additive_Attention"
+  type: "additive_attention"
+
+  # Architecture (Paper Experiment 2 settings)
+  input_size: 5
+  hidden_size: 128
+  num_layers: 5
+  output_size: 1
+
+  # Attention configuration
+  attention: "additive"     # Bahdanau: score_ij = v^T * tanh(W * h_i + U * h_j)
+  attention_size: 128       # Dimension of attention layer
+
+training:
+  learning_rate: 0.0005    # Paper used 0.0005 for larger models

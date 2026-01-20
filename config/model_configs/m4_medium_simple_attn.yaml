@@ -1,0 +1,20 @@
+# M4: Medium LSTM + Simple Attention
+# Architecture matching Paper Experiment 2
+# Expected parameters: ~600K
+# Expected training time: ~4h
+
+model:
+  name: "M4_Medium_Simple_Attention"
+  type: "simple_attention"
+
+  # Architecture (Paper Experiment 2 settings)
+  input_size: 5
+  hidden_size: 128
+  num_layers: 5
+  output_size: 1
+
+  # Attention configuration
+  attention: "simple"      # score_i = W * h_i + b (independent per timestep)
+
+training:
+  learning_rate: 0.0005    # Paper used 0.0005 for larger models

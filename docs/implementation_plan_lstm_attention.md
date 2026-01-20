@@ -18,14 +18,24 @@ Systematischer Vergleich von:
 
 ## Modellübersicht
 
+> **Hinweis:** Plan angepasst basierend auf Paper-Erkenntnissen (Kapitel 5):
+> - Experiment 1 (Small, hidden=64, layers=3): Baseline besser als Attention
+> - Experiment 2 (Medium, hidden=128, layers=5): Attention besser als Baseline
+>
+> → Attention-Vergleich auf Medium-Größe verschoben, wo es laut Paper funktioniert.
+
 | ID | Modell | Hidden | Layers | Attention | ~Parameter | ~Trainingszeit |
 |----|--------|--------|--------|-----------|------------|----------------|
-| M1 | Small Baseline | 64 | 3 | None | 340K | ~2h |
-| M2 | Small + Simple | 64 | 3 | Simple | 350K | ~3h |
-| M3 | Small + Additive | 64 | 3 | Additive | 380K | ~3h |
-| M4 | Small + Scaled Dot-Product | 64 | 3 | Scaled DP | 350K | ~3h |
-| M5 | Medium Baseline | 128 | 5 | None | 600K | ~4h |
-| M6 | Large Baseline | 256 | 10 | None | 5.0M | ~28h |
+| M1 | Small Baseline | 64 | 3 | None | ~85K | ~2h |
+| M2 | Small + Simple | 64 | 3 | Simple | ~85K | ~3h |
+| M3 | Medium Baseline | 128 | 5 | None | ~600K | ~4h |
+| M4 | Medium + Simple | 128 | 5 | Simple | ~600K | ~4h |
+| M5 | Medium + Additive | 128 | 5 | Additive | ~700K | ~5h |
+| M6 | Medium + Scaled DP | 128 | 5 | Scaled DP | ~600K | ~4h |
+
+**Ziele:**
+1. M1 vs M2: Bestätigt, dass Attention bei kleinen Modellen nicht hilft
+2. M3 vs M4/M5/M6: Vergleicht Attention-Mechanismen bei optimaler Modellgröße
 
 ---
 
