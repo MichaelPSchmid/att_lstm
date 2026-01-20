@@ -1,9 +1,9 @@
 # Refactoring: Code an Implementierungsplan anpassen - 2026-01-20
 
 ## Status
-- **M1 (Small Baseline) Training läuft!**
+- **M1 (Small Baseline) Training läuft** (noch keine Checkpoints)
 - Branch: `refactor/preprocessing-efficiency`
-- Nächster Schritt: Evaluation-Skripte erstellen
+- Evaluation-Skripte ✅ erstellt
 
 ## Erledigte Aufgaben heute
 
@@ -27,10 +27,10 @@
 
 ## Offene Aufgaben
 
-### Phase 2: Evaluation (nächste Session)
-- [ ] `scripts/evaluate_model.py` - Test-Set Evaluation mit Metriken
-- [ ] `scripts/compare_results.py` - Vergleichstabellen generieren
-- [ ] CPU Inference-Messung mit Warm-up
+### Phase 2: Evaluation ✅
+- [x] `scripts/evaluate_model.py` - Test-Set Evaluation mit Metriken
+- [x] `scripts/compare_results.py` - Vergleichstabellen generieren (Markdown + LaTeX)
+- [x] CPU Inference-Messung mit Warm-up (in evaluate_model.py integriert)
 
 ### Training (läuft/geplant)
 - [x] M1 Small Baseline - **läuft gerade** (~2h)
@@ -61,6 +61,13 @@ python scripts/train_model.py --config config/model_configs/m2_small_simple_attn
 
 # TensorBoard
 tensorboard --logdir lightning_logs/
+
+# Evaluation (nach Training)
+python scripts/evaluate_model.py --checkpoint lightning_logs/M1_Small_Baseline/version_0/checkpoints/best.ckpt --config config/model_configs/m1_small_baseline.yaml --output results/m1_results.json
+
+# Vergleichstabelle generieren
+python scripts/compare_results.py results/*.json --output results/comparison.md
+python scripts/compare_results.py results/*.json --latex --output results/comparison.tex
 ```
 
 ## Commits auf diesem Branch
@@ -71,8 +78,8 @@ cc6e781 feat(preprocess): Add --max-files parameter and clarify dataset size in 
 bc39ea5 refactor(preprocess): Add parallel preprocessing with memory-efficient numpy output
 ```
 
-## Nächste Session
-1. Prüfen ob M1 Training erfolgreich war
-2. `scripts/evaluate_model.py` erstellen
+## Nächste Schritte
+1. Warten bis M1 Training abgeschlossen (Checkpoints prüfen)
+2. M1 evaluieren mit `scripts/evaluate_model.py`
 3. M2 Training starten
-4. Bugfixes committen
+4. Änderungen committen (Evaluation-Skripte)
