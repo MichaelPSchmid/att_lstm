@@ -162,6 +162,7 @@ def plot_loss_curves(
     ax.set_title(f'{model_name}\nTraining and Validation Loss', fontsize=14)
     ax.legend(loc='upper right', fontsize=10)
     ax.grid(True, alpha=0.3)
+    ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
     # Set y-axis to start from 0 or slightly below minimum
     if train_loss_key or val_loss_key:
@@ -267,6 +268,7 @@ def plot_metrics_curves(
     for ax in axes:
         ax.set_xlabel('Epoch', fontsize=12)
         ax.grid(True, alpha=0.3)
+        ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
     fig.suptitle(f'{model_name} - Validation Metrics', fontsize=14, y=1.02)
     plt.tight_layout()
@@ -351,27 +353,45 @@ def plot_combined(
     ax.set_title('Validation Accuracy')
     ax.grid(True, alpha=0.3)
 
-    # Bottom-right: Learning rate (if available)
+    # Bottom-right: Final metrics summary
     ax = axes[1, 1]
-    lr_key = None
-    for key in metrics.keys():
-        if 'lr' in key.lower() or 'learning_rate' in key.lower():
-            lr_key = key
-            break
+    ax.axis('off')
 
-    if lr_key:
-        data = metrics[lr_key]
-        ax.plot(data['steps'], data['values'], 'm-', linewidth=2)
-        ax.set_xlabel('Step')
-        ax.set_ylabel('Learning Rate')
-        ax.set_title('Learning Rate Schedule')
-        ax.set_yscale('log')
-    else:
-        # Show epoch info instead
-        ax.text(0.5, 0.5, 'No LR data\n(using ReduceLROnPlateau)',
-                ha='center', va='center', transform=ax.transAxes, fontsize=12)
-        ax.set_title('Learning Rate')
-    ax.grid(True, alpha=0.3)
+    # Collect final metrics for summary
+    summary_lines = [f"Final Metrics (Epoch {len(metrics.get(val_loss_key, {}).get('values', [])) - 1})"]
+    summary_lines.append("-" * 30)
+
+    if val_loss_key and len(metrics[val_loss_key]['values']) > 0:
+        final_loss = metrics[val_loss_key]['values'][-1]
+        summary_lines.append(f"Val Loss:     {final_loss:.6f}")
+
+    if r2_key and len(metrics[r2_key]['values']) > 0:
+        final_r2 = metrics[r2_key]['values'][-1]
+        summary_lines.append(f"Val R²:       {final_r2:.4f}")
+
+    if acc_key and len(metrics[acc_key]['values']) > 0:
+        final_acc = metrics[acc_key]['values'][-1] * 100
+        summary_lines.append(f"Val Accuracy: {final_acc:.2f}%")
+
+    # Find RMSE
+    rmse_key = None
+    for key in metrics.keys():
+        if 'val_rmse' in key.lower() and 'avg' not in key.lower():
+            rmse_key = key
+            break
+    if rmse_key and len(metrics[rmse_key]['values']) > 0:
+        final_rmse = metrics[rmse_key]['values'][-1]
+        summary_lines.append(f"Val RMSE:     {final_rmse:.6f}")
+
+    summary_text = "\n".join(summary_lines)
+    ax.text(0.5, 0.5, summary_text, ha='center', va='center', transform=ax.transAxes,
+            fontsize=12, family='monospace',
+            bbox=dict(boxstyle='round', facecolor='lightgray', alpha=0.5))
+    ax.set_title('Summary', fontsize=12)
+
+    # Set integer ticks on epoch axes
+    for ax in [axes[0, 0], axes[0, 1], axes[1, 0]]:
+        ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
     fig.suptitle(f'{model_name} - Training Overview', fontsize=14)
     plt.tight_layout()
