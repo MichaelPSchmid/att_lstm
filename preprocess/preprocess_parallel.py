@@ -76,6 +76,7 @@ class PreprocessConfig:
 
     # Processing
     num_workers: Optional[int] = None  # None = auto (cpu_count - 4)
+    max_files: Optional[int] = None  # None = use all files
 
     # CSV column names
     csv_columns: Tuple[str, ...] = (
@@ -172,6 +173,11 @@ def run_parallel_preprocessing(config: PreprocessConfig) -> None:
         return
 
     logger.info(f"Found {len(csv_files)} CSV files")
+
+    # Limit number of files if specified
+    if config.max_files is not None and config.max_files < len(csv_files):
+        csv_files = csv_files[:config.max_files]
+        logger.info(f"Limited to first {config.max_files} CSV files")
 
     # Prepare arguments: (sequence_id, path)
     work_items = list(enumerate(csv_files))
@@ -322,6 +328,10 @@ def parse_args() -> argparse.Namespace:
         "--vehicle", type=str, default="HYUNDAI_SONATA_2020",
         help="Vehicle name (default: HYUNDAI_SONATA_2020)"
     )
+    parser.add_argument(
+        "--max-files", type=int, default=None,
+        help="Maximum number of CSV files to process (default: all)"
+    )
 
     return parser.parse_args()
 
@@ -336,6 +346,7 @@ def main() -> None:
         step_size=args.step_size,
         num_workers=args.workers,
         vehicle=args.vehicle,
+        max_files=args.max_files,
     )
 
     # Set raw data path based on vehicle
