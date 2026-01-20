@@ -53,9 +53,11 @@ class TimeSeriesDataModule(pl.LightningDataModule):
         data = load_data_file(self.feature_path)
         self.X = torch.tensor(data, dtype=torch.float32)
 
-        # Load targets
+        # Load targets - keep shape [N, 1] to match model output
         data = load_data_file(self.target_path)
-        self.Y = torch.tensor(data, dtype=torch.float32).squeeze(-1)
+        self.Y = torch.tensor(data, dtype=torch.float32)
+        if self.Y.dim() == 1:
+            self.Y = self.Y.unsqueeze(-1)
 
         print(f"Loaded features: {self.X.shape}")
         print(f"Loaded targets: {self.Y.shape}")
@@ -93,12 +95,12 @@ class TimeSeriesDataModule(pl.LightningDataModule):
 
     def train_dataloader(self):
         print(f"Number of training samples: {len(self.train_dataset)}")
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=15, pin_memory=True)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=15, pin_memory=True, persistent_workers=True)
 
     def val_dataloader(self):
         print(f"Number of validation samples: {len(self.val_dataset)}")
-        return DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, num_workers=15, pin_memory=True)
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, num_workers=15, pin_memory=True, persistent_workers=True)
 
     def test_dataloader(self):
         print(f"Number of test samples: {len(self.test_dataset)}")
-        return DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=15, pin_memory=True)
+        return DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=15, pin_memory=True, persistent_workers=True)

@@ -1,53 +1,78 @@
 # Refactoring: Code an Implementierungsplan anpassen - 2026-01-20
 
 ## Status
-- Aktiver Schritt: Analyse und Planung
-- Nächster: AP1 - Config-System implementieren
-
-## Kontext
-- Der aktuelle Code funktioniert, ist aber weniger strukturiert als der Implementierungsplan
-- Ziel: Code an `docs/implementation_plan_lstm_attention.md` anpassen
+- **M1 (Small Baseline) Training läuft!**
 - Branch: `refactor/preprocessing-efficiency`
+- Nächster Schritt: Evaluation-Skripte erstellen
 
-## Hauptunterschiede Plan vs. Code
+## Erledigte Aufgaben heute
 
-| Aspekt | Plan | Aktuell | Priorität |
-|--------|------|---------|-----------|
-| Config-System | YAML pro Modell | Hardcoded | Hoch |
-| Seed | 42 | 3407 | Mittel |
-| Inference-Messung | CPU + Warm-up | Fehlt | Mittel |
-| Projektstruktur | `src/` Hierarchie | Flache Struktur | Niedrig |
-| Features | 5 Features (andere Namen) | 5 Features (passt) | - |
+### Preprocessing
+- [x] `preprocess_parallel.py` mit `--max-files` Parameter
+- [x] Separate Ordner: `prepared_dataset/` (paper) vs `prepared_dataset_full/` (full)
+- [x] Paper-Dataset (5001 files) und Full-Dataset (21000 files) existieren
+
+### Config-System ✅
+- [x] `config/base_config.yaml` - gemeinsame Einstellungen
+- [x] `config/model_configs/m1-m6_*.yaml` - 6 Modell-Configs
+- [x] `config_loader.py` - lädt und merged Configs
+- [x] `scripts/train_model.py` - CLI mit `--config`, `--dry-run`, `--resume`
+
+### Bugfixes
+- [x] `config.py`: `feature_` → `features_`, `target_` → `targets_`
+- [x] `data_module.py`: Target Shape `[N]` → `[N, 1]` (Match mit Model Output)
+- [x] `data_module.py`: `persistent_workers=True` für DataLoader
+- [x] `pyproject.toml`: `tensorboard` und `pyyaml` hinzugefügt
+- [x] Seed: 3407 → 42
 
 ## Offene Aufgaben
 
-### Phase 1: Config-System ✅
-- [x] `config/base_config.yaml` erstellen
-- [x] `config/model_configs/` für M1-M6 erstellen
-- [x] Config-Loader implementieren (`config_loader.py`)
-- [x] `scripts/train_model.py` mit CLI erstellen
+### Phase 2: Evaluation (nächste Session)
+- [ ] `scripts/evaluate_model.py` - Test-Set Evaluation mit Metriken
+- [ ] `scripts/compare_results.py` - Vergleichstabellen generieren
+- [ ] CPU Inference-Messung mit Warm-up
 
-### Phase 2: Vereinheitlichung
-- [x] Seed auf 42 ändern (in `main.py` und `base_config.yaml`)
-- [ ] Modelle mit einheitlicher Schnittstelle
-- [ ] Inference-Messung auf CPU implementieren
+### Training (läuft/geplant)
+- [x] M1 Small Baseline - **läuft gerade** (~2h)
+- [ ] M2 Small + Simple Attention
+- [ ] M3 Small + Additive Attention
+- [ ] M4 Small + Scaled Dot-Product
+- [ ] M5 Medium Baseline
+- [ ] M6 Large Baseline
 
-### Phase 3: Evaluation
-- [ ] `scripts/evaluate_model.py` erstellen
-- [ ] `scripts/compare_results.py` erstellen
-- [ ] Warm-up für Inferenz-Messung
+## Wichtige Pfade
 
-## Entscheidungen/Erkenntnisse
-- [2026-01-20] Features im Plan (`speed`, `angle`, etc.) entsprechen den aktuellen Features (`vEgo`, `steeringAngleDeg`, etc.) - nur andere Namen
-- [2026-01-20] Projektstruktur-Umbau (→ `src/`) hat niedrige Priorität, da funktional kein Unterschied
-- [2026-01-20] Fokus auf Config-System und Training-Skript
-- [2026-01-20] Phase 1 abgeschlossen: Config-System implementiert mit YAML-Dateien und CLI-Skript
+| Was | Pfad |
+|-----|------|
+| Configs | `config/base_config.yaml`, `config/model_configs/` |
+| Training-Skript | `scripts/train_model.py` |
+| Checkpoints | `lightning_logs/{model_name}/version_X/checkpoints/` |
+| Paper-Dataset | `data/prepared_dataset/` (5001 files, 4.2GB) |
+| Full-Dataset | `data/prepared_dataset_full/` (21000 files, 18GB) |
+
+## Kommandos
+
+```bash
+# Training starten
+python scripts/train_model.py --config config/model_configs/m1_small_baseline.yaml
+
+# Dry-run (nur Config anzeigen)
+python scripts/train_model.py --config config/model_configs/m2_small_simple_attn.yaml --dry-run
+
+# TensorBoard
+tensorboard --logdir lightning_logs/
+```
+
+## Commits auf diesem Branch
+```
+4ac8530 feat(training): Add YAML config system and CLI training script
+e9016e7 feat(config): Support separate directories for paper and full datasets
+cc6e781 feat(preprocess): Add --max-files parameter and clarify dataset size in paper
+bc39ea5 refactor(preprocess): Add parallel preprocessing with memory-efficient numpy output
+```
 
 ## Nächste Session
-- Mit Config-System beginnen (`base_config.yaml`)
-- Dann `train_model.py` mit `--config` Parameter
-
-## Referenzen
-- Implementierungsplan: `docs/implementation_plan_lstm_attention.md`
-- Aktueller Code: `model/`, `main.py`, `data_module.py`
-- Paper: `docs/paper/paper.tex`
+1. Prüfen ob M1 Training erfolgreich war
+2. `scripts/evaluate_model.py` erstellen
+3. M2 Training starten
+4. Bugfixes committen

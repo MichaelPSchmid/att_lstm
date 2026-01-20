@@ -76,8 +76,8 @@ def get_preprocessed_paths(
 
     return {
         "dir": data_dir,
-        "features": data_dir / f"feature_{file_base}.pkl",
-        "targets": data_dir / f"target_{file_base}.pkl",
+        "features": data_dir / f"features_{file_base}.pkl",
+        "targets": data_dir / f"targets_{file_base}.pkl",
         "sequence_ids": data_dir / f"sequence_ids_{file_base}.pkl",
         "time_steps": data_dir / f"time_steps_{file_base}.pkl",
     }
