@@ -1,8 +1,44 @@
+from pathlib import Path
+
 from torch.utils.data import DataLoader, TensorDataset
 import pytorch_lightning as pl
 import torch
 import pickle
 import numpy as np
+
+
+def load_data_file(file_path: str) -> np.ndarray:
+    """
+    Load data from either .npy or .pkl file.
+
+    Automatically detects format based on file extension or tries numpy first.
+    For large datasets, prefers .npy files as they are more memory-efficient.
+
+    Args:
+        file_path: Path to the data file (.npy or .pkl)
+
+    Returns:
+        numpy array with the data
+    """
+    path = Path(file_path)
+
+    # Check for .npy version first (more efficient)
+    npy_path = path.with_suffix('.npy')
+    if npy_path.exists():
+        print(f"Loading numpy file: {npy_path}")
+        return np.load(npy_path).astype(np.float32)
+
+    # Fall back to pickle
+    if path.exists():
+        print(f"Loading pickle file: {path}")
+        with open(path, 'rb') as f:
+            data = pickle.load(f)
+            if isinstance(data, list):
+                data = np.array(data, dtype=np.float32)
+            return data.astype(np.float32)
+
+    raise FileNotFoundError(f"No data file found at {file_path} or {npy_path}")
+
 
 class TimeSeriesDataModule(pl.LightningDataModule):
     def __init__(self, feature_path, target_path, batch_size=32):
@@ -12,23 +48,17 @@ class TimeSeriesDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
 
     def prepare_data(self):
-        """ Load feature and target data from pickle files efficiently. """
-        with open(self.feature_path, 'rb') as f:
-            data = pickle.load(f)
-            if isinstance(data, list):  
-                data = np.array(data, dtype=np.float32)  # Convert list to numpy array
-            self.X = torch.tensor(data, dtype=torch.float32)  # Convert to tensor
+        """Load feature and target data from numpy or pickle files."""
+        # Load features
+        data = load_data_file(self.feature_path)
+        self.X = torch.tensor(data, dtype=torch.float32)
 
-        with open(self.target_path, 'rb') as f:
-            data = pickle.load(f)
-            if isinstance(data, list):  
-                data = np.array(data, dtype=np.float32)  # Convert list to numpy array
-            self.Y = torch.tensor(data, dtype=torch.float32).squeeze(-1)  # Convert to tensor
+        # Load targets
+        data = load_data_file(self.target_path)
+        self.Y = torch.tensor(data, dtype=torch.float32).squeeze(-1)
 
-
-        # Uncomment for debugging:
-        # print(f"Feature shape (X): {self.X.shape}")  # Input data shape
-        # print(f"Target shape (Y): {self.Y.shape}")   # Target data shape
+        print(f"Loaded features: {self.X.shape}")
+        print(f"Loaded targets: {self.Y.shape}")
 
     def setup(self, stage=None):
 
