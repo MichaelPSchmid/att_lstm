@@ -203,13 +203,17 @@ def run_parallel_preprocessing(config: PreprocessConfig) -> None:
             desc="Processing CSVs"
         ))
 
+    # Determine dataset variant based on whether max_files was used
+    variant = "paper" if config.max_files is not None else "full"
+
     # Get output paths
     paths = get_preprocessed_paths(
         vehicle=config.vehicle,
         window_size=config.window_size,
         predict_size=config.predict_size,
         step_size=config.step_size,
-        suffix=config.suffix
+        suffix=config.suffix,
+        variant=variant
     )
 
     # Create output directory
@@ -286,6 +290,7 @@ def run_parallel_preprocessing(config: PreprocessConfig) -> None:
     # Print summary
     logger.info("=" * 60)
     logger.info("Preprocessing complete!")
+    logger.info(f"  Dataset variant: {variant}")
     logger.info(f"  Samples: {total_samples}")
     logger.info(f"  Feature shape: {feature_shape}")
     logger.info(f"  Target shape: {target_shape}")

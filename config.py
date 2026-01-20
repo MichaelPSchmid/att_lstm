@@ -19,7 +19,8 @@ DATA_ROOT = PROJECT_ROOT / "data"
 
 # Dataset paths
 DATASET_DIR = DATA_ROOT / "dataset"
-PREPARED_DATASET_DIR = DATA_ROOT / "prepared_dataset"
+PREPARED_DATASET_DIR = DATA_ROOT / "prepared_dataset"  # Default (paper: 5001 files)
+PREPARED_DATASET_FULL_DIR = DATA_ROOT / "prepared_dataset_full"  # Full dataset (all files)
 
 # Output directories
 EVALUATION_DIR = PROJECT_ROOT / "evaluation"
@@ -47,7 +48,8 @@ def get_preprocessed_paths(
     window_size: int = 50,
     predict_size: int = 1,
     step_size: int = 1,
-    suffix: str = "sF"
+    suffix: str = "sF",
+    variant: str = "paper"
 ) -> dict:
     """
     Get paths for preprocessed data files.
@@ -58,11 +60,15 @@ def get_preprocessed_paths(
         predict_size: Prediction horizon
         step_size: Step size for sliding window
         suffix: Suffix for the folder (e.g., 'sF', 's', 'sF_NewFeatures')
+        variant: Dataset variant - "paper" (5001 files) or "full" (all files)
 
     Returns:
         Dictionary with paths for features, targets, sequence_ids, time_steps
     """
-    base_dir = PREPARED_DATASET_DIR / vehicle
+    if variant == "full":
+        base_dir = PREPARED_DATASET_FULL_DIR / vehicle
+    else:
+        base_dir = PREPARED_DATASET_DIR / vehicle
     folder_name = f"{window_size}_{predict_size}_{step_size}_{suffix}"
     data_dir = base_dir / folder_name
 
@@ -96,12 +102,14 @@ def get_raw_data_path(vehicle: str, num_csvs: int) -> Path:
 # =============================================================================
 
 # Default preprocessed data (most commonly used configuration)
+# Using "full" variant for backward compatibility with existing data
 DEFAULT_PATHS = get_preprocessed_paths(
     vehicle="HYUNDAI_SONATA_2020",
     window_size=50,
     predict_size=1,
     step_size=1,
-    suffix="sF"
+    suffix="sF",
+    variant="full"
 )
 
 # Convenience aliases
