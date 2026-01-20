@@ -1,0 +1,20 @@
+# M1: Small Baseline LSTM
+# Expected parameters: ~340K
+# Expected training time: ~2h
+
+model:
+  name: "M1_Small_Baseline"
+  type: "baseline"          # baseline | simple_attention | additive_attention | scaled_dp_attention
+
+  # Architecture
+  input_size: 5             # Number of input features
+  hidden_size: 64
+  num_layers: 3
+  output_size: 1            # Predict single value
+
+  # Attention (not used for baseline)
+  attention: null
+
+# Training overrides (optional - inherits from base_config.yaml)
+training:
+  learning_rate: 0.001      # Can be tuned via Optuna

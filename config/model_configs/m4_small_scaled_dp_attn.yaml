@@ -1,0 +1,19 @@
+# M4: Small LSTM + Scaled Dot-Product Attention
+# Expected parameters: ~350K
+# Expected training time: ~3h
+
+model:
+  name: "M4_Small_Scaled_DP_Attention"
+  type: "scaled_dp_attention"
+
+  # Architecture
+  input_size: 5
+  hidden_size: 64
+  num_layers: 3
+  output_size: 1
+
+  # Attention configuration
+  attention: "scaled_dot_product"  # Transformer-style: score_ij = (h_i · h_j) / sqrt(d)
+
+training:
+  learning_rate: 0.001

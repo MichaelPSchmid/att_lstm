@@ -1,0 +1,89 @@
+# Base Configuration for LSTM-Attention EPS Steering Torque Prediction
+# This file contains shared settings for all models.
+# Model-specific settings are in config/model_configs/
+
+# =============================================================================
+# Data Configuration
+# =============================================================================
+data:
+  # Dataset variant: "paper" (5001 files) or "full" (all files)
+  variant: "paper"
+  vehicle: "HYUNDAI_SONATA_2020"
+
+  # Sliding window parameters
+  window_size: 50        # 5 seconds at 10Hz
+  predict_size: 1        # Predict 1 step ahead
+  step_size: 1           # Sliding step size
+
+  # Features (from commaSteeringControl dataset)
+  features:
+    - "vEgo"              # Vehicle speed (m/s)
+    - "aEgo"              # Longitudinal acceleration (m/s²)
+    - "steeringAngleDeg"  # Steering wheel angle (degrees)
+    - "roll"              # Road roll angle (rad)
+    - "latAccelLocalizer" # Lateral acceleration (m/s²)
+
+  target: "steerFiltered"  # Normalized steering torque [-1, 1]
+
+  # Data splits
+  train_split: 0.7
+  val_split: 0.2
+  test_split: 0.1
+
+# =============================================================================
+# Training Configuration
+# =============================================================================
+training:
+  # General
+  max_epochs: 80
+  batch_size: 32
+  seed: 42
+
+  # Device
+  accelerator: "gpu"      # "gpu" or "cpu"
+  devices: 1
+
+  # Optimizer
+  optimizer: "adam"
+  learning_rate: 0.001    # Will be overridden by hyperparameter search
+
+  # Early stopping
+  early_stopping:
+    enabled: true
+    monitor: "val_loss"
+    patience: 5
+    mode: "min"
+
+  # Checkpointing
+  checkpoint:
+    enabled: true
+    monitor: "val_loss"
+    save_top_k: 3
+    mode: "min"
+
+  # Logging
+  log_every_n_steps: 50
+
+# =============================================================================
+# Evaluation Configuration
+# =============================================================================
+evaluation:
+  # Accuracy threshold (predictions within this range are "correct")
+  accuracy_threshold: 0.05
+
+  # Inference measurement (for embedded system relevance)
+  inference:
+    device: "cpu"           # Measure on CPU for embedded relevance
+    warmup_iterations: 100  # Warm-up before timing
+    num_samples: 1000       # Number of samples to average
+
+  # Target: <10ms for 100Hz real-time operation
+  target_inference_ms: 10.0
+
+# =============================================================================
+# Output Paths
+# =============================================================================
+output:
+  checkpoints_dir: "results/checkpoints"
+  logs_dir: "lightning_logs"
+  figures_dir: "results/figures"

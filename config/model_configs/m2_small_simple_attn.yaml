@@ -1,0 +1,19 @@
+# M2: Small LSTM + Simple Attention
+# Expected parameters: ~350K
+# Expected training time: ~3h
+
+model:
+  name: "M2_Small_Simple_Attention"
+  type: "simple_attention"
+
+  # Architecture
+  input_size: 5
+  hidden_size: 64
+  num_layers: 3
+  output_size: 1
+
+  # Attention configuration
+  attention: "simple"       # Linear attention: score_i = W * h_i + b
+
+training:
+  learning_rate: 0.001

@@ -1,0 +1,20 @@
+# M6: Large Baseline LSTM
+# Expected parameters: ~5.0M
+# Expected training time: ~28h
+
+model:
+  name: "M6_Large_Baseline"
+  type: "baseline"
+
+  # Architecture
+  input_size: 5
+  hidden_size: 256
+  num_layers: 10
+  output_size: 1
+
+  # Attention (not used for baseline)
+  attention: null
+
+training:
+  learning_rate: 0.0005     # Lower LR for larger model
+  batch_size: 64            # Larger batch for stability

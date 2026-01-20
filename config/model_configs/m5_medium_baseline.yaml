@@ -1,0 +1,19 @@
+# M5: Medium Baseline LSTM
+# Expected parameters: ~600K
+# Expected training time: ~4h
+
+model:
+  name: "M5_Medium_Baseline"
+  type: "baseline"
+
+  # Architecture
+  input_size: 5
+  hidden_size: 128
+  num_layers: 5
+  output_size: 1
+
+  # Attention (not used for baseline)
+  attention: null
+
+training:
+  learning_rate: 0.001

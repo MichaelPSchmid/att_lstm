@@ -9,7 +9,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from config import FEATURE_PATH, TARGET_PATH, LIGHTNING_LOGS_DIR, EVALUATION_DIR
 
 # Set random seed to ensure experiment reproducibility
-pl.seed_everything(3407)
+pl.seed_everything(42)
 
 # Enable Tensor Cores optimization
 torch.set_float32_matmul_precision('medium')
