@@ -93,6 +93,8 @@ def extract_epoch_metrics(data: Dict[str, List[tuple]]) -> Dict[str, np.ndarray]
     """
     Extract per-epoch metrics from TensorBoard data.
 
+    Uses epoch index (0, 1, 2, ...) instead of global steps for x-axis.
+
     Args:
         data: Raw TensorBoard data
 
@@ -103,9 +105,10 @@ def extract_epoch_metrics(data: Dict[str, List[tuple]]) -> Dict[str, np.ndarray]
 
     for tag, values in data.items():
         if values:
-            steps = np.array([v[0] for v in values])
+            # Use epoch index instead of global steps
+            epochs = np.arange(len(values))
             vals = np.array([v[1] for v in values])
-            metrics[tag] = {'steps': steps, 'values': vals}
+            metrics[tag] = {'steps': epochs, 'values': vals}
 
     return metrics
 
