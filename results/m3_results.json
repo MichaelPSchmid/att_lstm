@@ -1,0 +1,42 @@
+{
+  "model": {
+    "name": "M3_Medium_Baseline",
+    "type": "baseline",
+    "parameters": 597633,
+    "checkpoint": "lightning_logs/M3_Medium_Baseline/version_0/checkpoints/M3_Medium_Baseline-epoch=39-val_loss=0.0013.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.001156277023255825,
+    "rmse": 0.03400407359004021,
+    "mae": 0.02548815868794918,
+    "mape": 174658.78125,
+    "r2": 0.9031283259391785,
+    "accuracy": 87.81385291218251,
+    "accuracy_threshold": 0.05,
+    "num_samples": 220127
+  },
+  "inference": {
+    "mean_ms": 2.1417704022605903,
+    "std_ms": 0.24019850291251232,
+    "min_ms": 1.7946999869309366,
+    "max_ms": 3.5321000032126904,
+    "p50_ms": 2.083150000544265,
+    "p95_ms": 2.5674199918285012,
+    "p99_ms": 2.773823045426979,
+    "device": "cpu",
+    "warmup_iterations": 100,
+    "num_samples": 1000
+  },
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\figures\\M3_Medium_Baseline\\M3_Medium_Baseline_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\figures\\M3_Medium_Baseline\\M3_Medium_Baseline_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\figures\\M3_Medium_Baseline\\M3_Medium_Baseline_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\figures\\M3_Medium_Baseline\\M3_Medium_Baseline_error_distribution.png"
+  },
+  "config_path": "config/model_configs/m3_medium_baseline.yaml"
+}

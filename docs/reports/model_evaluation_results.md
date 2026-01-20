@@ -12,7 +12,7 @@
 |--------|-----|-----------|-----|----------|------|----------------|--------|
 | M1 Small Baseline | LSTM (64, 3) | 84,801 | 0.860 | 82.54% | 0.0408 | 0.93 | ✅ |
 | M2 Small + Simple Attn | LSTM + Attention (64, 3) | 84,866 | 0.850 | 81.50% | 0.0423 | 1.02 | ✅ |
-| M3 Medium Baseline | LSTM (128, 5) | - | - | - | - | - | ⬜ |
+| M3 Medium Baseline | LSTM (128, 5) | 597,633 | 0.903 | 87.81% | 0.0340 | 2.14 | ✅ |
 | M4 Medium + Simple Attn | LSTM + Attention (128, 5) | - | - | - | - | - | ⬜ |
 | M5 Medium + Additive Attn | LSTM + Additive (128, 5) | - | - | - | - | - | ⬜ |
 | M6 Medium + Scaled DP | LSTM + Scaled DP (128, 5) | - | - | - | - | - | ⬜ |
@@ -236,7 +236,7 @@ python scripts/compare_results.py results/*.json --latex --output docs/reports/c
 1. [x] M1 Training (Small Baseline) - ✅ R²=0.860, Acc=82.54%
 2. [x] M2 Training (Small + Simple Attention) - ✅ R²=0.850, Acc=81.50%
    - Bestätigt: Attention hilft nicht bei kleinen Modellen
-3. [ ] M3 Training (Medium Baseline, hidden=128, layers=5)
+3. [x] M3 Training (Medium Baseline) - ✅ R²=0.903, Acc=87.81%
 4. [ ] M4 Training (Medium + Simple Attention)
 5. [ ] M5 Training (Medium + Additive Attention)
 6. [ ] M6 Training (Medium + Scaled Dot-Product)
