@@ -16,4 +16,7 @@ model:
   attention: "simple"       # Linear attention: score_i = W * h_i + b
 
 training:
-  learning_rate: 0.005
+  learning_rate: 0.001      # Reduced for stability with dropout
+
+attention:
+  enabled: true             # Save attention weights during training

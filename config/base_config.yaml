@@ -93,7 +93,7 @@ output:
 # Attention Analysis (for attention-based models)
 # =============================================================================
 attention:
-  # Save attention weights during training (use --save-attention flag)
+  enabled: false          # Set to true in model config to save attention weights
   save_per_epoch: true    # Save weights after each validation epoch
   save_csv: true          # Also save as CSV for easy viewing
   output_dir: "attention_weights"  # Base directory for attention weights

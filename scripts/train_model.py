@@ -58,7 +58,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--save-attention",
         action="store_true",
-        help="Save attention weights during training (for attention models)"
+        help="Save attention weights (overrides config, enables saving)"
+    )
+    parser.add_argument(
+        "--no-save-attention",
+        action="store_true",
+        help="Disable attention weight saving (overrides config)"
     )
     parser.add_argument(
         "--attention-dir",
@@ -141,15 +146,25 @@ def main():
         )
         callbacks.append(checkpoint_callback)
 
-    # Attention saving
+    # Attention saving (config or CLI flag)
+    attention_config = config.get("attention", {})
+    save_attention = attention_config.get("enabled", False)
+
+    # CLI flags override config
     if args.save_attention:
+        save_attention = True
+    if args.no_save_attention:
+        save_attention = False
+
+    if save_attention:
         attention_dir = args.attention_dir
         if attention_dir is None:
-            attention_dir = Path("attention_weights") / model_name
+            base_dir = attention_config.get("output_dir", "attention_weights")
+            attention_dir = Path(base_dir) / model_name
         attention_callback = AttentionSaveCallback(
             output_dir=str(attention_dir),
-            save_per_epoch=config.get("attention", {}).get("save_per_epoch", True),
-            save_csv=config.get("attention", {}).get("save_csv", True),
+            save_per_epoch=attention_config.get("save_per_epoch", True),
+            save_csv=attention_config.get("save_csv", True),
         )
         callbacks.append(attention_callback)
         print(f"Attention weights will be saved to: {attention_dir}")
