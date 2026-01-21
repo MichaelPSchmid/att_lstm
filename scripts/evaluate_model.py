@@ -1,11 +1,21 @@
 """
 Evaluation script for trained LSTM-Attention models.
 
-Loads a trained checkpoint, evaluates on test set, and measures CPU inference time.
+Loads a trained checkpoint, evaluates on test set, measures CPU inference time,
+and generates visualizations including attention heatmaps for attention models.
 
 Usage:
+    # Basic evaluation
     python scripts/evaluate_model.py --checkpoint path/to/checkpoint.ckpt --config config/model_configs/m1_small_baseline.yaml
+
+    # Save results as JSON
     python scripts/evaluate_model.py --checkpoint path/to/checkpoint.ckpt --config config/model_configs/m1_small_baseline.yaml --output results/m1_results.json
+
+    # Full evaluation with predictions CSV
+    python scripts/evaluate_model.py --checkpoint path/to/checkpoint.ckpt --config config/model_configs/m5_medium_additive_attn.yaml --save-predictions
+
+    # Skip plots for faster evaluation
+    python scripts/evaluate_model.py --checkpoint path/to/checkpoint.ckpt --config config/model_configs/m1_small_baseline.yaml --no-plots
 """
 
 import argparse
@@ -19,11 +29,14 @@ from typing import Dict, Any, Optional
 project_root = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(project_root))
 
+import inspect
+
 import numpy as np
 import torch
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 from config_loader import load_config, get_model_class
 from data_module import TimeSeriesDataModule
@@ -81,6 +94,16 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default=None,
         help="Directory to save plots (default: results/figures/{model_name}/)"
+    )
+    parser.add_argument(
+        "--save-predictions",
+        action="store_true",
+        help="Save individual predictions as CSV file"
+    )
+    parser.add_argument(
+        "--no-attention-plot",
+        action="store_true",
+        help="Skip attention heatmap generation (for attention models)"
     )
 
     return parser.parse_args()
@@ -286,6 +309,164 @@ def generate_evaluation_plots(
     saved_plots['error_distribution'] = str(error_dist_path)
 
     return saved_plots
+
+
+def has_attention_support(model: torch.nn.Module) -> bool:
+    """Check if model supports return_attention parameter."""
+    sig = inspect.signature(model.forward)
+    return "return_attention" in sig.parameters
+
+
+def generate_attention_heatmap(
+    model: torch.nn.Module,
+    test_dataloader: DataLoader,
+    model_name: str,
+    output_dir: Path,
+    device: str = "cuda"
+) -> Dict[str, str]:
+    """
+    Generate attention heatmap visualization for attention-based models.
+
+    Args:
+        model: PyTorch model with return_attention support
+        test_dataloader: Test DataLoader
+        model_name: Name of the model for titles
+        output_dir: Directory to save plots
+        device: Device to run on
+
+    Returns:
+        Dictionary with paths to saved files
+    """
+    if not has_attention_support(model):
+        print("  Model does not support attention extraction, skipping...")
+        return {}
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    model = model.to(device)
+    model.eval()
+
+    saved_files = {}
+
+    # Collect attention weights
+    all_attentions = []
+    print("  Collecting attention weights from test set...")
+
+    with torch.no_grad():
+        for batch in test_dataloader:
+            X_batch, _ = batch
+            X_batch = X_batch.to(device)
+
+            try:
+                _, attention_weights = model(X_batch, return_attention=True)
+                all_attentions.append(attention_weights.cpu())
+            except Exception as e:
+                print(f"  Warning: Failed to extract attention: {e}")
+                return {}
+
+    if not all_attentions:
+        return {}
+
+    # Concatenate and compute average
+    all_attentions_tensor = torch.cat(all_attentions, dim=0)  # (N, ...) various shapes
+
+    # Handle different attention shapes
+    if all_attentions_tensor.dim() == 2:
+        # Simple attention: (N, seq_len) -> average over samples
+        avg_attention = torch.mean(all_attentions_tensor, dim=0).numpy()  # (seq_len,)
+        is_matrix = False
+    elif all_attentions_tensor.dim() == 3:
+        # Matrix attention: (N, seq_len, seq_len) -> average over samples
+        avg_attention = torch.mean(all_attentions_tensor, dim=0).numpy()  # (seq_len, seq_len)
+        is_matrix = True
+    else:
+        print(f"  Unexpected attention shape: {all_attentions_tensor.shape}")
+        return {}
+
+    # Save as numpy file
+    npy_path = output_dir / f"{model_name}_attention_weights.npy"
+    np.save(npy_path, avg_attention)
+    saved_files["attention_npy"] = str(npy_path)
+    print(f"  Attention weights saved to: {npy_path}")
+
+    # Generate heatmap visualization
+    seq_len = avg_attention.shape[-1]
+    time_labels = [f"t-{seq_len - i}" for i in range(seq_len)]
+
+    if is_matrix:
+        # Full attention matrix heatmap
+        fig, ax = plt.subplots(figsize=(12, 10))
+        sns.heatmap(
+            avg_attention,
+            annot=False,
+            cmap="YlGnBu",
+            xticklabels=time_labels if seq_len <= 20 else False,
+            yticklabels=time_labels if seq_len <= 20 else False,
+            ax=ax
+        )
+        ax.set_title(f"{model_name}\nAverage Attention Matrix (Test Set)", fontsize=14)
+        ax.set_xlabel("Key (attended to)", fontsize=12)
+        ax.set_ylabel("Query (attending from)", fontsize=12)
+    else:
+        # 1D attention weights bar plot
+        fig, ax = plt.subplots(figsize=(14, 6))
+        x_pos = np.arange(seq_len)
+        ax.bar(x_pos, avg_attention, color="steelblue", edgecolor="black", linewidth=0.5)
+        ax.set_xticks(x_pos[::5])  # Show every 5th tick
+        ax.set_xticklabels([time_labels[i] for i in range(0, seq_len, 5)], rotation=45)
+        ax.set_title(f"{model_name}\nAverage Attention Weights (Test Set)", fontsize=14)
+        ax.set_xlabel("Time Step", fontsize=12)
+        ax.set_ylabel("Attention Weight", fontsize=12)
+        ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    heatmap_path = output_dir / f"{model_name}_attention_heatmap.png"
+    fig.savefig(heatmap_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    saved_files["attention_heatmap"] = str(heatmap_path)
+    print(f"  Attention heatmap saved to: {heatmap_path}")
+
+    return saved_files
+
+
+def save_predictions_csv(
+    predictions: np.ndarray,
+    targets: np.ndarray,
+    model_name: str,
+    output_dir: Path
+) -> str:
+    """
+    Save predictions and targets as CSV file.
+
+    Args:
+        predictions: Model predictions [N, 1]
+        targets: Ground truth targets [N, 1]
+        model_name: Name of the model
+        output_dir: Directory to save CSV
+
+    Returns:
+        Path to saved CSV file
+    """
+    try:
+        import pandas as pd
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        df = pd.DataFrame({
+            "sample_idx": np.arange(len(predictions)),
+            "prediction": predictions.flatten(),
+            "target": targets.flatten(),
+            "error": (predictions - targets).flatten(),
+            "abs_error": np.abs(predictions - targets).flatten()
+        })
+
+        csv_path = output_dir / f"{model_name}_predictions.csv"
+        df.to_csv(csv_path, index=False)
+
+        return str(csv_path)
+
+    except ImportError:
+        print("  Warning: pandas not available, skipping CSV export")
+        return ""
 
 
 def measure_inference_time(
@@ -506,6 +687,48 @@ def main():
         print(f"  Timeline:          {plot_paths['timeline']}")
         print(f"  Error distribution: {plot_paths['error_distribution']}")
 
+    # Generate attention heatmap (for attention models)
+    attention_paths = None
+    if not args.no_plots and not args.no_attention_plot:
+        if has_attention_support(model):
+            print("\n" + "=" * 60)
+            print("Generating Attention Heatmap")
+            print("=" * 60)
+
+            if args.plots_dir:
+                attention_dir = Path(args.plots_dir)
+            else:
+                attention_dir = project_root / "results" / "figures" / model_name
+
+            attention_paths = generate_attention_heatmap(
+                model, test_loader, model_name, attention_dir, device
+            )
+
+            if attention_paths:
+                if plot_paths:
+                    plot_paths.update(attention_paths)
+                else:
+                    plot_paths = attention_paths
+
+    # Save predictions as CSV
+    predictions_csv_path = None
+    if args.save_predictions:
+        print("\n" + "=" * 60)
+        print("Saving Predictions")
+        print("=" * 60)
+
+        if args.plots_dir:
+            csv_dir = Path(args.plots_dir)
+        else:
+            csv_dir = project_root / "results" / "predictions"
+
+        predictions_csv_path = save_predictions_csv(
+            predictions, targets, model_name, csv_dir
+        )
+
+        if predictions_csv_path:
+            print(f"  Predictions CSV:   {predictions_csv_path}")
+
     # Compile results
     results = {
         "model": {
@@ -522,6 +745,7 @@ def main():
         "metrics": metrics,
         "inference": inference_results,
         "plots": plot_paths,
+        "predictions_csv": predictions_csv_path,
         "config_path": args.config
     }
 
