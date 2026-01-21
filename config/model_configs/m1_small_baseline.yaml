@@ -17,4 +17,7 @@ model:
 
 # Training overrides (optional - inherits from base_config.yaml)
 training:
-  learning_rate: 0.001      # Reduced for stability with dropout
+  learning_rate: 0.001
+  dropout: 0.0              # Small model doesn't need dropout
+  early_stopping:
+    patience: 5             # Faster convergence without dropout
