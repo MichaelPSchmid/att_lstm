@@ -10,7 +10,7 @@ from config import get_raw_data_path, get_preprocessed_paths
 
 # Configuration
 VEHICLE = "HYUNDAI_SONATA_2020"
-NUM_CSVS = 5000  # Number of CSV files in the dataset
+NUM_CSVS = 21000  # Number of CSV files in the dataset
 
 input_path = get_raw_data_path(VEHICLE, NUM_CSVS)
 all_data = pd.read_pickle(input_path)
