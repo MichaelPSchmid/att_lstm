@@ -119,6 +119,7 @@ def create_model_from_config(config: Dict[str, Any]):
         "num_layers": model_config["num_layers"],
         "output_size": model_config["output_size"],
         "lr": training_config["learning_rate"],
+        "dropout": training_config.get("dropout", 0.0),
     }
 
     return model_class(**model_kwargs)

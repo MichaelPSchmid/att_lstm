@@ -41,17 +41,22 @@ class AdditiveAttention(nn.Module):
 
 
 class LSTMAttentionModel(pl.LightningModule):
-    def __init__(self, input_size, hidden_size, num_layers, output_size, lr=0.001):
+    def __init__(self, input_size, hidden_size, num_layers, output_size, lr=0.001, dropout=0.0):
         super(LSTMAttentionModel, self).__init__()
         self.save_hyperparameters()
 
         # Model architecture
         self.hidden_size = hidden_size
         self.num_layers = num_layers
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        # Dropout between LSTM layers (only applied if num_layers > 1)
+        lstm_dropout = dropout if num_layers > 1 else 0.0
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=lstm_dropout)
 
         # Additive Attention mechanism
         self.attention = AdditiveAttention(hidden_size)
+
+        # Dropout before FC layer
+        self.dropout = nn.Dropout(dropout)
 
         # Fully connected layer
         self.fc = nn.Linear(hidden_size, output_size)
@@ -77,7 +82,7 @@ class LSTMAttentionModel(pl.LightningModule):
         lstm_output, _ = self.lstm(x)  # (batch_size, seq_len, hidden_size)
         context_vector, attention_weights = self.attention(lstm_output)  # (batch_size, hidden_size)
 
-        output = self.fc(context_vector)  # (batch_size, output_size)
+        output = self.fc(self.dropout(context_vector))  # (batch_size, output_size)
 
         return output
 
@@ -186,6 +191,10 @@ class LSTMAttentionModel(pl.LightningModule):
 
     def configure_optimizers(self):
         """
-        Optimizer configuration
+        Optimizer configuration with LR scheduler.
         """
-        return optim.Adam(self.parameters(), lr=self.lr)
+        optimizer = optim.Adam(self.parameters(), lr=self.lr)
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode='min', factor=0.7, patience=5, verbose=True
+        )
+        return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val_loss"}

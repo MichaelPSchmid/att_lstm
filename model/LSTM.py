@@ -4,15 +4,20 @@ import torch.nn as nn
 import torch.optim as optim
 
 class LSTMModel(pl.LightningModule):
-    def __init__(self, input_size, hidden_size, num_layers, output_size, lr=0.001):
+    def __init__(self, input_size, hidden_size, num_layers, output_size, lr=0.001, dropout=0.0):
         super(LSTMModel, self).__init__()
         self.save_hyperparameters()  # Save hyperparameters
 
         # LSTM architecture
         self.hidden_size = hidden_size
         self.num_layers = num_layers
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
-        
+        # Dropout between LSTM layers (only applied if num_layers > 1)
+        lstm_dropout = dropout if num_layers > 1 else 0.0
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=lstm_dropout)
+
+        # Dropout before FC layer
+        self.dropout = nn.Dropout(dropout)
+
         # Fully connected layer
         self.fc = nn.Linear(hidden_size, output_size)
 
@@ -32,7 +37,7 @@ class LSTMModel(pl.LightningModule):
         c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
 
         lstm_output, (hn, _) = self.lstm(x, (h0, c0))
-        output = self.fc(hn[-1])  # Using the last hidden state for prediction
+        output = self.fc(self.dropout(hn[-1]))  # Dropout before FC layer
 
         return output
 

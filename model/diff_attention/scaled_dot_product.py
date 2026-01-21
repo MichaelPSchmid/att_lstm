@@ -40,16 +40,21 @@ class ScaledDotProductAttention(nn.Module):
 
 
 class LSTMScaleDotAttentionModel(pl.LightningModule):
-    def __init__(self, input_size, hidden_size, num_layers, output_size, lr=0.001):
+    def __init__(self, input_size, hidden_size, num_layers, output_size, lr=0.001, dropout=0.0):
         super(LSTMScaleDotAttentionModel, self).__init__()
         self.save_hyperparameters()  # Save hyperparameters
 
         self.hidden_size = hidden_size
         self.num_layers = num_layers
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
-        
+        # Dropout between LSTM layers (only applied if num_layers > 1)
+        lstm_dropout = dropout if num_layers > 1 else 0.0
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=lstm_dropout)
+
         # Scaled Dot-Product Attention
         self.attention = ScaledDotProductAttention(hidden_size)
+
+        # Dropout before FC layer
+        self.dropout = nn.Dropout(dropout)
 
         # Fully connected layer
         self.fc = nn.Linear(hidden_size, output_size)
@@ -82,9 +87,9 @@ class LSTMScaleDotAttentionModel(pl.LightningModule):
 
         # Apply attention to get context vector and attention weights
         context_vector, attention_weights = self.attention(lstm_output)
-        
+
         # Use context vector for prediction instead of the last time step
-        output = self.fc(context_vector)
+        output = self.fc(self.dropout(context_vector))
 
         return output
 
@@ -229,6 +234,10 @@ class LSTMScaleDotAttentionModel(pl.LightningModule):
 
     def configure_optimizers(self):
         """
-        Configure the optimizer (Adam with a given learning rate).
+        Configure optimizer with LR scheduler.
         """
-        return optim.Adam(self.parameters(), lr=self.lr)
+        optimizer = optim.Adam(self.parameters(), lr=self.lr)
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode='min', factor=0.7, patience=5, verbose=True
+        )
+        return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val_loss"}

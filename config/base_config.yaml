@@ -38,6 +38,7 @@ training:
   max_epochs: 80
   batch_size: 32
   seed: 42
+  dropout: 0.2               # Dropout for regularization (0.0 = disabled)
 
   # Device
   accelerator: "gpu"      # "gpu" or "cpu"
