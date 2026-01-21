@@ -17,4 +17,4 @@ model:
 
 # Training overrides (optional - inherits from base_config.yaml)
 training:
-  learning_rate: 0.005      # Can be tuned via Optuna
+  learning_rate: 0.001      # Reduced for stability with dropout
