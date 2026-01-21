@@ -52,7 +52,7 @@ training:
   early_stopping:
     enabled: true
     monitor: "val_loss"
-    patience: 5
+    patience: 15           # Increased for dropout regularization
     mode: "min"
 
   # Checkpointing
@@ -88,3 +88,12 @@ output:
   checkpoints_dir: "results/checkpoints"
   logs_dir: "lightning_logs"
   figures_dir: "results/figures"
+
+# =============================================================================
+# Attention Analysis (for attention-based models)
+# =============================================================================
+attention:
+  # Save attention weights during training (use --save-attention flag)
+  save_per_epoch: true    # Save weights after each validation epoch
+  save_csv: true          # Also save as CSV for easy viewing
+  output_dir: "attention_weights"  # Base directory for attention weights

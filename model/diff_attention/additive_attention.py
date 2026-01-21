@@ -73,17 +73,25 @@ class LSTMAttentionModel(pl.LightningModule):
         self.sum_targets = 0.0            # For R² (to compute mean)
         self.sum_targets_squared = 0.0    # For R² (SS_tot)
 
-    def forward(self, x):
+    def forward(self, x, return_attention=False):
         """
-        x: (batch_size, seq_len, input_size)
+        Forward pass through LSTM and additive attention.
+
+        Args:
+            x (tensor): Shape (batch_size, seq_len, input_size)
+            return_attention (bool): If True, also return attention weights
+
         Returns:
-            output: (batch_size, output_size)
+            tensor or tuple: Final prediction (batch_size, output_size), or
+                (prediction, attention_weights) if return_attention=True
         """
         lstm_output, _ = self.lstm(x)  # (batch_size, seq_len, hidden_size)
         context_vector, attention_weights = self.attention(lstm_output)  # (batch_size, hidden_size)
 
         output = self.fc(self.dropout(context_vector))  # (batch_size, output_size)
 
+        if return_attention:
+            return output, attention_weights
         return output
 
     def training_step(self, batch, batch_idx):

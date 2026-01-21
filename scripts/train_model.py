@@ -4,6 +4,7 @@ Training script for LSTM-Attention models.
 Usage:
     python scripts/train_model.py --config config/model_configs/m1_small_baseline.yaml
     python scripts/train_model.py --config config/model_configs/m2_small_simple_attn.yaml
+    python scripts/train_model.py --config config/model_configs/m3_small_additive.yaml --save-attention
 """
 
 import argparse
@@ -22,6 +23,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from config_loader import load_config, create_model_from_config, print_config
 from data_module import TimeSeriesDataModule
 from config import get_preprocessed_paths
+from scripts.callbacks import AttentionSaveCallback
 
 
 def parse_args() -> argparse.Namespace:
@@ -52,6 +54,17 @@ def parse_args() -> argparse.Namespace:
         "--dry-run",
         action="store_true",
         help="Print config and exit without training"
+    )
+    parser.add_argument(
+        "--save-attention",
+        action="store_true",
+        help="Save attention weights during training (for attention models)"
+    )
+    parser.add_argument(
+        "--attention-dir",
+        type=str,
+        default=None,
+        help="Directory for attention weights (default: attention_weights/<model_name>)"
     )
 
     return parser.parse_args()
@@ -127,6 +140,19 @@ def main():
             filename=f"{model_name}" + "-{epoch:02d}-{val_loss:.4f}"
         )
         callbacks.append(checkpoint_callback)
+
+    # Attention saving
+    if args.save_attention:
+        attention_dir = args.attention_dir
+        if attention_dir is None:
+            attention_dir = Path("attention_weights") / model_name
+        attention_callback = AttentionSaveCallback(
+            output_dir=str(attention_dir),
+            save_per_epoch=config.get("attention", {}).get("save_per_epoch", True),
+            save_csv=config.get("attention", {}).get("save_csv", True),
+        )
+        callbacks.append(attention_callback)
+        print(f"Attention weights will be saved to: {attention_dir}")
 
     # Logger
     logger = TensorBoardLogger(

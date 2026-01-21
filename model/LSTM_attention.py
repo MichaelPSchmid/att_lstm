@@ -44,11 +44,18 @@ class LSTMAttentionModel(pl.LightningModule):
         self.sum_targets = 0.0            # For R² (to compute mean)
         self.sum_targets_squared = 0.0    # For R² (SS_tot)
 
-    def forward(self, x):
+    def forward(self, x, return_attention=False):
         """
-        Forward pass:
-        Input shape: (batch_size, sequence_length, input_size)
-        Output shape: (batch_size, output_size)
+        Forward pass through LSTM and simple attention.
+
+        Args:
+            x (tensor): Shape (batch_size, sequence_length, input_size)
+            return_attention (bool): If True, also return attention weights
+
+        Returns:
+            tensor or tuple: Final prediction (batch_size, output_size), or
+                (prediction, attention_weights) if return_attention=True
+                attention_weights shape: (batch_size, sequence_length)
         """
         # Initialize LSTM hidden and cell states
         h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
@@ -67,6 +74,9 @@ class LSTMAttentionModel(pl.LightningModule):
         # Dropout and fully connected layer
         output = self.fc(self.dropout(context_vector))  # (batch_size, output_size)
 
+        if return_attention:
+            # Squeeze to (batch_size, sequence_length) for consistency
+            return output, attention_weights.squeeze(-1)
         return output
 
     def training_step(self, batch, batch_idx):

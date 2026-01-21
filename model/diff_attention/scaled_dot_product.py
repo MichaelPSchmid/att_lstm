@@ -70,15 +70,17 @@ class LSTMScaleDotAttentionModel(pl.LightningModule):
         self.sum_targets = 0.0            # For R² (to compute mean)
         self.sum_targets_squared = 0.0    # For R² (SS_tot)
 
-    def forward(self, x):
+    def forward(self, x, return_attention=False):
         """
         Forward pass through LSTM and self-attention.
 
         Args:
             x (tensor): Shape (batch, seq_len, input_size)
+            return_attention (bool): If True, also return attention weights
 
         Returns:
-            tensor: Final prediction (batch, output_size)
+            tensor or tuple: Final prediction (batch, output_size), or
+                (prediction, attention_weights) if return_attention=True
         """
         h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
         c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
@@ -91,6 +93,8 @@ class LSTMScaleDotAttentionModel(pl.LightningModule):
         # Use context vector for prediction instead of the last time step
         output = self.fc(self.dropout(context_vector))
 
+        if return_attention:
+            return output, attention_weights
         return output
 
     def training_step(self, batch, batch_idx):
