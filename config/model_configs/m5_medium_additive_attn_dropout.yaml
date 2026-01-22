@@ -1,10 +1,10 @@
-# M5: Medium LSTM + Additive (Bahdanau) Attention (NO DROPOUT - Ablation Study)
+# M5: Medium LSTM + Additive (Bahdanau) Attention
 # Architecture matching Paper Experiment 2
 # Expected parameters: ~700K (attention adds parameters)
 # Expected training time: ~5h
 
 model:
-  name: "M5_Medium_Additive_Attention_NoDropout"
+  name: "M5_Medium_Additive_Attention_Dropout"
   type: "additive_attention"
 
   # Architecture (Paper Experiment 2 settings)
@@ -19,9 +19,9 @@ model:
 
 training:
   learning_rate: 0.0005    # Paper used 0.0005 for larger models
-  dropout: 0.0             # Ablation: test without dropout
+  dropout: 0.2             # Regularization for larger model
   early_stopping:
-    patience: 5            # Faster convergence without dropout
+    patience: 15           # More patience with dropout
 
 attention:
   enabled: true             # Save attention weights during training

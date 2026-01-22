@@ -1,4 +1,4 @@
-# M6: Medium LSTM + Scaled Dot-Product Attention
+# M6: Medium LSTM + Scaled Dot-Product Attention (NO DROPOUT - Ablation Study)
 # Architecture matching Paper Experiment 2
 # Expected parameters: ~600K
 # Expected training time: ~4h
@@ -18,9 +18,9 @@ model:
 
 training:
   learning_rate: 0.0005    # Paper used 0.0005 for larger models
-  dropout: 0.2             # Regularization for larger model
+  dropout: 0.0             # Ablation: test without dropout
   early_stopping:
-    patience: 15           # More patience with dropout
+    patience: 5            # Faster convergence without dropout
 
 attention:
   enabled: true             # Save attention weights during training

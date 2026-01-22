@@ -1,11 +1,11 @@
-# M6: Medium LSTM + Scaled Dot-Product Attention (NO DROPOUT - Ablation Study)
+# M4: Medium LSTM + Simple Attention
 # Architecture matching Paper Experiment 2
 # Expected parameters: ~600K
 # Expected training time: ~4h
 
 model:
-  name: "M6_Medium_Scaled_DP_Attention_NoDropout"
-  type: "scaled_dp_attention"
+  name: "M4_Medium_Simple_Attention_Dropout"
+  type: "simple_attention"
 
   # Architecture (Paper Experiment 2 settings)
   input_size: 5
@@ -14,13 +14,13 @@ model:
   output_size: 1
 
   # Attention configuration
-  attention: "scaled_dot_product"  # Transformer-style: score_ij = (h_i · h_j) / sqrt(d)
+  attention: "simple"      # score_i = W * h_i + b (independent per timestep)
 
 training:
   learning_rate: 0.0005    # Paper used 0.0005 for larger models
-  dropout: 0.0             # Ablation: test without dropout
+  dropout: 0.2             # Regularization for larger model
   early_stopping:
-    patience: 5            # Faster convergence without dropout
+    patience: 15           # More patience with dropout
 
 attention:
   enabled: true             # Save attention weights during training
