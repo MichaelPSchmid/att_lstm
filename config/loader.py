@@ -43,8 +43,8 @@ def load_config(
     Returns:
         Merged configuration dictionary
     """
-    # Determine project root
-    project_root = Path(__file__).parent.resolve()
+    # Determine project root (parent of config/)
+    project_root = Path(__file__).parent.parent.resolve()
 
     # Load base config
     if base_config_path is None:
@@ -82,16 +82,16 @@ def get_model_class(model_type: str):
         Model class
     """
     if model_type == "baseline":
-        from model.LSTM import LSTMModel
+        from model.lstm_baseline import LSTMModel
         return LSTMModel
     elif model_type == "simple_attention":
-        from model.LSTM_attention import LSTMAttentionModel
+        from model.lstm_simple_attention import LSTMAttentionModel
         return LSTMAttentionModel
     elif model_type == "additive_attention":
-        from model.diff_attention.additive_attention import LSTMAttentionModel
+        from model.lstm_additive_attention import LSTMAttentionModel
         return LSTMAttentionModel
     elif model_type == "scaled_dp_attention":
-        from model.diff_attention.scaled_dot_product import LSTMScaleDotAttentionModel
+        from model.lstm_scaled_dp_attention import LSTMScaleDotAttentionModel
         return LSTMScaleDotAttentionModel
     else:
         raise ValueError(f"Unknown model type: {model_type}")

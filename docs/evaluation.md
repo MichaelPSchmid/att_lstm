@@ -102,64 +102,50 @@ trainer.test(model, dataloaders=data_module.test_dataloader())
 
 ## Ergebnisse speichern
 
-### Vorhersagen exportieren
+### Evaluation-Script
 
-**Datei:** `save_test_results.py` (auskommentierter Code in `main.py`)
+**Datei:** `scripts/evaluate_model.py`
 
-```python
-# Vorhersagen und Targets speichern
-predictions_path = "evaluation/test_predictions.pkl"
-targets_path = "evaluation/test_targets.pkl"
+```bash
+# Evaluation mit Plots und Metriken
+python scripts/evaluate_model.py --checkpoint path/to/model.ckpt --config config/model_configs/m1_small_baseline.yaml
 
-with torch.no_grad():
-    for batch in test_dataloader:
-        X_batch, Y_batch = batch
-        Y_pred = model(X_batch)
-        predictions.extend(Y_pred.cpu().numpy())
-        targets.extend(Y_batch.cpu().numpy())
+# Mit Predictions-Export
+python scripts/evaluate_model.py --checkpoint path/to/model.ckpt --config config/model_configs/m1_small_baseline.yaml --save-predictions
 
-pickle.dump(predictions, open(predictions_path, 'wb'))
-pickle.dump(targets, open(targets_path, 'wb'))
+# Ergebnisse als JSON speichern
+python scripts/evaluate_model.py --checkpoint path/to/model.ckpt --config config/model_configs/m1_small_baseline.yaml --output results/m1_results.json
 ```
 
-### Vorhandene Ergebnisse
+### Ausgabe-Verzeichnis
 
 ```
-evaluation/
-├── LSTM_Attention_win15_64_3/
-├── LSTM_win15_64_3/
-├── test_predictions.pkl
-└── test_targets.pkl
+results/
+├── figures/                    # Generierte Plots
+│   └── {model_name}/
+│       ├── {model}_scatter.png
+│       ├── {model}_residuals.png
+│       ├── {model}_timeline.png
+│       └── {model}_attention_heatmap.png
+└── predictions/                # Predictions CSV
+    └── {model}_predictions.csv
 ```
 
 ---
 
 ## Attention Visualisierung
 
-### Heatmaps
+Attention Heatmaps werden automatisch vom Evaluationsscript generiert, wenn ein Attention-Modell evaluiert wird:
 
-**Dateien:** `main_hot_map.py`, `main_hot_map2.py`, `eval_hot_map_2.py`
-
-Visualisieren, welche Zeitschritte das Modell für die Vorhersage wichtig findet.
-
-### Vorhandene Visualisierungen
-
+```bash
+python scripts/evaluate_model.py --checkpoint path/to/attention_model.ckpt --config config/model_configs/m5_medium_additive_attn.yaml
 ```
-attention_visualization/
-├── AdditiveAttention/
-├── ScaledDotProductAttention/
-└── matrix/
-```
+
+Die Heatmaps zeigen, welche Zeitschritte das Modell für die Vorhersage wichtig findet.
 
 ---
 
 ## Modellvergleich
-
-### Vergleichs-Setup
-
-**Datei:** `comparison/data_seed42.py`
-
-Stellt sicher, dass alle Modelle mit den gleichen Daten-Splits verglichen werden.
 
 ### Vergleichsdimensionen
 
@@ -209,8 +195,16 @@ Stellt sicher, dass alle Modelle mit den gleichen Daten-Splits verglichen werden
 
 ### Seed setzen
 
+Der Seed wird in der Konfigurationsdatei gesetzt (`config/base_config.yaml`):
+
+```yaml
+training:
+  seed: 42
+```
+
+Das Training-Script setzt den Seed automatisch:
 ```python
-pl.seed_everything(3407)
+pl.seed_everything(config["training"]["seed"])
 ```
 
 Setzt Seeds für:

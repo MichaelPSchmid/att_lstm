@@ -33,7 +33,7 @@ from tqdm import tqdm
 
 # Add parent directory to path for config import
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import (
+from config.settings import (
     HYUNDAI_SONATA_RAW,
     get_preprocessed_paths,
 )
@@ -358,7 +358,7 @@ def main() -> None:
     if args.vehicle == "HYUNDAI_SONATA_2020":
         config.raw_data_path = HYUNDAI_SONATA_RAW
     else:
-        from config import DATASET_DIR
+        from config.settings import DATASET_DIR
         config.raw_data_path = DATASET_DIR / args.vehicle
 
     run_parallel_preprocessing(config)

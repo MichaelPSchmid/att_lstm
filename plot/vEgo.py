@@ -6,7 +6,7 @@ import os
 
 # Add parent directory to path for config import
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import get_raw_data_path, PROJECT_ROOT
+from config.settings import get_raw_data_path, PROJECT_ROOT
 
 # Configure Matplotlib to use LaTeX and Arial font
 plt.rcParams.update({

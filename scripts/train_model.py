@@ -20,9 +20,9 @@ import torch
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from config_loader import load_config, create_model_from_config, print_config
-from data_module import TimeSeriesDataModule
-from config import get_preprocessed_paths
+from config.loader import load_config, create_model_from_config, print_config
+from model.data_module import TimeSeriesDataModule
+from config.settings import get_preprocessed_paths
 from scripts.callbacks import AttentionSaveCallback
 
 

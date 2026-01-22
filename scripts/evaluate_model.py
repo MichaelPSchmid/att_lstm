@@ -38,9 +38,9 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from config_loader import load_config, get_model_class
-from data_module import TimeSeriesDataModule
-from config import get_preprocessed_paths
+from config.loader import load_config, get_model_class
+from model.data_module import TimeSeriesDataModule
+from config.settings import get_preprocessed_paths
 
 
 def parse_args() -> argparse.Namespace:

@@ -8,45 +8,58 @@ Das Training wird mit PyTorch Lightning durchgeführt, was standardisierte Train
 
 ## Haupt-Trainingsscript
 
-**Datei:** `main.py`
+**Datei:** `scripts/train_model.py`
 
-### Konfiguration
+### Ausführung
 
-```python
-# Reproduzierbarkeit
-pl.seed_everything(3407)
+```bash
+# Training mit Konfigurationsdatei
+python scripts/train_model.py --config config/model_configs/m1_small_baseline.yaml
 
-# GPU-Optimierung
-torch.set_float32_matmul_precision('medium')
+# Attention-Modell mit Attention-Weights speichern
+python scripts/train_model.py --config config/model_configs/m5_medium_additive_attn.yaml --save-attention
 
-# Modell-Initialisierung
-model = LSTMModel(
-    input_size=5,
-    hidden_size=128,
-    num_layers=5,
-    output_size=1,
-    lr=0.000382819
-)
+# Dry-run (nur Konfiguration anzeigen)
+python scripts/train_model.py --config config/model_configs/m1_small_baseline.yaml --dry-run
+```
 
-# DataModule
-data_module = TimeSeriesDataModule(
-    feature_path="...",
-    target_path="...",
-    batch_size=32
-)
+### Konfiguration via YAML
+
+Die Trainingsparameter werden in YAML-Dateien definiert:
+
+**`config/base_config.yaml`** (Basisparameter):
+```yaml
+training:
+  seed: 42
+  max_epochs: 80
+  batch_size: 32
+  learning_rate: 0.0001
+  early_stopping:
+    enabled: true
+    patience: 5
+    monitor: val_loss
+```
+
+**`config/model_configs/m1_small_baseline.yaml`** (Modell-spezifisch):
+```yaml
+model:
+  name: m1_small_baseline
+  type: baseline
+  hidden_size: 64
+  num_layers: 2
 ```
 
 ### Trainer-Setup
 
+Der Trainer wird automatisch aus der Konfiguration erstellt:
+
 ```python
 trainer = pl.Trainer(
-    max_epochs=80,
-    accelerator="gpu" if torch.cuda.is_available() else "cpu",
-    devices=1,
+    max_epochs=config["training"]["max_epochs"],
+    accelerator=config["training"]["accelerator"],
+    devices=config["training"]["devices"],
     callbacks=[checkpoint_callback, early_stop_callback],
-    logger=logger,
-    enable_checkpointing=True,
-    log_every_n_steps=50
+    logger=logger
 )
 ```
 
@@ -179,11 +192,11 @@ trainer.test(model, dataloaders=data_module.test_dataloader())
 |-----------|------|--------------|
 | `max_epochs` | 80 | Maximale Epochen |
 | `batch_size` | 32 | Samples pro Batch |
-| `lr` | 0.000382819 | Learning Rate (optimiert) |
-| `hidden_size` | 128 | LSTM Hidden Dimension |
-| `num_layers` | 5 | LSTM Schichten |
+| `learning_rate` | 0.0001 | Learning Rate |
+| `hidden_size` | 64-128 | LSTM Hidden Dimension (je nach Modell) |
+| `num_layers` | 2-5 | LSTM Schichten (je nach Modell) |
 | `early_stop_patience` | 5 | Epochen ohne Verbesserung |
-| `seed` | 3407 | Random Seed |
+| `seed` | 42 | Random Seed |
 
 ---
 
@@ -236,7 +249,7 @@ Jede Version enthält:
 
 1. **Daten vorbereiten**
    ```bash
-   python preprocess/slice_window.py
+   python preprocess/preprocess_parallel.py
    ```
 
 2. **Hyperparameter optimieren** (optional)
@@ -246,7 +259,7 @@ Jede Version enthält:
 
 3. **Modell trainieren**
    ```bash
-   python main.py
+   python scripts/train_model.py --config config/model_configs/m1_small_baseline.yaml
    ```
 
 4. **Training überwachen**
@@ -255,5 +268,6 @@ Jede Version enthält:
    ```
 
 5. **Modell evaluieren**
-   - Test-Metriken werden automatisch geloggt
-   - Attention-Visualisierung mit `main_hot_map.py`
+   ```bash
+   python scripts/evaluate_model.py --checkpoint lightning_logs/.../checkpoints/best.ckpt --config config/model_configs/m1_small_baseline.yaml
+   ```

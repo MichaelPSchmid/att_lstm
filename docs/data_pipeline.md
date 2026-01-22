@@ -44,18 +44,15 @@ Das Target repräsentiert das Moment, das die elektronische Servolenkung (EPS) a
 
 ## Preprocessing-Schritte
 
-### 1. CSV zu DataFrame (`preprocess/data_preprocessing.py`)
+### Parallele Vorverarbeitung (`preprocess/preprocess_parallel.py`)
 
-```python
-# Lädt alle CSV-Dateien und fügt sequence_id hinzu
-# Output: 5000csv_with_sequence_id.pkl
+Das Haupt-Preprocessing-Script kombiniert CSV-Laden und Sliding Window in einem effizienten, parallelisierten Prozess:
+
+```bash
+python preprocess/preprocess_parallel.py
 ```
 
-- Jede CSV-Datei erhält eine eindeutige `sequence_id`
-- Ermöglicht Nachverfolgung der Datenherkunft
-
-### 2. Sliding Window Extraktion (`preprocess/slice_window.py`)
-
+**Parameter:**
 ```python
 window_size = 50      # Anzahl Zeitschritte im Input
 predict_size = 1      # Anzahl Zeitschritte im Output
@@ -63,11 +60,14 @@ step_size = 1         # Schrittweite (überlappende Fenster)
 ```
 
 **Ablauf:**
-1. Gleitendes Fenster über die Zeitreihe
-2. Prüfung auf gleiche `sequence_id` (keine Sprünge zwischen Aufnahmen)
-3. Filterung nach Fahrbedingungen
+1. Paralleles Laden der CSV-Dateien
+2. Hinzufügen von `sequence_id` pro CSV
+3. Gleitendes Fenster über die Zeitreihe
+4. Prüfung auf gleiche `sequence_id` (keine Sprünge zwischen Aufnahmen)
+5. Filterung nach Fahrbedingungen
+6. Speichern als `.npy` (memory-effizient)
 
-### 3. Datenfilterung
+### Datenfilterung
 
 Samples werden nur verwendet wenn:
 - `latActive == True` → Laterale Regelung aktiv
@@ -97,7 +97,7 @@ Jedes Sample hat einen Zielwert: das vorhergesagte Torque.
 
 ---
 
-## Data Module (`data_module.py`)
+## Data Module (`model/data_module.py`)
 
 PyTorch Lightning DataModule für standardisiertes Laden:
 
@@ -133,10 +133,10 @@ DataLoader(
 
 ## Dateipfade
 
-Alle Pfade werden zentral in `config.py` verwaltet und sind plattformunabhängig:
+Alle Pfade werden zentral in `config/settings.py` verwaltet und sind plattformunabhängig:
 
 ```python
-from config import get_preprocessed_paths, get_raw_data_path, PREPARED_DATASET_DIR
+from config.settings import get_preprocessed_paths, get_raw_data_path, PREPARED_DATASET_DIR
 
 # Standard-Pfade abrufen
 paths = get_preprocessed_paths("HYUNDAI_SONATA_2020", window_size=50)
@@ -168,15 +168,15 @@ att_project/data/
 
 ---
 
-## Verschiedene Fenstergrößen
+## Dataset-Inspektion
 
-Es existieren mehrere Varianten des Sliding-Window-Scripts:
+Mit `preprocess/inspect_dataset.py` können vorverarbeitete Daten inspiziert werden:
 
-| Script | Window Size | Beschreibung |
-|--------|-------------|--------------|
-| `slice_window.py` | 50 | Standard |
-| `slice_window_20999.py` | variabel | Für größeren Datensatz |
-| `slice_window_nF.py` | variabel | Alternative Konfiguration |
+```bash
+python preprocess/inspect_dataset.py                    # Standard
+python preprocess/inspect_dataset.py --stats            # Nur Statistiken
+python preprocess/inspect_dataset.py --index 42         # Bestimmter Index
+```
 
 ---
 
@@ -185,4 +185,4 @@ Es existieren mehrere Varianten des Sliding-Window-Scripts:
 1. **Sequenz-Integrität:** Fenster werden nur aus zusammenhängenden Sequenzen erstellt
 2. **Normalisierung:** `steerFiltered` ist bereits normalisiert [-1, 1]
 3. **Keine Feature-Normalisierung:** Die Input-Features werden nicht explizit normalisiert
-4. **Reproduzierbarkeit:** Seed wird in `main.py` gesetzt (`pl.seed_everything(3407)`)
+4. **Reproduzierbarkeit:** Seed wird in der Config gesetzt (`training.seed: 42`)

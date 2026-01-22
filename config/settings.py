@@ -11,8 +11,8 @@ from pathlib import Path
 # Base Paths
 # =============================================================================
 
-# Project root directory (where this file is located)
-PROJECT_ROOT = Path(__file__).parent.resolve()
+# Project root directory (parent of config/)
+PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 
 # Data directory (inside project)
 DATA_ROOT = PROJECT_ROOT / "data"

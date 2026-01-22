@@ -38,25 +38,23 @@ pip install torch --index-url https://download.pytorch.org/whl/cu118
 
 ## Zentrale Pfad-Konfiguration
 
-Alle Pfade werden zentral in `config.py` verwaltet. Das Projekt ist plattformunabhängig (Windows/Linux/macOS).
+Alle Pfade werden zentral in `config/settings.py` verwaltet. Das Projekt ist plattformunabhängig (Windows/Linux/macOS).
 
-### config.py
+### config/settings.py
 
 ```python
-from config import (
+from config.settings import (
     PROJECT_ROOT,           # Projektverzeichnis
     DATA_ROOT,              # data/
     DATASET_DIR,            # data/dataset/
     PREPARED_DATASET_DIR,   # data/prepared_dataset/
-    EVALUATION_DIR,         # evaluation/
     LIGHTNING_LOGS_DIR,     # lightning_logs/
-    ATTENTION_VIS_DIR,      # attention_visualization/
     FEATURE_PATH,           # Standard-Feature-Pfad
     TARGET_PATH,            # Standard-Target-Pfad
 )
 
 # Für spezifische Konfigurationen:
-from config import get_preprocessed_paths, get_raw_data_path
+from config.settings import get_preprocessed_paths, get_raw_data_path
 ```
 
 ### Pfade konfigurieren
@@ -76,19 +74,19 @@ att_project/
 ### Verzeichnisse erstellen
 
 ```bash
-python -c "from config import ensure_dirs_exist; ensure_dirs_exist()"
+python -c "from config.settings import ensure_dirs_exist; ensure_dirs_exist()"
 ```
 
 Oder:
 ```python
-from config import ensure_dirs_exist
+from config.settings import ensure_dirs_exist
 ensure_dirs_exist()
 ```
 
 ### Konfiguration anzeigen
 
 ```bash
-python config.py
+python -c "from config.settings import print_config; print_config()"
 ```
 
 Output:
@@ -108,7 +106,11 @@ FEATURE_PATH:         C:\Users\...\att_project\data\prepared_dataset\...
 
 ```
 att_project/
-├── config.py                       # Zentrale Pfad-Konfiguration
+├── config/                         # Konfiguration
+│   ├── settings.py                 # Zentrale Pfad-Konfiguration
+│   ├── loader.py                   # Config-Loader für YAML
+│   ├── base_config.yaml            # Basis-Konfiguration
+│   └── model_configs/              # Modell-spezifische Configs
 ├── data/                           # Datenverzeichnis
 │   ├── dataset/                    # Rohe CSV-Dateien
 │   │   └── HYUNDAI_SONATA_2020/
@@ -117,51 +119,48 @@ att_project/
 │           ├── {N}csv_with_sequence_id.pkl
 │           └── 50_1_1_sF/
 ├── model/                          # Modell-Implementierungen
-│   ├── LSTM.py
-│   ├── LSTM_attention.py
-│   ├── CNN_eval.py
-│   └── diff_attention/
+│   ├── lstm_baseline.py
+│   ├── lstm_simple_attention.py
+│   ├── lstm_additive_attention.py
+│   ├── lstm_scaled_dp_attention.py
+│   └── data_module.py
+├── scripts/                        # Ausführbare Skripte
+│   ├── train_model.py
+│   └── evaluate_model.py
 ├── preprocess/                     # Datenaufbereitung
-│   ├── data_preprocessing.py
-│   └── slice_window.py
+│   ├── preprocess_parallel.py
+│   └── inspect_dataset.py
 ├── optuna/                         # Hyperparameter-Tuning
-├── evaluation/                     # Ergebnisse
 ├── lightning_logs/                 # Training Logs & Checkpoints
-├── attention_visualization/        # Attention Heatmaps
 ├── plot/                           # Visualisierungen
-├── docs/                           # Dokumentation
-├── main.py                         # Haupt-Trainingsscript
-├── main_hot_map.py                # Attention Visualisierung
-└── data_module.py                  # PyTorch Lightning DataModule
+└── docs/                           # Dokumentation
 ```
 
 ---
 
 ## Wichtige Konfigurationsparameter
 
-### In `main.py`
+### In `config/base_config.yaml`
 
-```python
-# Reproduzierbarkeit
-pl.seed_everything(3407)
+```yaml
+training:
+  seed: 42
+  max_epochs: 80
+  batch_size: 32
+  learning_rate: 0.0001
+  early_stopping:
+    patience: 5
+    monitor: val_loss
 
-# GPU-Optimierung
-torch.set_float32_matmul_precision('medium')
-
-# Modell
-input_size = 5
-hidden_size = 128
-num_layers = 5
-output_size = 1
-lr = 0.000382819
-
-# Training
-batch_size = 32
-max_epochs = 80
-early_stop_patience = 5
+data:
+  vehicle: HYUNDAI_SONATA_2020
+  window_size: 50
+  predict_size: 1
+  step_size: 1
+  variant: full
 ```
 
-### In `data_module.py`
+### In `model/data_module.py`
 
 ```python
 # DataLoader
@@ -175,7 +174,7 @@ val_ratio = 0.2
 test_ratio = 0.1
 ```
 
-### In `preprocess/slice_window.py`
+### In `preprocess/preprocess_parallel.py`
 
 ```python
 window_size = 50
@@ -193,24 +192,23 @@ target = ['steerFiltered']
 
 ```bash
 # 1. Verzeichnisse erstellen
-python -c "from config import ensure_dirs_exist; ensure_dirs_exist()"
+python -c "from config.settings import ensure_dirs_exist; ensure_dirs_exist()"
 
 # 2. Rohdaten in data/dataset/HYUNDAI_SONATA_2020/ kopieren
 
 # 3. Preprocessing
-python preprocess/data_preprocessing.py
-python preprocess/slice_window.py
+python preprocess/preprocess_parallel.py
 ```
 
 ### Training
 
 ```bash
-# Standard-Training
-python main.py
+# Training mit Konfigurationsdatei
+python scripts/train_model.py --config config/model_configs/m1_small_baseline.yaml
 
 # Mit TensorBoard Monitoring
 tensorboard --logdir lightning_logs &
-python main.py
+python scripts/train_model.py --config config/model_configs/m2_small_simple_attn.yaml
 ```
 
 ### Hyperparameter-Optimierung
@@ -222,8 +220,7 @@ python optuna/optuna1.py
 ### Evaluation
 
 ```bash
-# Attention Visualisierung
-python main_hot_map.py
+python scripts/evaluate_model.py --checkpoint path/to/checkpoint.ckpt --config config/model_configs/m1_small_baseline.yaml
 ```
 
 ---
@@ -262,9 +259,9 @@ trainer = pl.Trainer(
 **Problem:** FileNotFoundError bei Datenpfaden
 
 **Lösung:**
-1. Verzeichnisse erstellen: `python -c "from config import ensure_dirs_exist; ensure_dirs_exist()"`
+1. Verzeichnisse erstellen: `python -c "from config.settings import ensure_dirs_exist; ensure_dirs_exist()"`
 2. Daten in `data/dataset/` kopieren
-3. Preprocessing ausführen
+3. Preprocessing ausführen: `python preprocess/preprocess_parallel.py`
 
 ### 2. CUDA out of memory
 
@@ -309,8 +306,7 @@ export CUBLAS_WORKSPACE_CONFIG=:4096:8
 | Verzeichnis | Inhalt |
 |-------------|--------|
 | `lightning_logs/` | TensorBoard Logs, Checkpoints |
-| `evaluation/` | Gespeicherte Vorhersagen |
-| `attention_visualization/` | Attention Heatmaps |
+| `results/` | Evaluationsergebnisse, Plots |
 
 ### Logs aufräumen
 

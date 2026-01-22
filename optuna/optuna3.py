@@ -8,9 +8,9 @@ import gc
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from model.LSTM_attention import LSTMAttentionModel
-from data_module import TimeSeriesDataModule
-from config import get_preprocessed_paths
+from model.lstm_simple_attention import LSTMAttentionModel
+from model.data_module import TimeSeriesDataModule
+from config.settings import get_preprocessed_paths
 
 # Set PyTorch optimization strategy to reduce CPU computation burden
 torch.set_float32_matmul_precision('medium')

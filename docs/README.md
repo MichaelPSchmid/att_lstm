@@ -44,23 +44,26 @@ Dieses Projekt untersucht den Einsatz von Deep-Learning-Modellen zur **Prädikti
 
 ```
 att_project/
+├── config/                     # Konfiguration
+│   ├── settings.py             # Zentrale Pfad-Konfiguration
+│   ├── loader.py               # Config-Loader für YAML
+│   ├── base_config.yaml        # Basis-Konfiguration
+│   └── model_configs/          # Modell-spezifische Configs
 ├── model/                      # Neuronale Netzwerk-Implementierungen
-│   ├── LSTM.py                 # Basis-LSTM
-│   ├── LSTM_attention.py       # LSTM + Simple Attention
-│   ├── CNN_eval.py             # CNN 1D
-│   └── diff_attention/         # Erweiterte Attention-Mechanismen
-│       ├── additive_attention.py
-│       └── scaled_dot_product.py
+│   ├── lstm_baseline.py        # Basis-LSTM
+│   ├── lstm_simple_attention.py    # LSTM + Simple Attention
+│   ├── lstm_additive_attention.py  # LSTM + Additive Attention
+│   ├── lstm_scaled_dp_attention.py # LSTM + Scaled Dot-Product
+│   └── data_module.py          # PyTorch Lightning DataModule
+├── scripts/                    # Ausführbare Skripte
+│   ├── train_model.py          # Haupt-Trainingsscript
+│   └── evaluate_model.py       # Evaluationsscript
 ├── preprocess/                 # Datenaufbereitung
-│   ├── data_preprocessing.py   # CSV → DataFrame
-│   └── slice_window.py         # Sliding Window Extraktion
+│   ├── preprocess_parallel.py  # Parallele Vorverarbeitung
+│   └── inspect_dataset.py      # Dataset-Inspektion
 ├── optuna/                     # Hyperparameter-Optimierung
-├── evaluation/                 # Gespeicherte Testergebnisse
 ├── lightning_logs/             # Trainings-Logs & Checkpoints
 ├── plot/                       # Visualisierungsscripts
-├── attention_visualization/    # Attention Heatmaps
-├── main.py                     # Haupt-Trainingsscript
-├── data_module.py              # PyTorch Lightning DataModule
 └── docs/                       # Diese Dokumentation
 ```
 
@@ -80,10 +83,21 @@ att_project/
 
 ## Schnellstart
 
+```bash
+# Training mit Konfigurationsdatei
+python scripts/train_model.py --config config/model_configs/m1_small_baseline.yaml
+
+# Training mit Attention-Modell
+python scripts/train_model.py --config config/model_configs/m2_small_simple_attn.yaml
+
+# Evaluation
+python scripts/evaluate_model.py --checkpoint path/to/checkpoint.ckpt --config config/model_configs/m1_small_baseline.yaml
+```
+
+Oder programmatisch:
 ```python
-# Training starten (Beispiel)
-from model.LSTM import LSTMModel
-from data_module import TimeSeriesDataModule
+from model.lstm_baseline import LSTMModel
+from model.data_module import TimeSeriesDataModule
 import pytorch_lightning as pl
 
 data_module = TimeSeriesDataModule(feature_path, target_path, batch_size=32)
