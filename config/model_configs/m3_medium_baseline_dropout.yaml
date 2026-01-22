@@ -1,10 +1,10 @@
-# M3: Medium Baseline LSTM
+# M3: Medium Baseline LSTM (WITH DROPOUT - Ablation Study)
 # Architecture matching Paper Experiment 2
 # Expected parameters: ~600K
 # Expected training time: ~4h
 
 model:
-  name: "M3_Medium_Baseline"
+  name: "M3_Medium_Baseline_Dropout"
   type: "baseline"
 
   # Architecture (Paper Experiment 2 settings)
@@ -18,6 +18,6 @@ model:
 
 training:
   learning_rate: 0.0005    # Paper used 0.0005 for larger models
-  dropout: 0.0             # Ablation: test without dropout
+  dropout: 0.2             # Ablation: test with dropout
   early_stopping:
-    patience: 5            # Faster convergence without dropout
+    patience: 15           # More patience needed with dropout

@@ -18,6 +18,9 @@ model:
 
 training:
   learning_rate: 0.0005    # Paper used 0.0005 for larger models
+  dropout: 0.2             # Regularization for larger model
+  early_stopping:
+    patience: 15           # More patience with dropout
 
 attention:
   enabled: true             # Save attention weights during training
