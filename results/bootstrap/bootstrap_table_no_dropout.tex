@@ -1,0 +1,17 @@
+\begin{table}[htbp]
+\centering
+\caption{Bootstrap 95\% Confidence Intervals (1000 samples)}
+\label{tab:bootstrap_ci}
+\begin{tabular}{llccc}
+\toprule
+Model & Description & Accuracy (\%) & RMSE & R² \\
+\midrule
+M1 & Small Baseline & $82.58 \pm 0.08$ & $0.0408 \pm 0.0001$ & $0.860 \pm 0.001$ \\
+M2 & Small + Simple Attn & $81.50 \pm 0.09$ & $0.0423 \pm 0.0001$ & $0.850 \pm 0.001$ \\
+M3 & Medium Baseline & $87.84 \pm 0.07$ & $0.0338 \pm 0.0001$ & $0.905 \pm 0.001$ \\
+M4 & Medium + Simple Attn & $90.25 \pm 0.07$ & $0.0311 \pm 0.0001$ & $0.919 \pm 0.001$ \\
+M5 & Medium + Additive Attn & $88.34 \pm 0.07$ & $0.0332 \pm 0.0001$ & $0.907 \pm 0.001$ \\
+M6 & Medium + Scaled DP & $89.60 \pm 0.07$ & $0.0319 \pm 0.0001$ & $0.915 \pm 0.001$ \\
+\bottomrule
+\end{tabular}
+\end{table}

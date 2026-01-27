@@ -1,0 +1,58 @@
+{
+  "model": {
+    "name": "M6_Medium_Scaled_DP_Attention",
+    "type": "scaled_dp_attention",
+    "parameters": 597633,
+    "flops": 30131328,
+    "flops_formatted": "30.131M",
+    "macs": 15065664,
+    "macs_formatted": "1",
+    "checkpoint": "lightning_logs/M6_Medium_Scaled_DP_Attention/version_1/checkpoints/M6_Medium_Scaled_DP_Attention-epoch=37-val_loss=0.0012.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.001016521593555808,
+    "rmse": 0.031882934272289276,
+    "mae": 0.02415630966424942,
+    "mape": 184432.0,
+    "r2": 0.9148368835449219,
+    "accuracy": 89.59191739314123,
+    "accuracy_threshold": 0.05,
+    "num_samples": 220127
+  },
+  "inference": {
+    "mean_ms": 2.78953480000564,
+    "std_ms": 0.23472723032025114,
+    "min_ms": 2.578600000560982,
+    "max_ms": 4.661999999370892,
+    "p50_ms": 2.723750000768632,
+    "p95_ms": 3.205310000521422,
+    "p99_ms": 3.8128499988852127,
+    "device": "cpu",
+    "num_threads": 1,
+    "warmup_iterations": 100,
+    "num_samples": 1000
+  },
+  "flops": {
+    "flops": 30131328,
+    "flops_formatted": "30.131M",
+    "macs": 15065664,
+    "macs_formatted": "1",
+    "params_thop": 597633,
+    "params_formatted": "597.633K"
+  },
+  "plots": {
+    "scatter": "results\\no_dropout\\m6\\M6_Medium_Scaled_DP_Attention_scatter.png",
+    "residuals": "results\\no_dropout\\m6\\M6_Medium_Scaled_DP_Attention_residuals.png",
+    "timeline": "results\\no_dropout\\m6\\M6_Medium_Scaled_DP_Attention_timeline.png",
+    "error_distribution": "results\\no_dropout\\m6\\M6_Medium_Scaled_DP_Attention_error_distribution.png",
+    "attention_npy": "results\\no_dropout\\m6\\M6_Medium_Scaled_DP_Attention_attention_weights.npy",
+    "attention_heatmap": "results\\no_dropout\\m6\\M6_Medium_Scaled_DP_Attention_attention_heatmap.png"
+  },
+  "predictions_csv": null,
+  "config_path": "config/model_configs/m6_medium_scaled_dp_attn.yaml"
+}
