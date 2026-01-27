@@ -34,6 +34,7 @@ import inspect
 import numpy as np
 import torch
 import pytorch_lightning as pl
+from thop import profile, clever_format
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -469,6 +470,47 @@ def save_predictions_csv(
         return ""
 
 
+def calculate_flops(
+    model: torch.nn.Module,
+    sample_input: torch.Tensor
+) -> Dict[str, Any]:
+    """
+    Calculate FLOPs (Floating Point Operations) for a single forward pass.
+
+    Moves model to CPU for calculation. Subsequent functions (measure_inference_time,
+    generate_attention_heatmap) handle device placement themselves.
+
+    Args:
+        model: PyTorch model
+        sample_input: Single input sample [1, seq_len, features]
+
+    Returns:
+        Dictionary with FLOPs statistics
+    """
+    # Move model to CPU for FLOPs calculation
+    model.cpu()
+    model.eval()
+
+    # Ensure input is on CPU
+    input_clone = sample_input.clone().cpu()
+
+    # Use thop to profile FLOPs and parameters
+    with torch.no_grad():
+        flops, params = profile(model, inputs=(input_clone,), verbose=False)
+
+    # Format for human readability
+    flops_formatted, params_formatted = clever_format([flops, params], "%.3f")
+
+    return {
+        "flops": int(flops),
+        "flops_formatted": flops_formatted,
+        "macs": int(flops / 2),  # MACs ≈ FLOPs / 2
+        "macs_formatted": clever_format([flops / 2], "%.3f")[0],
+        "params_thop": int(params),
+        "params_formatted": params_formatted
+    }
+
+
 def measure_inference_time(
     model: torch.nn.Module,
     sample_input: torch.Tensor,
@@ -477,7 +519,10 @@ def measure_inference_time(
     device: str = "cpu"
 ) -> Dict[str, float]:
     """
-    Measure CPU inference time for a single sample.
+    Measure CPU inference time for a single sample using single-threaded execution.
+
+    Uses torch.set_num_threads(1) for reproducible, single-threaded measurements
+    that are comparable across different hardware configurations.
 
     Args:
         model: PyTorch model
@@ -489,40 +534,49 @@ def measure_inference_time(
     Returns:
         Dictionary with timing statistics
     """
-    model = model.to(device)
-    model.eval()
-    sample_input = sample_input.to(device)
+    # Store original thread count and set to single-thread for reproducible measurements
+    original_num_threads = torch.get_num_threads()
+    torch.set_num_threads(1)
 
-    # Warm-up
-    print(f"  Warming up ({warmup_iterations} iterations)...")
-    with torch.no_grad():
-        for _ in range(warmup_iterations):
-            _ = model(sample_input)
+    try:
+        model = model.to(device)
+        model.eval()
+        sample_input = sample_input.to(device)
 
-    # Measure inference time
-    print(f"  Measuring ({num_samples} samples)...")
-    times = []
-    with torch.no_grad():
-        for _ in range(num_samples):
-            start = time.perf_counter()
-            _ = model(sample_input)
-            end = time.perf_counter()
-            times.append((end - start) * 1000)  # Convert to ms
+        # Warm-up
+        print(f"  Warming up ({warmup_iterations} iterations)...")
+        with torch.no_grad():
+            for _ in range(warmup_iterations):
+                _ = model(sample_input)
 
-    times = np.array(times)
+        # Measure inference time
+        print(f"  Measuring ({num_samples} samples, single-thread)...")
+        times = []
+        with torch.no_grad():
+            for _ in range(num_samples):
+                start = time.perf_counter()
+                _ = model(sample_input)
+                end = time.perf_counter()
+                times.append((end - start) * 1000)  # Convert to ms
 
-    return {
-        "mean_ms": float(np.mean(times)),
-        "std_ms": float(np.std(times)),
-        "min_ms": float(np.min(times)),
-        "max_ms": float(np.max(times)),
-        "p50_ms": float(np.percentile(times, 50)),
-        "p95_ms": float(np.percentile(times, 95)),
-        "p99_ms": float(np.percentile(times, 99)),
-        "device": device,
-        "warmup_iterations": warmup_iterations,
-        "num_samples": num_samples
-    }
+        times = np.array(times)
+
+        return {
+            "mean_ms": float(np.mean(times)),
+            "std_ms": float(np.std(times)),
+            "min_ms": float(np.min(times)),
+            "max_ms": float(np.max(times)),
+            "p50_ms": float(np.percentile(times, 50)),
+            "p95_ms": float(np.percentile(times, 95)),
+            "p99_ms": float(np.percentile(times, 99)),
+            "device": device,
+            "num_threads": 1,
+            "warmup_iterations": warmup_iterations,
+            "num_samples": num_samples
+        }
+    finally:
+        # Restore original thread count
+        torch.set_num_threads(original_num_threads)
 
 
 def run_test_evaluation(
@@ -636,15 +690,28 @@ def main():
     print(f"  Accuracy:   {metrics['accuracy']:.2f}% (threshold: {accuracy_threshold})")
     print(f"  Samples:    {metrics['num_samples']:,}")
 
-    # Measure CPU inference time
+    # Create sample input for FLOPs and inference measurement
+    sample_input = torch.randn(1, data_config["window_size"], config["model"]["input_size"])
+
+    # Calculate FLOPs
+    print("\n" + "=" * 60)
+    print("Model Complexity (FLOPs)")
+    print("=" * 60)
+
+    flops_results = calculate_flops(model, sample_input)
+
+    print(f"  FLOPs:      {flops_results['flops_formatted']}")
+    print(f"  MACs:       {flops_results['macs_formatted']}")
+    print(f"  Parameters: {flops_results['params_formatted']}")
+
+    # Measure CPU inference time (single-threaded)
     inference_results = None
     if not args.skip_inference_test:
         print("\n" + "=" * 60)
-        print("CPU Inference Time Measurement")
+        print("CPU Inference Time Measurement (Single-Thread)")
         print("=" * 60)
 
         eval_config = config["evaluation"]["inference"]
-        sample_input = torch.randn(1, data_config["window_size"], config["model"]["input_size"])
 
         inference_results = measure_inference_time(
             model,
@@ -664,6 +731,7 @@ def main():
         print(f"  P50:        {inference_results['p50_ms']:.3f} ms")
         print(f"  P95:        {inference_results['p95_ms']:.3f} ms")
         print(f"  P99:        {inference_results['p99_ms']:.3f} ms")
+        print(f"  Threads:    {inference_results['num_threads']}")
         print(f"  Target:     <{target_ms} ms {'[PASS]' if meets_target else '[FAIL]'}")
 
     # Generate plots
@@ -735,6 +803,10 @@ def main():
             "name": model_name,
             "type": model_type,
             "parameters": num_params,
+            "flops": flops_results["flops"],
+            "flops_formatted": flops_results["flops_formatted"],
+            "macs": flops_results["macs"],
+            "macs_formatted": flops_results["macs_formatted"],
             "checkpoint": args.checkpoint
         },
         "data": {
@@ -744,6 +816,7 @@ def main():
         },
         "metrics": metrics,
         "inference": inference_results,
+        "flops": flops_results,
         "plots": plot_paths,
         "predictions_csv": predictions_csv_path,
         "config_path": args.config

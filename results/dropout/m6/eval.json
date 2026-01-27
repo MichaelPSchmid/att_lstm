@@ -1,0 +1,58 @@
+{
+  "model": {
+    "name": "M6_Medium_Scaled_DP_Attention_Dropout",
+    "type": "scaled_dp_attention",
+    "parameters": 597633,
+    "flops": 30131328,
+    "flops_formatted": "30.131M",
+    "macs": 15065664,
+    "macs_formatted": "1",
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M6_Medium_Scaled_DP_Attention_Dropout\\version_0\\checkpoints\\M6_Medium_Scaled_DP_Attention_Dropout-epoch=30-val_loss=0.0014.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.0013710818020626903,
+    "rmse": 0.03702812269330025,
+    "mae": 0.027632102370262146,
+    "mape": 198972.5,
+    "r2": 0.8851321935653687,
+    "accuracy": 85.23261571729047,
+    "accuracy_threshold": 0.05,
+    "num_samples": 220127
+  },
+  "inference": {
+    "mean_ms": 2.918337400071323,
+    "std_ms": 0.36485176513313794,
+    "min_ms": 2.578500017989427,
+    "max_ms": 4.67890000436455,
+    "p50_ms": 2.799500012770295,
+    "p95_ms": 3.622329991776496,
+    "p99_ms": 4.0272479865234345,
+    "device": "cpu",
+    "num_threads": 1,
+    "warmup_iterations": 100,
+    "num_samples": 1000
+  },
+  "flops": {
+    "flops": 30131328,
+    "flops_formatted": "30.131M",
+    "macs": 15065664,
+    "macs_formatted": "1",
+    "params_thop": 597633,
+    "params_formatted": "597.633K"
+  },
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m6\\M6_Medium_Scaled_DP_Attention_Dropout_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m6\\M6_Medium_Scaled_DP_Attention_Dropout_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m6\\M6_Medium_Scaled_DP_Attention_Dropout_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m6\\M6_Medium_Scaled_DP_Attention_Dropout_error_distribution.png",
+    "attention_npy": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m6\\M6_Medium_Scaled_DP_Attention_Dropout_attention_weights.npy",
+    "attention_heatmap": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m6\\M6_Medium_Scaled_DP_Attention_Dropout_attention_heatmap.png"
+  },
+  "predictions_csv": null,
+  "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m6_medium_scaled_dp_attn_dropout.yaml"
+}

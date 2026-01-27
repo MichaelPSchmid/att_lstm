@@ -215,10 +215,15 @@ def generate_comparison_json(variant: str) -> Path:
 
     for model_id, data in results.items():
         model = MODEL_BY_ID[model_id]
+        model_data = data.get("model", {})
         comparison["models"][model_id] = {
             "name": model.name,
             "type": model.type,
-            "parameters": data.get("model", {}).get("parameters"),
+            "parameters": model_data.get("parameters"),
+            "flops": model_data.get("flops"),
+            "flops_formatted": model_data.get("flops_formatted"),
+            "macs": model_data.get("macs"),
+            "macs_formatted": model_data.get("macs_formatted"),
             "metrics": data.get("metrics", {}),
             "inference": data.get("inference", {}),
         }
@@ -251,8 +256,8 @@ def generate_summary_md(variant: str) -> Path:
         "",
         "## Overview",
         "",
-        "| Model | Type | Parameters | R2 | Accuracy | RMSE | Inference (ms) |",
-        "|-------|------|------------|-----|----------|------|----------------|",
+        "| Model | Type | Parameters | FLOPs | R2 | Accuracy | RMSE | Inference (ms) |",
+        "|-------|------|------------|-------|-----|----------|------|----------------|",
     ]
 
     for model in MODELS:
@@ -262,7 +267,9 @@ def generate_summary_md(variant: str) -> Path:
         data = results[model.id]
         metrics = data.get("metrics", {})
         inference = data.get("inference", {})
-        params = data.get("model", {}).get("parameters", "?")
+        model_data = data.get("model", {})
+        params = model_data.get("parameters", "?")
+        flops_str = model_data.get("flops_formatted", "?")
 
         r2 = metrics.get("r2", 0)
         accuracy = metrics.get("accuracy", 0)
@@ -280,7 +287,7 @@ def generate_summary_md(variant: str) -> Path:
             acc_str = f"{accuracy:.2f}%"
 
         lines.append(
-            f"| {name} | {model.type} | {params:,} | {r2_str} | {acc_str} | {rmse:.4f} | {inf_p95:.2f} |"
+            f"| {name} | {model.type} | {params:,} | {flops_str} | {r2_str} | {acc_str} | {rmse:.4f} | {inf_p95:.2f} |"
         )
 
     lines.extend([
@@ -302,16 +309,20 @@ def generate_summary_md(variant: str) -> Path:
         data = results[model.id]
         metrics = data.get("metrics", {})
         inference = data.get("inference", {})
+        model_data = data.get("model", {})
 
         lines.extend([
             f"### {model.name}",
             "",
+            f"- **Parameters:** {model_data.get('parameters', 'N/A'):,}",
+            f"- **FLOPs:** {model_data.get('flops_formatted', 'N/A')}",
+            f"- **MACs:** {model_data.get('macs_formatted', 'N/A')}",
             f"- **R2:** {metrics.get('r2', 0):.4f}",
             f"- **Accuracy:** {metrics.get('accuracy', 0):.2f}%",
             f"- **RMSE:** {metrics.get('rmse', 0):.4f}",
             f"- **MAE:** {metrics.get('mae', 0):.4f}",
-            f"- **Inference (P95):** {inference.get('p95_ms', 0):.2f} ms",
-            f"- **Checkpoint:** `{data.get('model', {}).get('checkpoint', 'N/A')}`",
+            f"- **Inference (P95):** {inference.get('p95_ms', 0):.2f} ms (single-thread)",
+            f"- **Checkpoint:** `{model_data.get('checkpoint', 'N/A')}`",
             "",
         ])
 

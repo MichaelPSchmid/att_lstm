@@ -1,0 +1,58 @@
+{
+  "model": {
+    "name": "M5_Medium_Additive_Attention_Dropout",
+    "type": "additive_attention",
+    "parameters": 630529,
+    "flops": 31769728,
+    "flops_formatted": "31.770M",
+    "macs": 15884864,
+    "macs_formatted": "1",
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Additive_Attention_Dropout\\version_0\\checkpoints\\M5_Medium_Additive_Attention_Dropout-epoch=34-val_loss=0.0014.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.0013818792067468166,
+    "rmse": 0.03717363625764847,
+    "mae": 0.027579324319958687,
+    "mape": 189188.859375,
+    "r2": 0.8842276334762573,
+    "accuracy": 85.38843485805921,
+    "accuracy_threshold": 0.05,
+    "num_samples": 220127
+  },
+  "inference": {
+    "mean_ms": 3.8159378996351734,
+    "std_ms": 0.3691001253128135,
+    "min_ms": 3.57070000609383,
+    "max_ms": 5.911199958063662,
+    "p50_ms": 3.651150007499382,
+    "p95_ms": 4.733020006096922,
+    "p99_ms": 5.11081897537224,
+    "device": "cpu",
+    "num_threads": 1,
+    "warmup_iterations": 100,
+    "num_samples": 1000
+  },
+  "flops": {
+    "flops": 31769728,
+    "flops_formatted": "31.770M",
+    "macs": 15884864,
+    "macs_formatted": "1",
+    "params_thop": 630401,
+    "params_formatted": "630.401K"
+  },
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m5\\M5_Medium_Additive_Attention_Dropout_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m5\\M5_Medium_Additive_Attention_Dropout_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m5\\M5_Medium_Additive_Attention_Dropout_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m5\\M5_Medium_Additive_Attention_Dropout_error_distribution.png",
+    "attention_npy": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m5\\M5_Medium_Additive_Attention_Dropout_attention_weights.npy",
+    "attention_heatmap": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m5\\M5_Medium_Additive_Attention_Dropout_attention_heatmap.png"
+  },
+  "predictions_csv": null,
+  "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m5_medium_additive_attn_dropout.yaml"
+}

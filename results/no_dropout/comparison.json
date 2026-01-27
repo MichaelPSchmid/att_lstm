@@ -1,0 +1,198 @@
+{
+  "variant": "no_dropout",
+  "generated": "2026-01-27T09:22:40.019118",
+  "models": {
+    "m1": {
+      "name": "M1 Small Baseline",
+      "type": "LSTM (64, 3)",
+      "parameters": 84801,
+      "flops": 4313664,
+      "flops_formatted": "4.314M",
+      "macs": 2156832,
+      "macs_formatted": "2",
+      "metrics": {
+        "mse": 0.0016661102417856455,
+        "rmse": 0.04081801325082779,
+        "mae": 0.03002282604575157,
+        "mape": 220100.921875,
+        "r2": 0.8604150414466858,
+        "accuracy": 82.57097039436326,
+        "accuracy_threshold": 0.05,
+        "num_samples": 220127
+      },
+      "inference": {
+        "mean_ms": 0.7479159990907647,
+        "std_ms": 0.05248950022808511,
+        "min_ms": 0.7114000036381185,
+        "max_ms": 1.0724000167101622,
+        "p50_ms": 0.7404499920085073,
+        "p95_ms": 0.9231150412233546,
+        "p99_ms": 0.9574020135914907,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000
+      }
+    },
+    "m2": {
+      "name": "M2 Small + Simple Attn",
+      "type": "LSTM + Attention (64, 3)",
+      "parameters": 84866,
+      "flops": 4316864,
+      "flops_formatted": "4.317M",
+      "macs": 2158432,
+      "macs_formatted": "2",
+      "metrics": {
+        "mse": 0.0017873391043394804,
+        "rmse": 0.042276933789253235,
+        "mae": 0.030920937657356262,
+        "mape": 203696.15625,
+        "r2": 0.8502585887908936,
+        "accuracy": 81.49840773735161,
+        "accuracy_threshold": 0.05,
+        "num_samples": 220127
+      },
+      "inference": {
+        "mean_ms": 0.7890804997296073,
+        "std_ms": 0.06093945983741538,
+        "min_ms": 0.7614000351168215,
+        "max_ms": 1.1289999820291996,
+        "p50_ms": 0.7676000241190195,
+        "p95_ms": 0.966810024692677,
+        "p99_ms": 1.019434018526226,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000
+      }
+    },
+    "m3": {
+      "name": "M3 Medium Baseline",
+      "type": "LSTM (128, 5)",
+      "parameters": 597633,
+      "flops": 30131328,
+      "flops_formatted": "30.131M",
+      "macs": 15065664,
+      "macs_formatted": "1",
+      "metrics": {
+        "mse": 0.0011393034365028143,
+        "rmse": 0.033753570169210434,
+        "mae": 0.025476418435573578,
+        "mape": 151006.0,
+        "r2": 0.9045503735542297,
+        "accuracy": 87.84292703757376,
+        "accuracy_threshold": 0.05,
+        "num_samples": 220127
+      },
+      "inference": {
+        "mean_ms": 2.535573400382418,
+        "std_ms": 0.08544796170370106,
+        "min_ms": 2.4773000041022897,
+        "max_ms": 3.3440000261180103,
+        "p50_ms": 2.5118000339716673,
+        "p95_ms": 2.6620250107953325,
+        "p99_ms": 2.972659991355613,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000
+      }
+    },
+    "m4": {
+      "name": "M4 Medium + Simple Attn",
+      "type": "LSTM + Attention (128, 5)",
+      "parameters": 597762,
+      "flops": 30137728,
+      "flops_formatted": "30.138M",
+      "macs": 15068864,
+      "macs_formatted": "1",
+      "metrics": {
+        "mse": 0.0009661822696216404,
+        "rmse": 0.031083472073078156,
+        "mae": 0.023610465228557587,
+        "mape": 171557.453125,
+        "r2": 0.9190542697906494,
+        "accuracy": 90.24790234728134,
+        "accuracy_threshold": 0.05,
+        "num_samples": 220127
+      },
+      "inference": {
+        "mean_ms": 2.5959366019815207,
+        "std_ms": 0.09490492618991422,
+        "min_ms": 2.5371999945491552,
+        "max_ms": 3.6197000299580395,
+        "p50_ms": 2.562549983849749,
+        "p95_ms": 2.751639997586608,
+        "p99_ms": 3.009078035247512,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000
+      }
+    },
+    "m5": {
+      "name": "M5 Medium + Additive Attn",
+      "type": "LSTM + Additive (128, 5)",
+      "parameters": 630529,
+      "flops": 31769728,
+      "flops_formatted": "31.770M",
+      "macs": 15884864,
+      "macs_formatted": "1",
+      "metrics": {
+        "mse": 0.0011051463661715388,
+        "rmse": 0.03324374184012413,
+        "mae": 0.025136588141322136,
+        "mape": 176821.65625,
+        "r2": 0.9074119925498962,
+        "accuracy": 88.339004302062,
+        "accuracy_threshold": 0.05,
+        "num_samples": 220127
+      },
+      "inference": {
+        "mean_ms": 3.6651581017649733,
+        "std_ms": 0.12569949296714425,
+        "min_ms": 3.5803000209853053,
+        "max_ms": 5.903599958401173,
+        "p50_ms": 3.628000005846843,
+        "p95_ms": 3.823730011936277,
+        "p99_ms": 4.136626948020421,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000
+      }
+    },
+    "m6": {
+      "name": "M6 Medium + Scaled DP",
+      "type": "LSTM + Scaled DP (128, 5)",
+      "parameters": 597633,
+      "flops": 30131328,
+      "flops_formatted": "30.131M",
+      "macs": 15065664,
+      "macs_formatted": "1",
+      "metrics": {
+        "mse": 0.0011126929894089699,
+        "rmse": 0.033357053995132446,
+        "mae": 0.025246966630220413,
+        "mape": 177880.40625,
+        "r2": 0.9067797660827637,
+        "accuracy": 88.16910238180687,
+        "accuracy_threshold": 0.05,
+        "num_samples": 220127
+      },
+      "inference": {
+        "mean_ms": 2.642461700947024,
+        "std_ms": 0.07531260107426936,
+        "min_ms": 2.5863000191748142,
+        "max_ms": 3.505599976051599,
+        "p50_ms": 2.6167499891016632,
+        "p95_ms": 2.773014985723421,
+        "p99_ms": 2.9290310089709237,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000
+      }
+    }
+  }
+}

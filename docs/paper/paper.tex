@@ -5,6 +5,7 @@
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithm, algorithmic}
 \usepackage{graphicx}
+\graphicspath{{figures/}}
 \usepackage{textcomp}
 \usepackage{xcolor}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
@@ -55,11 +56,12 @@ robert.wille@tum.de}
 
 \begin{abstract}
 Electric Power Steering (EPS) systems are safety-critical components in modern vehicles that require precise steering torque prediction for reliable operation within complex electrical and electronic (E/E) architectures.
-This paper presents a data-driven approach combining Long Short-Term Memory (LSTM) networks with attention mechanisms to predict steering torque from vehicle dynamics data.
-We systematically compare three attention mechanisms: Simple Attention, Additive Attention (Bahdanau), and Scaled Dot-Product Attention (Luong).
-Experimental results on real-world driving data from the commaSteeringControl dataset demonstrate that the LSTM model with Simple Attention achieves the highest prediction accuracy of \qty{89.71}{\percent}, outperforming the baseline LSTM (\qty{84.66}{\percent}) by approximately \qty{5}{\percent}.
-Furthermore, we analyze the trade-off between model complexity and prediction accuracy, showing that simpler model structures achieve comparable performance with significantly reduced training time (\qty{79}{\percent} reduction).
-The proposed approach provides an efficient solution for steering torque prediction suitable for resource-constrained embedded systems in vehicles.
+While data-driven approaches for steering torque prediction have been explored using classical machine learning methods, the application of deep learning with attention mechanisms remains largely unexplored.
+This paper presents, to the best of our knowledge, the first systematic investigation of attention-enhanced LSTM networks for steering torque prediction from vehicle CAN data.
+We compare three attention mechanisms: Simple Attention, Additive Attention (Bahdanau), and Scaled Dot-Product Attention.
+Experimental results on real-world driving data ({$\sim$}2.2 million samples from the commaSteeringControl dataset) demonstrate that Simple Attention achieves the highest prediction accuracy of \qty{90.25}{\percent} ($R^2$=0.919), outperforming both the baseline LSTM and more complex attention mechanisms.
+Notably, Simple Attention adds only \qty{3.4}{\percent} computational overhead while Additive Attention increases latency by \qty{44}{\percent}, demonstrating that simpler attention designs are preferable for this task.
+On desktop CPU, all models achieve inference times below \qty{4}{\milli\second}, with the small model configuration (4.3M FLOPs) offering a path toward embedded deployment.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -80,18 +82,16 @@ However, these approaches struggle to capture the nonlinear relationships inhere
 Data-driven approaches offer a promising alternative by learning complex patterns directly from sensor measurements without explicit physical modeling~\cite{vanwijk2022data}.
 
 Predicting steering torque is crucial for several reasons: (1) it enables proactive power management in the E/E architecture by anticipating high-demand scenarios, (2) it provides predictive reference values for safety redundancy systems, and (3) it improves system responsiveness by reducing real-time computational delays.
-Despite these benefits, existing research primarily focuses on steering angle prediction~\cite{xing2020driver}, % TODO: Replace reference - Xing et al. 2019 is about driver activity recognition, NOT steering angle prediction
-while steering torque prediction using modern deep learning techniques with attention mechanisms remains largely unexplored.
+While data-driven approaches for steering torque prediction have shown promising results~\cite{vanwijk2022data, zhao2022modeling}, existing work typically prioritizes prediction accuracy without systematically investigating the computational efficiency of different model architectures. For resource-constrained automotive ECUs, understanding the trade-off between model complexity, prediction accuracy, and inference latency is essential for practical deployment.
 
 Long Short-Term Memory (LSTM) networks have demonstrated excellent performance in time series prediction tasks due to their ability to capture both short-term and long-term temporal dependencies~\cite{hochreiter1997long}.
 Attention mechanisms, originally developed for machine translation~\cite{bahdanau2016neural}, can enhance LSTM networks by dynamically weighting the importance of different time steps in the input sequence~\cite{vaswani2017attention}.
 
 This paper makes the following contributions:
 \begin{itemize}
-    \item We present a systematic comparison of three attention mechanisms (Simple, Additive, and Scaled Dot-Product) for steering torque prediction in EPS systems.
-    \item We demonstrate that Simple Attention achieves the highest prediction accuracy (\qty{89.71}{\percent}) while maintaining low computational complexity suitable for embedded systems.
-    \item We provide a comprehensive analysis of the trade-off between model complexity and prediction accuracy, showing that simpler models can achieve comparable performance with significantly reduced training time.
-    \item We validate our approach using real-world driving data from the commaSteeringControl dataset, demonstrating practical applicability.
+    \item To the best of our knowledge, we present the first application of attention-enhanced LSTM networks for steering torque prediction from vehicle CAN data, addressing a gap where existing work relies on classical machine learning or specialized sensors.
+    \item We provide the first systematic comparison of three attention mechanisms (Simple, Additive, and Scaled Dot-Product) for automotive time series prediction, demonstrating that Simple Attention outperforms more complex mechanisms while adding minimal computational overhead (\qty{3.4}{\percent} vs. \qty{44}{\percent} for Additive Attention).
+    \item We evaluate computational efficiency on a large-scale dataset ({$\sim$}2.2 million samples), showing that all models achieve sub-\qty{4}{\milli\second} inference on desktop CPU, with the small model configuration (4.3M FLOPs) offering a $7\times$ reduction in computational cost for resource-constrained deployment.
 \end{itemize}
 
 The remainder of this paper is organized as follows: \cref{sec:related_work} reviews related work. \cref{sec:methodology} describes the proposed methodology. \cref{sec:experimental_setup} presents the experimental setup. \cref{sec:results} discusses the results, and \cref{sec:conclusion} concludes the paper.
@@ -344,7 +344,7 @@ The sliding window moves forward by one time step for each sample, creating over
 
 \subsection{Implementation Details}
 
-All models are implemented using the PyTorch Lightning framework (version 2.5.0) and trained on an NVIDIA GeForce RTX 3070 Ti GPU with 8~GB VRAM.
+All models are implemented using the PyTorch Lightning framework (version 2.5.0) and trained on an NVIDIA GeForce RTX 2060 Super GPU with 8~GB VRAM.
 
 The dataset is split into training (\qty{70}{\percent}), validation (\qty{20}{\percent}), and test (\qty{10}{\percent}) sets.
 Training samples are shuffled to improve generalization, while validation and test samples maintain temporal order.
@@ -374,17 +374,43 @@ We evaluate model performance using the following metrics:
     \label{eq:rmse}
 \end{equation}
 
-\textbf{Time Cost Ratio (TCR):} The ratio of training time for a complex model to reach the same accuracy as a simpler model:
+\textbf{Inference Time:} The 95th percentile of single-sample prediction time on CPU, ensuring consistent real-time performance:
 \begin{equation}
-    \text{TCR} = \frac{T_{\text{complex}}}{T_{\text{simple}}}
-    \label{eq:tcr}
+    T_{\text{inf}} = P_{95}(t_1, t_2, \ldots, t_n)
+    \label{eq:inference}
 \end{equation}
 
-\textbf{Learning Efficiency (LE):} The rate of accuracy improvement per hour:
+\textbf{Parameter Efficiency (PE):} The ratio of prediction accuracy to model size, measuring how effectively parameters are utilized:
 \begin{equation}
-    \text{LE} = \frac{\text{Acc}_{t_2} - \text{Acc}_{t_1}}{t_2 - t_1}
-    \label{eq:le}
+    \text{PE} = \frac{\text{Accuracy}}{|\theta| / 10^5}
+    \label{eq:param_efficiency}
 \end{equation}
+where $|\theta|$ denotes the total number of trainable parameters. Higher PE indicates better utilization of model capacity.
+
+\subsection{Model Configurations}
+
+We evaluate six model configurations combining two LSTM sizes with four attention variants, as summarized in \cref{tab:models}.
+
+\begin{table}[t]
+    \centering
+    \caption{Overview of Model Configurations}
+    \label{tab:models}
+    \begin{tabular}{clcc}
+        \toprule
+        \textbf{ID} & \textbf{Description} & \textbf{Params (total)} & \textbf{Params (Attn)} \\
+        \midrule
+        M1 & Small Baseline & 85K & -- \\
+        M2 & Small + Simple Attn & 85K & 65 \\
+        \midrule
+        M3 & Medium Baseline & 598K & -- \\
+        M4 & Medium + Simple Attn & 598K & 129 \\
+        M5 & Medium + Additive Attn & 631K & 33K \\
+        M6 & Medium + Scaled DP Attn & 598K & 0 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The small configuration uses hidden size 64 with 3 LSTM layers, while the medium configuration uses hidden size 128 with 5 layers.
 
 %%%
 % RESULTS AND DISCUSSION
@@ -394,230 +420,146 @@ We evaluate model performance using the following metrics:
 
 \subsection{Baseline LSTM Performance}
 
-The baseline LSTM model with hidden size 64 and 3 layers achieves \qty{84.66}{\percent} accuracy and RMSE of 0.00116 on the test set.
-The validation accuracy increases rapidly during early training and gradually converges, reaching a maximum of \qty{85.06}{\percent}.
+The small baseline LSTM model (M1) with hidden size 64 and 3 layers achieves \qty{82.57}{\percent} accuracy and RMSE of 0.0408 on the test set.
+The validation accuracy increases rapidly during early training and gradually converges.
 
-Increasing model complexity (hidden size 128, 5 layers) yields only marginal improvement to \qty{86.75}{\percent}, despite a 7-fold increase in model parameters (from 0.339~MB to 2.391~MB).
-This limited improvement indicates that the baseline LSTM architecture cannot fully utilize additional capacity, motivating the integration of attention mechanisms.
+Increasing model complexity to the medium configuration (M3, hidden size 128, 5 layers) improves accuracy to \qty{87.84}{\percent}, with a 7-fold increase in model parameters (from 85K to 598K).
+This improvement motivates the integration of attention mechanisms to further enhance prediction accuracy.
 
 \subsection{Impact of Attention Mechanisms}
 
 \cref{tab:attention_comparison} presents the performance comparison of LSTM models with different attention mechanisms.
-All attention-enhanced models outperform the baseline LSTM, demonstrating the effectiveness of attention for steering torque prediction.
 
 %%% Table: Attention Comparison
 \begin{table}[t]
     \centering
     \caption{Performance Comparison of LSTM Models with Different Attention Mechanisms}
     \label{tab:attention_comparison}
-    \begin{tabular}{lcc}
+    \begin{tabular}{lccccc}
         \toprule
-        \textbf{Model} & \textbf{Accuracy (\%)} & \textbf{RMSE} \\
+        \textbf{Model} & \textbf{Params} & \textbf{FLOPs} & \textbf{Acc. (\%)} & \textbf{RMSE} & \textbf{Inf. (ms)} \\
         \midrule
-        Baseline LSTM & 84.66 & 0.00116 \\
-        LSTM + Simple Attention & \textbf{89.71} & \textbf{0.00098} \\
-        LSTM + Additive Attention & 88.82 & 0.00101 \\
-        LSTM + Scaled Dot-Product Attention & 88.65 & 0.00101 \\
+        M1 & 85K & 4.3M & 82.57 & 0.0408 & 0.92 \\
+        M2 & 85K & 4.3M & 81.50 & 0.0423 & 0.97 \\
+        \midrule
+        M3 & 598K & 30.1M & 87.84 & 0.0338 & 2.66 \\
+        \textbf{M4} & 598K & 30.1M & \textbf{90.25} & \textbf{0.0311} & 2.75 \\
+        M5 & 631K & 31.8M & 88.34 & 0.0332 & 3.82 \\
+        M6 & 598K & 30.1M & 88.17 & 0.0334 & 2.77 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-The LSTM with Simple Attention achieves the highest accuracy (\qty{89.71}{\percent}) and lowest RMSE (0.00098).
-Notably, this simpler attention mechanism outperforms both Additive and Scaled Dot-Product Attention, which capture pairwise time step correlations.
+The medium LSTM with Simple Attention (M4) achieves the highest accuracy (\qty{90.25}{\percent}) and lowest RMSE (0.0311). Notably, attention mechanisms do not improve performance for small models: M2 (\qty{81.50}{\percent}) underperforms the baseline M1 (\qty{82.57}{\percent}), suggesting that small architectures lack sufficient representational capacity to benefit from attention weighting.
 
-This result suggests that for steering torque prediction, independently evaluating the importance of each time step is more effective than modeling complex inter-time-step dependencies.
+This result suggests that for steering torque prediction with medium-sized models, independently evaluating the importance of each time step is more effective than modeling complex inter-time-step dependencies.
 The steering torque at a given moment is primarily influenced by recent vehicle dynamics rather than long-range correlations.
 
-%%% Figure: Training Curves
-\begin{figure}[t]
-    \centering
-    \begin{tikzpicture}
-        \begin{axis}[
-            width=0.95\columnwidth,
-            height=5cm,
-            xlabel={Training Time (hours)},
-            ylabel={Validation Accuracy (\%)},
-            xmin=0, xmax=10,
-            ymin=76, ymax=92,
-            legend pos=south east,
-            legend style={font=\scriptsize},
-            grid=major,
-            grid style={dashed, gray!30},
-        ]
-        % Baseline LSTM
-        \addplot[color=matlabBlue, thick, smooth] coordinates {
-            (0,77.5) (0.5,79.2) (1,81.0) (1.5,82.3) (2,83.5) (2.5,84.2) (3,84.8) (3.5,85.2) (4,85.8) (4.5,86.2) (5,86.5) (5.5,86.8) (6,87.0) (6.5,87.2) (7,87.4) (7.5,87.6) (8,87.8)
-        };
-        \addlegendentry{Baseline LSTM}
-        
-        % Simple Attention
-        \addplot[color=matlabOrange, thick, smooth] coordinates {
-            (0,77.7) (0.5,80.5) (1,83.0) (1.5,85.0) (2,86.5) (2.5,87.3) (3,88.0) (3.5,88.4) (4,88.7) (4.5,89.0) (5,89.2) (5.5,89.4) (6,89.6) (6.5,89.7)
-        };
-        \addlegendentry{Simple Attn.}
-        
-        % Additive Attention
-        \addplot[color=matlabGreen, thick, smooth] coordinates {
-            (0,77.6) (0.5,79.8) (1,82.2) (1.5,84.2) (2,85.8) (2.5,86.8) (3,87.5) (3.5,87.9) (4,88.2) (4.5,88.4) (5,88.6) (5.5,88.7) (6,88.8) (6.5,88.85) (7,88.9) (7.5,88.9)
-        };
-        \addlegendentry{Additive Attention}
-        
-        % Scaled Dot-Product Attention
-        \addplot[color=matlabPurple, thick, smooth] coordinates {
-            (0,77.5) (0.5,79.5) (1,82.0) (1.5,84.0) (2,85.5) (2.5,86.5) (3,87.3) (3.5,87.8) (4,88.1) (4.5,88.3) (5,88.5) (5.5,88.55) (6,88.6) (6.5,88.62) (7,88.63) (7.5,88.64) (8,88.65)
-        };
-        \addlegendentry{Scaled Dot-Product Attn.}
-        
-        \end{axis}
-    \end{tikzpicture}
-    \caption{Validation accuracy over training time for different models. The LSTM with Simple Attention converges faster and achieves higher accuracy.}
-    \label{fig:training_curves}
-\end{figure}
+\subsection{Inference Efficiency Analysis}
 
-\cref{fig:training_curves} shows the validation accuracy trajectories during training.
-The LSTM with Simple Attention not only achieves the highest final accuracy but also converges faster than other attention mechanisms, indicating superior learning efficiency.
+For deployment in automotive embedded systems, inference time is critical. \cref{tab:inference} summarizes the computational efficiency of all models.
 
-\subsection{Model Complexity Analysis}
-
-To investigate the relationship between model complexity and performance, we compare a simple model (hidden size 128, 5 LSTM layers) with a complex model (hidden size 256, 10 LSTM layers).
-
-%%% Table: Complexity Comparison
 \begin{table}[t]
     \centering
-    \caption{Comparison of Simple and Complex Model Configurations}
-    \label{tab:complexity}
+    \caption{Inference Efficiency on Desktop CPU (AMD Ryzen 7 3700X, single-thread)}
+    \label{tab:inference}
     \begin{tabular}{lccc}
         \toprule
-        \textbf{Model} & \textbf{Parameters} & \textbf{Accuracy (\%)} & \textbf{Training Time} \\
+        \textbf{Model} & \textbf{FLOPs} & \textbf{Inf. (ms)} & \textbf{Attn. Overhead} \\
         \midrule
-        Simple & 597K & 88.72 & 6.0 h \\
-        Complex & 5.0M & 89.96 & 28.3 h \\
+        M1 & 4.3M & 0.92 & -- \\
+        M2 & 4.3M & 0.97 & +5.4\% \\
+        \midrule
+        M3 & 30.1M & 2.66 & -- \\
+        M4 & 30.1M & 2.75 & +3.4\% \\
+        M5 & 31.8M & 3.82 & +43.6\% \\
+        M6 & 30.1M & 2.77 & +4.1\% \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-As shown in \cref{tab:complexity}, the complex model achieves only \qty{1.24}{\percent} higher accuracy despite having 8.5$\times$ more parameters and requiring 4.7$\times$ longer training time.
+The computational overhead of attention mechanisms varies significantly: Simple Attention adds only \qty{3.4}{\percent} latency while providing the largest accuracy gain (\qty{+2.41}{\percent}), whereas Additive Attention increases latency by \qty{44}{\percent} for a smaller accuracy improvement (\qty{+0.50}{\percent}). This demonstrates that more complex attention mechanisms do not necessarily yield better accuracy-efficiency trade-offs for this task.
 
-%%% Figure: Complexity Trade-off
+While these measurements were obtained on a desktop CPU, the computational requirements can be extrapolated to embedded platforms based on FLOPs. The small model configuration (M1, 4.3M FLOPs) requires approximately $7\times$ fewer operations than medium models, suggesting feasibility for deployment on mid-tier embedded processors such as ARM Cortex-A class devices. For highly resource-constrained automotive ECUs, model quantization or architectural optimizations would likely be required to meet strict real-time constraints below \qty{10}{\milli\second}.
+
+\cref{fig:inference_tradeoff} visualizes the accuracy-latency trade-off across all models.
+
+%%% Figure: Accuracy vs Inference Time (generated by scripts/generate_paper_figures.py)
 \begin{figure}[t]
     \centering
-    \begin{tikzpicture}
-        \begin{axis}[
-            width=0.95\columnwidth,
-            height=5cm,
-            xlabel={Training Time (hours)},
-            ylabel={Validation Accuracy (\%)},
-            xmin=0, xmax=30,
-            ymin=74, ymax=92,
-            legend pos=south east,
-            legend style={font=\scriptsize},
-            grid=major,
-            grid style={dashed, gray!30},
-        ]
-        % Simple Model
-        \addplot[color=matlabBlue, thick, smooth] coordinates {
-            (0,77.7) (0.5,80.5) (1,82.8) (1.5,84.5) (2,85.8) (2.5,86.8) (3,87.5) (3.5,88.0) (4,88.3) (4.5,88.5) (5,88.6) (5.5,88.68) (6,88.72)
-        };
-        \addlegendentry{Simple Model (597K params)}
-        
-        % Complex Model
-        \addplot[color=matlabOrange, thick, smooth] coordinates {
-            (0,77.8) (1,79.5) (2,81.5) (3,83.2) (4,84.5) (5,85.5) (6,86.2) (7,86.8) (8,87.2) (9,87.5) (10,87.8) (12,88.2) (14,88.5) (16,88.7) (18,88.9) (20,89.2) (22,89.4) (24,89.6) (26,89.8) (28,89.96)
-        };
-        \addlegendentry{Complex Model (5.0M params)}
-        
-        % Reference lines
-        \draw[dashed, gray] (axis cs:6,74) -- (axis cs:6,88.72);
-        \draw[dashed, gray] (axis cs:0,88.72) -- (axis cs:6,88.72);
-        \draw[dashed, gray] (axis cs:21,74) -- (axis cs:21,88.72);
-        
-        \end{axis}
-    \end{tikzpicture}
-    \caption{Training time comparison between simple and complex models. The complex model requires approximately 3.5$\times$ longer to reach the same accuracy as the simple model.}
-    \label{fig:complexity_tradeoff}
+    \resizebox{\columnwidth}{!}{\input{figures/fig_inference_tradeoff.pgf}}
+    \caption{Trade-off between prediction accuracy and inference time for all model configurations. M4 (Medium + Simple Attention) achieves the highest accuracy (\qty{90.25}{\percent}) with minimal latency overhead (\qty{+3.4}{\percent}) compared to the baseline M3.}
+    \label{fig:inference_tradeoff}
 \end{figure}
 
-The TCR analysis in \cref{tab:tcr} reveals that the complex model requires 4-8$\times$ longer training time to achieve the same accuracy levels as the simple model.
-The Learning Efficiency of the simple model (LE = 1.84\%/h) is approximately 4$\times$ higher than the complex model (LE = 0.43\%/h).
+The choice between small and medium models presents a clear trade-off: small models offer approximately \qty{3}{\times} faster inference (\qty{\sim 1}{\milli\second} vs. \qty{\sim 3}{\milli\second}) but sacrifice approximately 8 percentage points in accuracy.
 
-%%% Table: Time Cost Ratio
+\cref{tab:efficiency} summarizes the performance and efficiency metrics for all six model configurations. Parameter Efficiency (PE) measures accuracy per 100K parameters---higher values indicate better utilization of model capacity. While small models achieve significantly higher PE (97.1 vs. 15.1), this comes at the cost of approximately 8 percentage points in accuracy. Among medium models, M4 with Simple Attention achieves both the highest accuracy and the highest PE, demonstrating that attention mechanisms improve parameter utilization rather than merely adding complexity.
+
 \begin{table}[t]
     \centering
-    \caption{Time Cost Ratio Analysis at Different Accuracy Levels}
-    \label{tab:tcr}
-    \begin{tabular}{cccc}
+    \caption{Model Efficiency Comparison: Accuracy, Inference Time, and Parameter Efficiency}
+    \label{tab:efficiency}
+    \begin{tabular}{lccccc}
         \toprule
-        \textbf{Target Acc.} & \textbf{Simple (h)} & \textbf{Complex (h)} & \textbf{TCR} \\
+        \textbf{Model} & \textbf{Params} & \textbf{Acc. (\%)} & \textbf{RMSE} & \textbf{Inf. (ms)} & \textbf{PE} \\
         \midrule
-        84\% & 1.32 & 10.28 & 7.79 \\
-        86\% & 2.38 & 13.74 & 5.77 \\
-        88\% & 4.34 & 18.24 & 4.21 \\
+        M1 & 85K & 82.57 & 0.0408 & 0.92 & 97.1 \\
+        M2 & 85K & 81.50 & 0.0423 & 0.97 & 96.0 \\
+        \midrule
+        M3 & 598K & 87.84 & 0.0338 & 2.66 & 14.7 \\
+        \textbf{M4} & 598K & \textbf{90.25} & \textbf{0.0311} & 2.75 & \textbf{15.1} \\
+        M5 & 631K & 88.34 & 0.0332 & 3.82 & 14.0 \\
+        M6 & 598K & 88.17 & 0.0334 & 2.77 & 14.8 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-These results demonstrate that for resource-constrained embedded systems, the simpler model architecture provides an optimal balance between prediction accuracy and computational efficiency.
+\subsection{Effect of Dropout Regularization}
 
-\subsection{Impact of Window Size}
+To investigate whether dropout regularization could improve generalization, we trained all model variants with dropout probability $p=0.2$ applied to LSTM layers. \cref{tab:dropout} presents the results.
 
-The window size significantly affects model performance, as shown in \cref{tab:window_size}.
-Increasing the window size from 15 to 50 time steps improves accuracy by approximately \qty{5}{\percent}.
-
-%%% Table: Window Size
 \begin{table}[t]
     \centering
-    \caption{Impact of Window Size on Model Performance}
-    \label{tab:window_size}
-    \begin{tabular}{ccc}
+    \caption{Effect of Dropout ($p=0.2$) on Model Performance}
+    \label{tab:dropout}
+    \begin{tabular}{lccc}
         \toprule
-        \textbf{Window Size} & \textbf{Accuracy (\%)} & \textbf{RMSE} \\
+        \textbf{Model} & \textbf{No Dropout} & \textbf{Dropout} & \textbf{$\Delta$} \\
         \midrule
-        15 (1.5s) & 83.86 & 0.00119 \\
-        50 (5.0s) & 88.72 & 0.00104 \\
+        M1 & 82.57\% & 80.49\% & -2.08\% \\
+        M2 & 81.50\% & 80.07\% & -1.43\% \\
+        M3 & 87.84\% & 86.29\% & -1.55\% \\
+        M4 & 90.25\% & 84.31\% & \textbf{-5.94\%} \\
+        M5 & 88.34\% & 85.39\% & -2.95\% \\
+        M6 & 88.17\% & 85.23\% & -2.94\% \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Larger windows capture more temporal context, enabling the model to learn longer-term dependencies in vehicle dynamics.
-At 10~Hz sampling frequency, a window of 50 time steps corresponds to 5 seconds of driving data, which provides sufficient context for predicting steering torque requirements.
+Dropout consistently degraded performance across all models. Attention-augmented models were particularly affected, with M4 suffering the largest drop of \qty{5.94}{\percent}. This suggests that the dataset of 2.2 million samples provides sufficient regularization through data diversity, and that attention mechanisms are sensitive to noise introduced by dropout in intermediate representations. All subsequent results use no dropout.
 
 \subsection{Attention Weight Analysis}
 
-\cref{fig:attention_weights} visualizes the average attention weight distributions for each mechanism.
-The Simple Attention assigns progressively higher weights to more recent time steps, confirming the intuition that recent vehicle dynamics are most relevant for steering torque prediction.
+\cref{fig:attention_weights} visualizes the learned attention weight distributions for each mechanism, revealing fundamentally different temporal weighting strategies.
 
-%%% Figure: Attention Weights
+%%% Figure: Attention Weights (generated by scripts/generate_paper_figures.py)
 \begin{figure}[t]
     \centering
-    \begin{tikzpicture}
-        \begin{axis}[
-            width=0.95\columnwidth,
-            height=4cm,
-            xlabel={Time Step (relative to prediction)},
-            ylabel={Attention Weight},
-            xmin=-50, xmax=0,
-            ymin=0, ymax=0.1,
-            xtick={-50,-40,-30,-20,-10,0},
-            xticklabels={$t{-}50$,$t{-}40$,$t{-}30$,$t{-}20$,$t{-}10$,$t{-}1$},
-            legend pos=north west,
-            legend style={font=\scriptsize},
-            grid=major,
-            grid style={dashed, gray!30},
-        ]
-        % Simple Attention weights (increasing toward recent)
-        \addplot[color=matlabOrange, thick, smooth] coordinates {
-            (-50,0.012) (-45,0.014) (-40,0.016) (-35,0.018) (-30,0.022) (-25,0.028) (-20,0.035) (-15,0.045) (-10,0.058) (-5,0.075) (-1,0.092)
-        };
-        \addlegendentry{Simple Attention}
-        
-        \end{axis}
-    \end{tikzpicture}
-    \caption{Average attention weight distribution for Simple Attention across the sliding window. Recent time steps receive higher weights, indicating their greater importance for prediction.}
+    \resizebox{\columnwidth}{!}{\input{figures/fig_attention_weights.pgf}}
+    \caption{Attention weight distributions across the 50-step sliding window. Simple Attention (M4) shows exponential weighting toward recent steps. Additive Attention (M5) exhibits extreme concentration on the final steps. Scaled Dot-Product (M6) maintains nearly uniform weights ($\approx 1/50$).}
     \label{fig:attention_weights}
 \end{figure}
 
-Interestingly, while Additive and Scaled Dot-Product Attention exhibit different attention patterns (the former focusing on recent steps, the latter on diagonal/adjacent steps), both achieve similar prediction performance.
-This suggests that multiple attention strategies can effectively extract relevant information from the temporal sequence, but the simpler approach proves more efficient for this application.
+The three attention mechanisms learn fundamentally different temporal weighting strategies:
+
+\textbf{Simple Attention (M4)} exhibits exponentially increasing weights toward recent time steps, with the final step receiving weight $\alpha_{t-1} = 0.14$. This aligns with the physical intuition that recent vehicle dynamics are most predictive of immediate steering torque requirements.
+
+\textbf{Additive Attention (M5)} shows extreme sparsity, assigning near-zero weights to steps $t{-}50$ through $t{-}15$, then concentrating \qty{25}{\percent} of total weight on the final step alone. This aggressive focusing may explain its slightly lower accuracy compared to Simple Attention---potentially discarding useful mid-range temporal context.
+
+\textbf{Scaled Dot-Product Attention (M6)} maintains nearly uniform weights ($\approx 0.02 = 1/50$) across all time steps, effectively computing an unweighted average of LSTM hidden states. Despite this lack of temporal differentiation, it achieves competitive accuracy (\qty{88.17}{\percent}), suggesting that the LSTM layers already encode sufficient temporal information in their hidden states.
+
+These results explain why Simple Attention achieves the best performance: it strikes an optimal balance between focusing on recent dynamics and preserving historical context, while maintaining computational simplicity.
 
 %%%
 % CONCLUSION
@@ -629,14 +571,14 @@ This paper presented a systematic investigation of attention-enhanced LSTM netwo
 Our experimental results on real-world driving data demonstrate that:
 
 \begin{itemize}
-    \item The LSTM model with Simple Attention achieves the highest prediction accuracy (\qty{89.71}{\percent}), outperforming the baseline LSTM by \qty{5}{\percent} and more complex attention mechanisms by approximately \qty{1}{\percent}.
-    \item Simpler model architectures achieve comparable performance with significantly reduced computational cost, with the simple model demonstrating 4$\times$ higher learning efficiency than the complex model.
-    \item Larger sliding window sizes capture more relevant temporal information, with a window of 50 time steps (5 seconds) providing optimal performance.
+    \item The LSTM model with Simple Attention (M4) achieves the highest prediction accuracy (\qty{90.25}{\percent}), outperforming the medium baseline by \qty{2.41}{\percent} and more complex attention mechanisms by approximately \qty{2}{\percent}.
+    \item On desktop CPU, all models achieve inference times below \qty{4}{\milli\second}, with Simple Attention adding only \qty{3.4}{\percent} latency overhead while providing the largest accuracy improvement. The small model configuration (4.3M FLOPs) offers a $7\times$ reduction in computational cost compared to medium models, providing a practical path toward embedded deployment.
+    \item Dropout regularization consistently degraded performance, suggesting that the large dataset provides sufficient implicit regularization through data diversity.
 \end{itemize}
 
 The proposed approach offers practical benefits for EPS system development: accurate steering torque prediction can enable proactive power management, provide safety redundancy through predictive reference values, and support the analysis of steering characteristics across different vehicle models.
 
-Future work will explore: (1) larger window sizes with memory-efficient implementations, (2) attention mechanisms across input features rather than time steps, (3) generalization to multiple vehicle models, and (4) integration with physics-based models for improved interpretability.
+Future work will explore: (1) validation on embedded hardware platforms to quantify real-world deployment feasibility, (2) the impact of sliding window size on the accuracy-latency trade-off for memory-constrained systems, (3) attention mechanisms across input features rather than time steps, (4) generalization to multiple vehicle models, and (5) integration with physics-based models for improved interpretability.
 
 \begin{thebibliography}{00}
 
