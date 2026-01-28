@@ -8,14 +8,13 @@ This module provides centralized utilities for:
 - Metrics calculation
 
 Usage:
-    from scripts.lib import MODELS, MODEL_BY_ID, find_best_checkpoint, calculate_metrics
+    from scripts.shared import MODELS, MODEL_BY_ID, find_best_checkpoint, calculate_metrics
 """
 
 from .checkpoints import (
     CheckpointInfo,
     find_all_checkpoints,
     find_best_checkpoint,
-    parse_checkpoint_name,
 )
 from .metrics import (
     MetricResult,
@@ -54,7 +53,6 @@ __all__ = [
     "load_model_data_for_figures",
     # Checkpoints
     "CheckpointInfo",
-    "parse_checkpoint_name",
     "find_all_checkpoints",
     "find_best_checkpoint",
     # Metrics
