@@ -29,107 +29,33 @@ from config.loader import load_config, get_model_class
 from model.data_module import TimeSeriesDataModule
 from config.settings import get_preprocessed_paths
 
-
-# Model configurations
-MODELS_NO_DROPOUT = [
-    ("M1", "Small Baseline", "m1_small_baseline.yaml", "M1_Small_Baseline"),
-    ("M2", "Small + Simple Attn", "m2_small_simple_attn.yaml", "M2_Small_Simple_Attention"),
-    ("M3", "Medium Baseline", "m3_medium_baseline.yaml", "M3_Medium_Baseline"),
-    ("M4", "Medium + Simple Attn", "m4_medium_simple_attn.yaml", "M4_Medium_Simple_Attention"),
-    ("M5", "Medium + Additive Attn", "m5_medium_additive_attn.yaml", "M5_Medium_Additive_Attention"),
-    ("M6", "Medium + Scaled DP", "m6_medium_scaled_dp_attn.yaml", "M6_Medium_Scaled_DP_Attention"),
-]
-
-MODELS_DROPOUT = [
-    ("M1", "Small Baseline", "m1_small_baseline_dropout.yaml", "M1_Small_Baseline_Dropout"),
-    ("M2", "Small + Simple Attn", "m2_small_simple_attn_dropout.yaml", "M2_Small_Simple_Attention_Dropout"),
-    ("M3", "Medium Baseline", "m3_medium_baseline_dropout.yaml", "M3_Medium_Baseline_Dropout"),
-    ("M4", "Medium + Simple Attn", "m4_medium_simple_attn_dropout.yaml", "M4_Medium_Simple_Attention_Dropout"),
-    ("M5", "Medium + Additive Attn", "m5_medium_additive_attn_dropout.yaml", "M5_Medium_Additive_Attention_Dropout"),
-    ("M6", "Medium + Scaled DP", "m6_medium_scaled_dp_attn_dropout.yaml", "M6_Medium_Scaled_DP_Attention_Dropout"),
-]
+# Import from shared library
+from scripts.shared import (
+    MODELS,
+    MODEL_BY_ID,
+    PROJECT_ROOT,
+    find_best_checkpoint,
+    get_config_path,
+    calculate_metrics_dict,
+)
 
 
-def find_best_checkpoint(model_dir: str) -> Optional[Path]:
+def _calculate_bootstrap_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+    """Calculate metrics for bootstrap evaluation (simplified version).
+
+    Uses only the three metrics needed for bootstrap: accuracy, rmse, r2.
     """
-    Find the best checkpoint for a model (lowest val_loss).
-
-    Args:
-        model_dir: Directory name in lightning_logs/
-
-    Returns:
-        Path to best checkpoint or None if not found
-    """
-    logs_dir = project_root / "lightning_logs" / model_dir
-
-    if not logs_dir.exists():
-        return None
-
-    # Find latest version
-    versions = sorted(logs_dir.glob("version_*"), key=lambda x: int(x.name.split("_")[1]))
-    if not versions:
-        return None
-
-    latest_version = versions[-1]
-    checkpoints_dir = latest_version / "checkpoints"
-
-    if not checkpoints_dir.exists():
-        return None
-
-    # Find checkpoint with lowest val_loss
-    checkpoints = list(checkpoints_dir.glob("*.ckpt"))
-    if not checkpoints:
-        return None
-
-    # Parse val_loss from filename and find minimum
-    best_ckpt = None
-    best_loss = float("inf")
-
-    for ckpt in checkpoints:
-        # Parse: ModelName-epoch=XX-val_loss=X.XXXX.ckpt
-        try:
-            loss_str = ckpt.stem.split("val_loss=")[1]
-            loss = float(loss_str)
-            if loss < best_loss:
-                best_loss = loss
-                best_ckpt = ckpt
-        except (IndexError, ValueError):
-            continue
-
-    return best_ckpt
-
-
-def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
-    """
-    Calculate evaluation metrics.
-
-    Args:
-        y_true: Ground truth values
-        y_pred: Predicted values
-
-    Returns:
-        Dictionary with accuracy, rmse, r2
-    """
-    # Flatten arrays
     y_true = y_true.flatten()
     y_pred = y_pred.flatten()
 
-    # Accuracy: percentage of predictions within threshold
     accuracy = np.mean(np.abs(y_true - y_pred) <= 0.05) * 100
-
-    # RMSE
     rmse = np.sqrt(np.mean((y_true - y_pred) ** 2))
 
-    # R²
     ss_res = np.sum((y_true - y_pred) ** 2)
     ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
     r2 = 1 - ss_res / ss_tot
 
-    return {
-        "accuracy": accuracy,
-        "rmse": rmse,
-        "r2": r2
-    }
+    return {"accuracy": accuracy, "rmse": rmse, "r2": r2}
 
 
 def bootstrap_confidence_intervals(
@@ -170,7 +96,7 @@ def bootstrap_confidence_intervals(
         y_pred_boot = y_pred[indices]
 
         # Calculate metrics for this bootstrap sample
-        metrics = calculate_metrics(y_true_boot, y_pred_boot)
+        metrics = _calculate_bootstrap_metrics(y_true_boot, y_pred_boot)
         bootstrap_accuracy.append(metrics["accuracy"])
         bootstrap_rmse.append(metrics["rmse"])
         bootstrap_r2.append(metrics["r2"])
@@ -338,8 +264,8 @@ def permutation_test(
     y_pred_b = y_pred_b.flatten()
 
     # Calculate observed difference
-    metrics_a = calculate_metrics(y_true, y_pred_a)
-    metrics_b = calculate_metrics(y_true, y_pred_b)
+    metrics_a = _calculate_bootstrap_metrics(y_true, y_pred_a)
+    metrics_b = _calculate_bootstrap_metrics(y_true, y_pred_b)
     observed_diff = metrics_b[metric] - metrics_a[metric]
 
     # Combine predictions
@@ -353,8 +279,8 @@ def permutation_test(
         perm_a = np.where(swap_mask == 0, combined[:, 0], combined[:, 1])
         perm_b = np.where(swap_mask == 0, combined[:, 1], combined[:, 0])
 
-        metrics_perm_a = calculate_metrics(y_true, perm_a)
-        metrics_perm_b = calculate_metrics(y_true, perm_b)
+        metrics_perm_a = _calculate_bootstrap_metrics(y_true, perm_a)
+        metrics_perm_b = _calculate_bootstrap_metrics(y_true, perm_b)
         perm_diffs.append(metrics_perm_b[metric] - metrics_perm_a[metric])
 
     perm_diffs = np.array(perm_diffs)
@@ -408,8 +334,8 @@ def main():
     args = parser.parse_args()
 
     # Select model set
-    models = MODELS_DROPOUT if args.dropout else MODELS_NO_DROPOUT
-    model_set_name = "dropout" if args.dropout else "no_dropout"
+    variant = "dropout" if args.dropout else "no_dropout"
+    model_set_name = variant
 
     print("=" * 70)
     print("Bootstrap Confidence Interval Evaluation")
@@ -425,7 +351,9 @@ def main():
 
     # Setup data module (load once, reuse for all models)
     print("\nLoading data...")
-    config = load_config(f"config/model_configs/{models[0][2]}")
+    first_model = MODELS[0]
+    config_path = get_config_path(first_model, variant)
+    config = load_config(str(config_path))
     data_config = config["data"]
     paths = get_preprocessed_paths(
         vehicle=data_config["vehicle"],
@@ -458,20 +386,23 @@ def main():
     print("Evaluating Models")
     print("=" * 70)
 
-    for model_id, model_name, config_file, log_dir in models:
+    for model_cfg in MODELS:
+        model_id = model_cfg.id.upper()  # M1, M2, etc.
+        model_name = model_cfg.name.split(" ", 1)[1] if " " in model_cfg.name else model_cfg.name
         print(f"\n{model_id}: {model_name}")
         print("-" * 50)
 
-        # Find checkpoint
-        checkpoint = find_best_checkpoint(log_dir)
+        # Find checkpoint (searches ALL versions for best val_loss)
+        checkpoint = find_best_checkpoint(model_cfg, variant)
         if checkpoint is None:
-            print(f"  WARNING: No checkpoint found for {log_dir}, skipping...")
+            print(f"  WARNING: No checkpoint found for {model_cfg.name}, skipping...")
             continue
 
         print(f"  Checkpoint: {checkpoint.name}")
 
         # Load config and model
-        config = load_config(f"config/model_configs/{config_file}")
+        config_path = get_config_path(model_cfg, variant)
+        config = load_config(str(config_path))
         model_class = get_model_class(config["model"]["type"])
         model = model_class.load_from_checkpoint(str(checkpoint))
 
@@ -508,7 +439,7 @@ def main():
         result = {
             "model_id": model_id,
             "model_name": model_name,
-            "config_file": config_file,
+            "config_file": str(config_path.relative_to(PROJECT_ROOT)),
             "checkpoint": str(checkpoint),
             "accuracy": {
                 "mean": ci_results["accuracy"]["mean"],

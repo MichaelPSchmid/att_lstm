@@ -38,168 +38,26 @@ import argparse
 import json
 import subprocess
 import sys
-from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
+# Add project root to path for imports
+_project_root = Path(__file__).parent.parent.resolve()
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
 
-# Project root
-PROJECT_ROOT = Path(__file__).parent.parent.resolve()
-
-
-@dataclass
-class ModelConfig:
-    """Configuration for a single model."""
-    id: str
-    name: str
-    type: str
-    config_no_dropout: str
-    config_dropout: str
-
-
-# All available models
-MODELS = [
-    ModelConfig(
-        id="m1",
-        name="M1 Small Baseline",
-        type="LSTM (64, 3)",
-        config_no_dropout="config/model_configs/m1_small_baseline.yaml",
-        config_dropout="config/model_configs/m1_small_baseline_dropout.yaml",
-    ),
-    ModelConfig(
-        id="m2",
-        name="M2 Small + Simple Attn",
-        type="LSTM + Attention (64, 3)",
-        config_no_dropout="config/model_configs/m2_small_simple_attn.yaml",
-        config_dropout="config/model_configs/m2_small_simple_attn_dropout.yaml",
-    ),
-    ModelConfig(
-        id="m3",
-        name="M3 Medium Baseline",
-        type="LSTM (128, 5)",
-        config_no_dropout="config/model_configs/m3_medium_baseline.yaml",
-        config_dropout="config/model_configs/m3_medium_baseline_dropout.yaml",
-    ),
-    ModelConfig(
-        id="m4",
-        name="M4 Medium + Simple Attn",
-        type="LSTM + Attention (128, 5)",
-        config_no_dropout="config/model_configs/m4_medium_simple_attn.yaml",
-        config_dropout="config/model_configs/m4_medium_simple_attn_dropout.yaml",
-    ),
-    ModelConfig(
-        id="m5",
-        name="M5 Medium + Additive Attn",
-        type="LSTM + Additive (128, 5)",
-        config_no_dropout="config/model_configs/m5_medium_additive_attn.yaml",
-        config_dropout="config/model_configs/m5_medium_additive_attn_dropout.yaml",
-    ),
-    ModelConfig(
-        id="m6",
-        name="M6 Medium + Scaled DP",
-        type="LSTM + Scaled DP (128, 5)",
-        config_no_dropout="config/model_configs/m6_medium_scaled_dp_attn.yaml",
-        config_dropout="config/model_configs/m6_medium_scaled_dp_attn_dropout.yaml",
-    ),
-]
-
-MODEL_BY_ID = {m.id: m for m in MODELS}
-
-
-# =============================================================================
-# Path helpers
-# =============================================================================
-
-def get_results_dir(variant: str) -> Path:
-    """Get the results directory for a variant."""
-    return PROJECT_ROOT / "results" / variant
-
-
-def get_model_output_dir(model: ModelConfig, variant: str) -> Path:
-    """Get the output directory for a specific model."""
-    return get_results_dir(variant) / model.id
-
-
-def get_config_path(model: ModelConfig, variant: str) -> Path:
-    """Get the config path for a model and variant."""
-    if variant == "dropout":
-        return PROJECT_ROOT / model.config_dropout
-    else:
-        return PROJECT_ROOT / model.config_no_dropout
-
-
-def get_log_dir_name(model: ModelConfig, variant: str) -> str:
-    """Get the expected lightning_logs directory name for a model."""
-    if variant == "dropout":
-        config_name = Path(model.config_dropout).stem
-    else:
-        config_name = Path(model.config_no_dropout).stem
-
-    # Map config names to log directory names
-    name_mapping = {
-        "m1_small_baseline": "M1_Small_Baseline",
-        "m1_small_baseline_dropout": "M1_Small_Baseline_Dropout",
-        "m2_small_simple_attn": "M2_Small_Simple_Attention",
-        "m2_small_simple_attn_dropout": "M2_Small_Simple_Attention_Dropout",
-        "m3_medium_baseline": "M3_Medium_Baseline",
-        "m3_medium_baseline_dropout": "M3_Medium_Baseline_Dropout",
-        "m4_medium_simple_attn": "M4_Medium_Simple_Attention",
-        "m4_medium_simple_attn_dropout": "M4_Medium_Simple_Attention_Dropout",
-        "m5_medium_additive_attn": "M5_Medium_Additive_Attention",
-        "m5_medium_additive_attn_dropout": "M5_Medium_Additive_Attention_Dropout",
-        "m6_medium_scaled_dp_attn": "M6_Medium_Scaled_DP_Attention",
-        "m6_medium_scaled_dp_attn_dropout": "M6_Medium_Scaled_DP_Attention_Dropout",
-    }
-
-    return name_mapping.get(config_name, config_name)
-
-
-def find_best_checkpoint(model: ModelConfig, variant: str) -> Optional[Path]:
-    """
-    Find the best checkpoint for a model (lowest val_loss).
-
-    Searches through all versions and returns the checkpoint with lowest val_loss.
-    """
-    log_dir_name = get_log_dir_name(model, variant)
-    log_dir = PROJECT_ROOT / "lightning_logs" / log_dir_name
-
-    if not log_dir.exists():
-        return None
-
-    checkpoints = list(log_dir.glob("version_*/checkpoints/*.ckpt"))
-
-    if not checkpoints:
-        return None
-
-    def extract_val_loss(ckpt_path: Path) -> float:
-        name = ckpt_path.stem
-        try:
-            val_loss_part = name.split("val_loss=")[1]
-            return float(val_loss_part)
-        except (IndexError, ValueError):
-            return float("inf")
-
-    best_checkpoint = min(checkpoints, key=extract_val_loss)
-    return best_checkpoint
-
-
-# =============================================================================
-# Summary generation
-# =============================================================================
-
-def load_eval_results(variant: str) -> Dict[str, Dict[str, Any]]:
-    """Load all evaluation results for a variant."""
-    results = {}
-    results_dir = get_results_dir(variant)
-
-    for model in MODELS:
-        eval_json = results_dir / model.id / "eval.json"
-        if eval_json.exists():
-            with open(eval_json, "r", encoding="utf-8") as f:
-                results[model.id] = json.load(f)
-
-    return results
+# Import from shared library
+from scripts.shared import (
+    MODEL_BY_ID,
+    MODELS,
+    PROJECT_ROOT,
+    find_best_checkpoint,
+    get_config_path,
+    get_model_output_dir,
+    get_results_dir,
+    load_eval_results,
+)
 
 
 def generate_comparison_json(variant: str) -> Path:

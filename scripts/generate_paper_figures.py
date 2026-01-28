@@ -22,13 +22,23 @@ In LaTeX:
     \\end{figure}
 """
 
+import sys
+from pathlib import Path
+
+# Add project root to path for imports
+_project_root = Path(__file__).parent.parent.resolve()
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
+
 import matplotlib
 matplotlib.use('pgf')
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from pathlib import Path
+
+# Import from shared library
+from scripts.shared import load_model_data_for_figures
 
 # Configure matplotlib for PGF export with document font inheritance
 # Font sizes are set explicitly to match typical IEEE paper body text (~9pt)
@@ -81,8 +91,8 @@ COLORS = {
     'green': '#77AC30',
 }
 
-# Model data from experiments
-MODEL_DATA = {
+# Fallback model data (used if eval.json files are not available)
+_FALLBACK_MODEL_DATA = {
     'M1': {'params': 84801, 'accuracy': 82.57, 'inference_ms': 1.11, 'category': 'small'},
     'M2': {'params': 84866, 'accuracy': 81.50, 'inference_ms': 1.16, 'category': 'small'},
     'M3': {'params': 597633, 'accuracy': 87.84, 'inference_ms': 2.40, 'category': 'medium_baseline'},
@@ -90,6 +100,23 @@ MODEL_DATA = {
     'M5': {'params': 630529, 'accuracy': 88.34, 'inference_ms': 2.88, 'category': 'medium_attention'},
     'M6': {'params': 597633, 'accuracy': 88.17, 'inference_ms': 2.46, 'category': 'medium_attention'},
 }
+
+
+def get_model_data(variant: str = "no_dropout") -> dict:
+    """Load model data from eval.json files or use fallback.
+
+    Args:
+        variant: Either "dropout" or "no_dropout"
+
+    Returns:
+        Dictionary mapping model ID (e.g., "M1") to data dict
+    """
+    loaded_data = load_model_data_for_figures(variant)
+    if loaded_data:
+        return loaded_data
+
+    print(f"  WARNING: No eval.json files found for {variant}, using fallback data")
+    return _FALLBACK_MODEL_DATA
 
 
 def load_attention_weights(base_path: Path) -> dict:
@@ -131,24 +158,27 @@ def save_figure(fig, output_dir: Path, name: str):
     print(f"  Saved: {name}.pgf + {name}.png")
 
 
-def create_inference_tradeoff_figure(output_dir: Path):
+def create_inference_tradeoff_figure(output_dir: Path, model_data: dict = None):
     """Create Figure: Accuracy vs Inference Time scatter plot."""
+    if model_data is None:
+        model_data = get_model_data()
+
     fig, ax = plt.subplots(figsize=(3.5, 2.5))
 
     # Small models (blue circles)
-    small_x = [MODEL_DATA['M1']['inference_ms'], MODEL_DATA['M2']['inference_ms']]
-    small_y = [MODEL_DATA['M1']['accuracy'], MODEL_DATA['M2']['accuracy']]
+    small_x = [model_data['M1']['inference_ms'], model_data['M2']['inference_ms']]
+    small_y = [model_data['M1']['accuracy'], model_data['M2']['accuracy']]
     ax.scatter(small_x, small_y, c=COLORS['blue'], marker='o', s=40,
                label='Small (85K)', zorder=3, edgecolors='white', linewidths=0.5)
 
     # Medium baseline (green square)
-    ax.scatter([MODEL_DATA['M3']['inference_ms']], [MODEL_DATA['M3']['accuracy']],
+    ax.scatter([model_data['M3']['inference_ms']], [model_data['M3']['accuracy']],
                c=COLORS['green'], marker='s', s=45,
                label='Medium Baseline (598K)', zorder=3, edgecolors='white', linewidths=0.5)
 
     # Medium + Attention (orange triangles)
-    attn_x = [MODEL_DATA['M4']['inference_ms'], MODEL_DATA['M5']['inference_ms'], MODEL_DATA['M6']['inference_ms']]
-    attn_y = [MODEL_DATA['M4']['accuracy'], MODEL_DATA['M5']['accuracy'], MODEL_DATA['M6']['accuracy']]
+    attn_x = [model_data['M4']['inference_ms'], model_data['M5']['inference_ms'], model_data['M6']['inference_ms']]
+    attn_y = [model_data['M4']['accuracy'], model_data['M5']['accuracy'], model_data['M6']['accuracy']]
     ax.scatter(attn_x, attn_y, c=COLORS['orange'], marker='^', s=50,
                label='Medium + Attention', zorder=3, edgecolors='white', linewidths=0.5)
 
@@ -162,7 +192,7 @@ def create_inference_tradeoff_figure(output_dir: Path):
         'M5': {'offset': (5, 3), 'ha': 'left'},      # Right-above
         'M6': {'offset': (5, -8), 'ha': 'left'},     # Right-below
     }
-    for name, data in MODEL_DATA.items():
+    for name, data in model_data.items():
         cfg = label_config[name]
         weight = 'bold' if name == 'M4' else 'normal'
         ax.annotate(name, (data['inference_ms'], data['accuracy']),
@@ -275,8 +305,11 @@ def main():
     # Generate figures
     print("Creating figures...")
 
+    # Load model data from eval.json files (or use fallback)
+    model_data = get_model_data("no_dropout")
+
     # Figure: Accuracy vs Inference Time
-    create_inference_tradeoff_figure(output_dir)
+    create_inference_tradeoff_figure(output_dir, model_data)
 
     # Figure: Attention Weights
     if weights:

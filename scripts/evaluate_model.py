@@ -43,6 +43,9 @@ from config.loader import load_config, get_model_class
 from model.data_module import TimeSeriesDataModule
 from config.settings import get_preprocessed_paths
 
+# Import from shared library (project_root already in path)
+from scripts.shared import calculate_metrics_dict
+
 
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
@@ -115,8 +118,10 @@ def calculate_metrics(
     targets: np.ndarray,
     accuracy_threshold: float = 0.05
 ) -> Dict[str, float]:
-    """
-    Calculate evaluation metrics.
+    """Calculate evaluation metrics.
+
+    This is a thin wrapper around the shared library function for
+    backwards compatibility with existing code.
 
     Args:
         predictions: Model predictions [N, 1]
@@ -126,41 +131,7 @@ def calculate_metrics(
     Returns:
         Dictionary with metrics
     """
-    # Flatten arrays
-    preds = predictions.flatten()
-    targs = targets.flatten()
-
-    # MSE
-    mse = np.mean((preds - targs) ** 2)
-
-    # RMSE
-    rmse = np.sqrt(mse)
-
-    # MAE
-    mae = np.mean(np.abs(preds - targs))
-
-    # MAPE (avoid division by zero)
-    mape = np.mean(np.abs((preds - targs) / (targs + 1e-8))) * 100
-
-    # R² Score
-    ss_res = np.sum((preds - targs) ** 2)
-    ss_tot = np.sum((targs - np.mean(targs)) ** 2)
-    r2 = 1 - ss_res / (ss_tot + 1e-8)
-
-    # Accuracy (predictions within threshold)
-    correct = np.abs(preds - targs) < accuracy_threshold
-    accuracy = np.mean(correct) * 100
-
-    return {
-        "mse": float(mse),
-        "rmse": float(rmse),
-        "mae": float(mae),
-        "mape": float(mape),
-        "r2": float(r2),
-        "accuracy": float(accuracy),
-        "accuracy_threshold": accuracy_threshold,
-        "num_samples": len(preds)
-    }
+    return calculate_metrics_dict(predictions, targets, accuracy_threshold)
 
 
 def generate_evaluation_plots(
