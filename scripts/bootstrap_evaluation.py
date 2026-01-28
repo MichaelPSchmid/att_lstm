@@ -416,7 +416,7 @@ def main():
             y_true_common = targets
 
         # Calculate point estimates
-        point_metrics = calculate_metrics(targets, predictions)
+        point_metrics = _calculate_bootstrap_metrics(targets, predictions)
         print(f"  Point estimates:")
         print(f"    Accuracy: {point_metrics['accuracy']:.2f}%")
         print(f"    RMSE:     {point_metrics['rmse']:.4f}")
