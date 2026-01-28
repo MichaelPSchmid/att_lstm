@@ -6,6 +6,7 @@ The key design decision: search ALL versions for the best checkpoint,
 not just the latest version.
 """
 
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -13,24 +14,32 @@ from typing import List, Optional
 from .models import ModelConfig
 from .paths import get_log_dir
 
+logger = logging.getLogger(__name__)
+
 
 @dataclass
 class CheckpointInfo:
     """Information about a discovered checkpoint."""
 
     path: Path
-    val_loss: float
+    val_loss: float  # From filename (rounded)
     epoch: int
     version: int
+    actual_val_loss: Optional[float] = None  # From checkpoint file (precise)
 
     @property
     def name(self) -> str:
         """Return the checkpoint filename."""
         return self.path.name
 
+    @property
+    def best_val_loss(self) -> float:
+        """Return the most accurate val_loss available."""
+        return self.actual_val_loss if self.actual_val_loss is not None else self.val_loss
+
 
 def parse_checkpoint_name(path: Path) -> Optional[tuple]:
-    """Parse checkpoint filename to extract metadata.
+    """Parse checkpoint filename to extract epoch.
 
     Expected format: ModelName-epoch=XX-val_loss=X.XXXX.ckpt
 
@@ -38,7 +47,7 @@ def parse_checkpoint_name(path: Path) -> Optional[tuple]:
         path: Path to the checkpoint file
 
     Returns:
-        Tuple of (epoch, val_loss) or None if parsing fails
+        Tuple of (epoch, filename_val_loss) or None if parsing fails
     """
     name = path.stem
     try:
@@ -46,7 +55,7 @@ def parse_checkpoint_name(path: Path) -> Optional[tuple]:
         epoch_part = name.split("epoch=")[1].split("-")[0]
         epoch = int(epoch_part)
 
-        # Extract val_loss
+        # Extract val_loss from filename (rounded, used as fallback)
         val_loss_part = name.split("val_loss=")[1]
         val_loss = float(val_loss_part)
 
@@ -63,15 +72,49 @@ def _extract_version_number(version_dir: Path) -> int:
         return -1
 
 
+def _load_actual_val_loss(ckpt_path: Path) -> Optional[float]:
+    """Load the actual val_loss from a checkpoint file.
+
+    The filename contains a rounded val_loss (e.g., 0.0018), but the
+    checkpoint file stores the precise value (e.g., 0.0017850291915237904).
+
+    Args:
+        ckpt_path: Path to the checkpoint file
+
+    Returns:
+        The actual val_loss or None if not found
+    """
+    try:
+        import torch
+        ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+
+        # Look for val_loss in ModelCheckpoint callback state
+        if "callbacks" in ckpt:
+            for cb_key, cb_val in ckpt["callbacks"].items():
+                if "ModelCheckpoint" in cb_key and isinstance(cb_val, dict):
+                    if "current_score" in cb_val:
+                        return float(cb_val["current_score"])
+                    if "best_model_score" in cb_val:
+                        return float(cb_val["best_model_score"])
+
+        return None
+    except Exception as e:
+        logger.warning(f"Could not load val_loss from {ckpt_path}: {e}")
+        return None
+
+
 def find_all_checkpoints(model: ModelConfig, variant: str) -> List[CheckpointInfo]:
     """Find all checkpoints for a model across all versions.
+
+    Loads the actual val_loss from each checkpoint file to ensure
+    accurate sorting (filename val_loss is rounded).
 
     Args:
         model: Model configuration
         variant: Either "dropout" or "no_dropout"
 
     Returns:
-        List of CheckpointInfo objects, sorted by val_loss (best first)
+        List of CheckpointInfo objects, sorted by actual val_loss (best first)
     """
     log_dir = get_log_dir(model, variant)
 
@@ -95,18 +138,23 @@ def find_all_checkpoints(model: ModelConfig, variant: str) -> List[CheckpointInf
             if parsed is None:
                 continue
 
-            epoch, val_loss = parsed
+            epoch, filename_val_loss = parsed
+
+            # Load actual val_loss from checkpoint file
+            actual_val_loss = _load_actual_val_loss(ckpt_path)
+
             checkpoints.append(
                 CheckpointInfo(
                     path=ckpt_path,
-                    val_loss=val_loss,
+                    val_loss=filename_val_loss,
                     epoch=epoch,
                     version=version_num,
+                    actual_val_loss=actual_val_loss,
                 )
             )
 
-    # Sort by val_loss (best first)
-    checkpoints.sort(key=lambda x: x.val_loss)
+    # Sort by best available val_loss (actual if available, otherwise filename)
+    checkpoints.sort(key=lambda x: x.best_val_loss)
     return checkpoints
 
 
