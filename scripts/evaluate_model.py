@@ -487,10 +487,14 @@ def measure_inference_time(
     sample_input: torch.Tensor,
     warmup_iterations: int = 100,
     num_samples: int = 1000,
+    num_runs: int = 5,
     device: str = "cpu"
 ) -> Dict[str, float]:
     """
     Measure CPU inference time for a single sample using single-threaded execution.
+
+    Runs multiple benchmark runs to capture system-level variance and compute
+    robust statistics (mean ± std) for percentiles.
 
     Uses torch.set_num_threads(1) for reproducible, single-threaded measurements
     that are comparable across different hardware configurations.
@@ -498,12 +502,13 @@ def measure_inference_time(
     Args:
         model: PyTorch model
         sample_input: Single input sample [1, seq_len, features]
-        warmup_iterations: Number of warm-up iterations
-        num_samples: Number of samples to average
+        warmup_iterations: Number of warm-up iterations (once at start)
+        num_samples: Number of samples per run
+        num_runs: Number of complete benchmark runs for statistics
         device: Device to run on ("cpu" recommended for embedded relevance)
 
     Returns:
-        Dictionary with timing statistics
+        Dictionary with timing statistics including cross-run variance
     """
     # Store original thread count and set to single-thread for reproducible measurements
     original_num_threads = torch.get_num_threads()
@@ -514,36 +519,66 @@ def measure_inference_time(
         model.eval()
         sample_input = sample_input.to(device)
 
-        # Warm-up
+        # Warm-up (once at start)
         print(f"  Warming up ({warmup_iterations} iterations)...")
         with torch.no_grad():
             for _ in range(warmup_iterations):
                 _ = model(sample_input)
 
-        # Measure inference time
-        print(f"  Measuring ({num_samples} samples, single-thread)...")
-        times = []
-        with torch.no_grad():
-            for _ in range(num_samples):
-                start = time.perf_counter()
-                _ = model(sample_input)
-                end = time.perf_counter()
-                times.append((end - start) * 1000)  # Convert to ms
+        # Multiple benchmark runs
+        print(f"  Measuring ({num_runs} runs x {num_samples} samples, single-thread)...")
 
-        times = np.array(times)
+        run_p50s = []
+        run_p95s = []
+        run_p99s = []
+        run_means = []
+        all_times = []
+
+        for run in range(num_runs):
+            times = []
+            with torch.no_grad():
+                for _ in range(num_samples):
+                    start = time.perf_counter()
+                    _ = model(sample_input)
+                    end = time.perf_counter()
+                    times.append((end - start) * 1000)  # Convert to ms
+
+            times = np.array(times)
+            all_times.extend(times)
+
+            run_means.append(np.mean(times))
+            run_p50s.append(np.percentile(times, 50))
+            run_p95s.append(np.percentile(times, 95))
+            run_p99s.append(np.percentile(times, 99))
+
+            print(f"    Run {run + 1}/{num_runs}: p95={run_p95s[-1]:.3f}ms")
+
+        all_times = np.array(all_times)
+        run_p50s = np.array(run_p50s)
+        run_p95s = np.array(run_p95s)
+        run_p99s = np.array(run_p99s)
+        run_means = np.array(run_means)
 
         return {
-            "mean_ms": float(np.mean(times)),
-            "std_ms": float(np.std(times)),
-            "min_ms": float(np.min(times)),
-            "max_ms": float(np.max(times)),
-            "p50_ms": float(np.percentile(times, 50)),
-            "p95_ms": float(np.percentile(times, 95)),
-            "p99_ms": float(np.percentile(times, 99)),
+            # Aggregate statistics (across all samples from all runs)
+            "mean_ms": float(np.mean(all_times)),
+            "std_ms": float(np.std(all_times)),
+            "min_ms": float(np.min(all_times)),
+            "max_ms": float(np.max(all_times)),
+            # Percentiles with cross-run statistics
+            "p50_ms": float(np.mean(run_p50s)),
+            "p50_std_ms": float(np.std(run_p50s)),
+            "p95_ms": float(np.mean(run_p95s)),
+            "p95_std_ms": float(np.std(run_p95s)),
+            "p99_ms": float(np.mean(run_p99s)),
+            "p99_std_ms": float(np.std(run_p99s)),
+            # Metadata
             "device": device,
             "num_threads": 1,
             "warmup_iterations": warmup_iterations,
-            "num_samples": num_samples
+            "num_samples": num_samples,
+            "num_runs": num_runs,
+            "total_samples": num_samples * num_runs
         }
     finally:
         # Restore original thread count
@@ -689,21 +724,22 @@ def main():
             sample_input,
             warmup_iterations=eval_config["warmup_iterations"],
             num_samples=eval_config["num_samples"],
+            num_runs=eval_config.get("num_runs", 5),
             device=eval_config["device"]
         )
 
         target_ms = config["evaluation"]["target_inference_ms"]
-        meets_target = inference_results["mean_ms"] < target_ms
+        meets_target = inference_results["p95_ms"] < target_ms
 
         print(f"  Mean:       {inference_results['mean_ms']:.3f} ms")
         print(f"  Std:        {inference_results['std_ms']:.3f} ms")
         print(f"  Min:        {inference_results['min_ms']:.3f} ms")
         print(f"  Max:        {inference_results['max_ms']:.3f} ms")
-        print(f"  P50:        {inference_results['p50_ms']:.3f} ms")
-        print(f"  P95:        {inference_results['p95_ms']:.3f} ms")
-        print(f"  P99:        {inference_results['p99_ms']:.3f} ms")
-        print(f"  Threads:    {inference_results['num_threads']}")
-        print(f"  Target:     <{target_ms} ms {'[PASS]' if meets_target else '[FAIL]'}")
+        print(f"  P50:        {inference_results['p50_ms']:.3f} ± {inference_results['p50_std_ms']:.3f} ms")
+        print(f"  P95:        {inference_results['p95_ms']:.3f} ± {inference_results['p95_std_ms']:.3f} ms")
+        print(f"  P99:        {inference_results['p99_ms']:.3f} ± {inference_results['p99_std_ms']:.3f} ms")
+        print(f"  Runs:       {inference_results['num_runs']} x {inference_results['num_samples']} samples")
+        print(f"  Target:     P95 < {target_ms} ms {'[PASS]' if meets_target else '[FAIL]'}")
 
     # Generate plots
     plot_paths = None

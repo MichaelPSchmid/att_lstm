@@ -76,7 +76,8 @@ evaluation:
   inference:
     device: "cpu"           # Measure on CPU for embedded relevance
     warmup_iterations: 100  # Warm-up before timing
-    num_samples: 1000       # Number of samples to average
+    num_samples: 1000       # Number of samples per run
+    num_runs: 5             # Number of benchmark runs for statistics
 
   # Target: <10ms for 100Hz real-time operation
   target_inference_ms: 10.0
