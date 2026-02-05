@@ -95,12 +95,12 @@ class TimeSeriesDataModule(pl.LightningDataModule):
 
     def train_dataloader(self):
         print(f"Number of training samples: {len(self.train_dataset)}")
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=15, pin_memory=True, persistent_workers=True)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=4, pin_memory=True, persistent_workers=True)
 
     def val_dataloader(self):
         print(f"Number of validation samples: {len(self.val_dataset)}")
-        return DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, num_workers=15, pin_memory=True, persistent_workers=True)
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, num_workers=4, pin_memory=True, persistent_workers=True)
 
     def test_dataloader(self):
         print(f"Number of test samples: {len(self.test_dataset)}")
-        return DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=15, pin_memory=True, persistent_workers=True)
+        return DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=4, pin_memory=True, persistent_workers=True)

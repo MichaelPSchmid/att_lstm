@@ -14,7 +14,11 @@ Usage:
 from .checkpoints import (
     CheckpointInfo,
     find_all_checkpoints,
+    find_all_seed_checkpoints,
     find_best_checkpoint,
+    find_best_checkpoint_for_seed,
+    find_latest_checkpoint_for_resume,
+    find_seed_variants,
 )
 from .metrics import (
     MetricResult,
@@ -54,7 +58,11 @@ __all__ = [
     # Checkpoints
     "CheckpointInfo",
     "find_all_checkpoints",
+    "find_all_seed_checkpoints",
     "find_best_checkpoint",
+    "find_best_checkpoint_for_seed",
+    "find_latest_checkpoint_for_resume",
+    "find_seed_variants",
     # Metrics
     "MetricResult",
     "calculate_metrics",
