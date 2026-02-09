@@ -660,7 +660,9 @@ def main():
     data_module = TimeSeriesDataModule(
         feature_path=str(paths["features"]),
         target_path=str(paths["targets"]),
-        batch_size=batch_size
+        sequence_ids_path=str(paths["sequence_ids"]),
+        batch_size=batch_size,
+        split_seed=data_config.get("split_seed", 0),
     )
     data_module.setup()
 

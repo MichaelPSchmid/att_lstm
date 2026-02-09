@@ -33,7 +33,7 @@ def objective(trial):
     target_path = str(paths["targets"])
 
     # Configure data loading parameters to reduce memory usage
-    data_module = TimeSeriesDataModule(feature_path, target_path, batch_size=batch_size)
+    data_module = TimeSeriesDataModule(feature_path, target_path, str(paths["sequence_ids"]), batch_size=batch_size)
 
     # Initialize model
     input_size = 7
