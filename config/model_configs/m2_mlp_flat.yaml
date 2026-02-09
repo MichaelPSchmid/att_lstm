@@ -1,0 +1,23 @@
+# M2: MLP Baseline - Flattened Sequence
+# Flattens all 50 timesteps (50 * 5 = 250 features)
+# Has access to all temporal info but no explicit sequence modeling
+# Expected parameters: ~40-50K
+# Hypothesis: Better than MLP-Last, but worse than LSTM
+
+model:
+  name: "M2_MLP_Flat"
+  type: "mlp_flat"
+
+  # Architecture
+  input_size: 5           # Features per timestep
+  hidden_sizes: [128, 64] # Larger first layer for 250-dim input
+  output_size: 1
+
+  # No attention
+  attention: null
+
+training:
+  learning_rate: 0.001
+  dropout: 0.0            # No dropout (as per ablation results)
+  early_stopping:
+    patience: 5

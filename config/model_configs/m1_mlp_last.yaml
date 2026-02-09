@@ -1,0 +1,23 @@
+# M1: MLP Baseline - Last Timestep Only
+# Uses only the last timestep (5 features) for prediction
+# Demonstrates importance of temporal information
+# Expected parameters: ~5K
+# Hypothesis: Should perform worse (~75-80%) than LSTM baseline
+
+model:
+  name: "M1_MLP_Last"
+  type: "mlp_last"
+
+  # Architecture
+  input_size: 5           # Features per timestep
+  hidden_sizes: [64, 64]  # Two hidden layers
+  output_size: 1
+
+  # No attention
+  attention: null
+
+training:
+  learning_rate: 0.001
+  dropout: 0.0            # No dropout (as per ablation results)
+  early_stopping:
+    patience: 5

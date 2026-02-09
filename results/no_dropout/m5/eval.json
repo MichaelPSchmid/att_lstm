@@ -1,58 +1,345 @@
 {
   "model": {
-    "name": "M5_Medium_Additive_Attention",
-    "type": "additive_attention",
-    "parameters": 630529,
-    "flops": 31769728,
-    "flops_formatted": "31.770M",
-    "macs": 15884864,
+    "name": "M5_Medium_Baseline",
+    "type": "baseline",
+    "parameters": 597633,
+    "flops": 30131328,
+    "flops_formatted": "30.131M",
+    "macs": 15065664,
     "macs_formatted": "1",
-    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Additive_Attention\\version_0\\checkpoints\\M5_Medium_Additive_Attention-epoch=32-val_loss=0.0012.ckpt"
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed42\\version_0\\checkpoints\\M5_Medium_Baseline-epoch=34-val_loss=0.0013.ckpt"
   },
   "data": {
     "variant": "paper",
     "vehicle": "HYUNDAI_SONATA_2020",
     "window_size": 50
   },
+  "seeds": [
+    42,
+    94,
+    123
+  ],
+  "num_seeds": 3,
   "metrics": {
-    "mse": 0.0011051463661715388,
-    "rmse": 0.03324374184012413,
-    "mae": 0.025136588141322136,
-    "mape": 176821.65625,
-    "r2": 0.9074119925498962,
-    "accuracy": 88.339004302062,
-    "accuracy_threshold": 0.05,
-    "num_samples": 220127
+    "mse": {
+      "mean": 0.0011196991351122658,
+      "std": 4.4232374467840884e-05,
+      "values": [
+        0.0011393034365028143,
+        0.0010584527626633644,
+        0.0011613412061706185
+      ]
+    },
+    "rmse": {
+      "mean": 0.03345529895857589,
+      "std": 0.0006649110501238174,
+      "values": [
+        0.03375356924093827,
+        0.03253387100643519,
+        0.0340784566283542
+      ]
+    },
+    "mae": {
+      "mean": 0.025251540665825207,
+      "std": 0.00047090267649185433,
+      "values": [
+        0.025476418435573578,
+        0.024596242234110832,
+        0.025681961327791214
+      ]
+    },
+    "mape": {
+      "mean": 152129.79166666666,
+      "std": 3004.4446040216785,
+      "values": [
+        151006.0,
+        156240.328125,
+        149143.046875
+      ]
+    },
+    "r2": {
+      "mean": 0.9061927994092306,
+      "std": 0.003705748731569176,
+      "values": [
+        0.9045503735542297,
+        0.9113239645957947,
+        0.9027040600776672
+      ]
+    },
+    "accuracy": {
+      "mean": 88.15017391475527,
+      "std": 0.650660050348172,
+      "values": [
+        87.84292703757376,
+        89.05495463982156,
+        87.5526400668705
+      ]
+    },
+    "accuracy_threshold": {
+      "mean": 0.05000000000000001,
+      "std": 6.938893903907228e-18,
+      "values": [
+        0.05,
+        0.05,
+        0.05
+      ]
+    },
+    "num_samples": {
+      "mean": 220127.0,
+      "std": 0.0,
+      "values": [
+        220127,
+        220127,
+        220127
+      ]
+    }
   },
   "inference": {
-    "mean_ms": 3.6651581017649733,
-    "std_ms": 0.12569949296714425,
-    "min_ms": 3.5803000209853053,
-    "max_ms": 5.903599958401173,
-    "p50_ms": 3.628000005846843,
-    "p95_ms": 3.823730011936277,
-    "p99_ms": 4.136626948020421,
+    "mean_ms": {
+      "mean": 2.543774893375424,
+      "std": 0.02179450108330177
+    },
+    "std_ms": {
+      "mean": 0.08826267590876909,
+      "std": 0.013675462873899842
+    },
+    "min_ms": {
+      "mean": 2.490233319501082,
+      "std": 0.009787853622842508
+    },
+    "max_ms": {
+      "mean": 3.988533338997513,
+      "std": 0.2905066174293952
+    },
+    "p50_ms": {
+      "mean": 2.5176766697162143,
+      "std": 0.020080444659234635
+    },
+    "p50_std_ms": {
+      "mean": 0.005874428072981716,
+      "std": 0.0011747110528809047
+    },
+    "p95_ms": {
+      "mean": 2.6556979992892593,
+      "std": 0.027682709690972425
+    },
+    "p95_std_ms": {
+      "mean": 0.029390668577273765,
+      "std": 0.0069690835833549816
+    },
+    "p99_ms": {
+      "mean": 2.8818585979364193,
+      "std": 0.07050571309647195
+    },
+    "p99_std_ms": {
+      "mean": 0.1204448741507188,
+      "std": 0.09754593633734682
+    },
     "device": "cpu",
-    "num_threads": 1,
-    "warmup_iterations": 100,
-    "num_samples": 1000
+    "num_threads": {
+      "mean": 1.0,
+      "std": 0.0
+    },
+    "warmup_iterations": {
+      "mean": 100.0,
+      "std": 0.0
+    },
+    "num_samples": {
+      "mean": 1000.0,
+      "std": 0.0
+    },
+    "num_runs": {
+      "mean": 5.0,
+      "std": 0.0
+    },
+    "total_samples": {
+      "mean": 5000.0,
+      "std": 0.0
+    }
   },
-  "flops": {
-    "flops": 31769728,
-    "flops_formatted": "31.770M",
-    "macs": 15884864,
-    "macs_formatted": "1",
-    "params_thop": 630401,
-    "params_formatted": "630.401K"
-  },
-  "plots": {
-    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\M5_Medium_Additive_Attention_scatter.png",
-    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\M5_Medium_Additive_Attention_residuals.png",
-    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\M5_Medium_Additive_Attention_timeline.png",
-    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\M5_Medium_Additive_Attention_error_distribution.png",
-    "attention_npy": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\M5_Medium_Additive_Attention_attention_weights.npy",
-    "attention_heatmap": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\M5_Medium_Additive_Attention_attention_heatmap.png"
-  },
-  "predictions_csv": null,
-  "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m5_medium_additive_attn.yaml"
+  "per_seed": {
+    "42": {
+      "model": {
+        "name": "M5_Medium_Baseline",
+        "type": "baseline",
+        "parameters": 597633,
+        "flops": 30131328,
+        "flops_formatted": "30.131M",
+        "macs": 15065664,
+        "macs_formatted": "1",
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed42\\version_0\\checkpoints\\M5_Medium_Baseline-epoch=34-val_loss=0.0013.ckpt"
+      },
+      "data": {
+        "variant": "paper",
+        "vehicle": "HYUNDAI_SONATA_2020",
+        "window_size": 50
+      },
+      "metrics": {
+        "mse": 0.0011393034365028143,
+        "rmse": 0.03375356924093827,
+        "mae": 0.025476418435573578,
+        "mape": 151006.0,
+        "r2": 0.9045503735542297,
+        "accuracy": 87.84292703757376,
+        "accuracy_threshold": 0.05,
+        "num_samples": 220127
+      },
+      "inference": {
+        "mean_ms": 2.5329677400644868,
+        "std_ms": 0.09319148974097817,
+        "min_ms": 2.4846000014804304,
+        "max_ms": 3.7765000015497208,
+        "p50_ms": 2.506450010696426,
+        "p50_std_ms": 0.0049524715261254,
+        "p95_ms": 2.641107015660964,
+        "p95_std_ms": 0.0258322944927703,
+        "p99_ms": 2.912173996330239,
+        "p99_std_ms": 0.2538354562948189,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000,
+        "num_runs": 5,
+        "total_samples": 5000
+      },
+      "flops": {
+        "flops": 30131328,
+        "flops_formatted": "30.131M",
+        "macs": 15065664,
+        "macs_formatted": "1",
+        "params_thop": 597633,
+        "params_formatted": "597.633K"
+      },
+      "plots": {
+        "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_42\\M5_Medium_Baseline_scatter.png",
+        "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_42\\M5_Medium_Baseline_residuals.png",
+        "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_42\\M5_Medium_Baseline_timeline.png",
+        "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_42\\M5_Medium_Baseline_error_distribution.png"
+      },
+      "predictions_csv": null,
+      "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m5_medium_baseline.yaml"
+    },
+    "94": {
+      "model": {
+        "name": "M5_Medium_Baseline",
+        "type": "baseline",
+        "parameters": 597633,
+        "flops": 30131328,
+        "flops_formatted": "30.131M",
+        "macs": 15065664,
+        "macs_formatted": "1",
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed94\\version_0\\checkpoints\\M5_Medium_Baseline_seed94-epoch=38-val_loss=0.0012.ckpt"
+      },
+      "data": {
+        "variant": "paper",
+        "vehicle": "HYUNDAI_SONATA_2020",
+        "window_size": 50
+      },
+      "metrics": {
+        "mse": 0.0010584527626633644,
+        "rmse": 0.03253387100643519,
+        "mae": 0.024596242234110832,
+        "mape": 156240.328125,
+        "r2": 0.9113239645957947,
+        "accuracy": 89.05495463982156,
+        "accuracy_threshold": 0.05,
+        "num_samples": 220127
+      },
+      "inference": {
+        "mean_ms": 2.574176559841726,
+        "std_ms": 0.1019941796764973,
+        "min_ms": 2.503999974578619,
+        "max_ms": 4.399299970827997,
+        "p50_ms": 2.5458799966145307,
+        "p50_std_ms": 0.00753224225033423,
+        "p95_ms": 2.694454991724342,
+        "p95_std_ms": 0.039129483085288734,
+        "p99_ms": 2.9489645956782624,
+        "p99_std_ms": 0.02328601483169311,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000,
+        "num_runs": 5,
+        "total_samples": 5000
+      },
+      "flops": {
+        "flops": 30131328,
+        "flops_formatted": "30.131M",
+        "macs": 15065664,
+        "macs_formatted": "1",
+        "params_thop": 597633,
+        "params_formatted": "597.633K"
+      },
+      "plots": {
+        "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_94\\M5_Medium_Baseline_scatter.png",
+        "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_94\\M5_Medium_Baseline_residuals.png",
+        "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_94\\M5_Medium_Baseline_timeline.png",
+        "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_94\\M5_Medium_Baseline_error_distribution.png"
+      },
+      "predictions_csv": null,
+      "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m5_medium_baseline.yaml"
+    },
+    "123": {
+      "model": {
+        "name": "M5_Medium_Baseline",
+        "type": "baseline",
+        "parameters": 597633,
+        "flops": 30131328,
+        "flops_formatted": "30.131M",
+        "macs": 15065664,
+        "macs_formatted": "1",
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed123\\version_1\\checkpoints\\M5_Medium_Baseline_seed123-epoch=34-val_loss=0.0013.ckpt"
+      },
+      "data": {
+        "variant": "paper",
+        "vehicle": "HYUNDAI_SONATA_2020",
+        "window_size": 50
+      },
+      "metrics": {
+        "mse": 0.0011613412061706185,
+        "rmse": 0.0340784566283542,
+        "mae": 0.025681961327791214,
+        "mape": 149143.046875,
+        "r2": 0.9027040600776672,
+        "accuracy": 87.5526400668705,
+        "accuracy_threshold": 0.05,
+        "num_samples": 220127
+      },
+      "inference": {
+        "mean_ms": 2.5241803802200593,
+        "std_ms": 0.06960235830883181,
+        "min_ms": 2.482099982444197,
+        "max_ms": 3.7898000446148217,
+        "p50_ms": 2.5007000018376857,
+        "p50_std_ms": 0.00513857044248552,
+        "p95_ms": 2.631531990482472,
+        "p95_std_ms": 0.023210228153762266,
+        "p99_ms": 2.784437201800756,
+        "p99_std_ms": 0.0842131513256444,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000,
+        "num_runs": 5,
+        "total_samples": 5000
+      },
+      "flops": {
+        "flops": 30131328,
+        "flops_formatted": "30.131M",
+        "macs": 15065664,
+        "macs_formatted": "1",
+        "params_thop": 597633,
+        "params_formatted": "597.633K"
+      },
+      "plots": {
+        "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_123\\M5_Medium_Baseline_scatter.png",
+        "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_123\\M5_Medium_Baseline_residuals.png",
+        "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_123\\M5_Medium_Baseline_timeline.png",
+        "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_123\\M5_Medium_Baseline_error_distribution.png"
+      },
+      "predictions_csv": null,
+      "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m5_medium_baseline.yaml"
+    }
+  }
 }

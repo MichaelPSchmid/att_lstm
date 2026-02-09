@@ -1,0 +1,26 @@
+# M8: Medium LSTM + Scaled Dot-Product Attention (NO DROPOUT - Ablation Study)
+# Architecture matching Paper Experiment 2
+# Expected parameters: ~600K
+# Expected training time: ~4h
+
+model:
+  name: "M8_Medium_Scaled_DP_Attention"
+  type: "scaled_dp_attention"
+
+  # Architecture (Paper Experiment 2 settings)
+  input_size: 5
+  hidden_size: 128
+  num_layers: 5
+  output_size: 1
+
+  # Attention configuration
+  attention: "scaled_dot_product"  # Transformer-style: score_ij = (h_i · h_j) / sqrt(d)
+
+training:
+  learning_rate: 0.0005    # Paper used 0.0005 for larger models
+  dropout: 0.0             # Ablation: test without dropout
+  early_stopping:
+    patience: 5            # Faster convergence without dropout
+
+attention:
+  enabled: true             # Save attention weights during training

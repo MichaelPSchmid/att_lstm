@@ -1,17 +1,43 @@
 \begin{table}[htbp]
 \centering
-\caption{Bootstrap 95\% Confidence Intervals (1000 samples)}
+\caption{Bootstrap 95\% Confidence Intervals (1000 samples), 3 seeds}
 \label{tab:bootstrap_ci}
-\begin{tabular}{llccc}
+\begin{tabular}{llcccc}
 \toprule
-Model & Description & Accuracy (\%) & RMSE & R² \\
+Model & Description & Seeds & Accuracy (\%) & RMSE & R² \\
 \midrule
-M1 & Small Baseline & $82.58 \pm 0.08$ & $0.0408 \pm 0.0001$ & $0.860 \pm 0.001$ \\
-M2 & Small + Simple Attn & $81.50 \pm 0.09$ & $0.0423 \pm 0.0001$ & $0.850 \pm 0.001$ \\
-M3 & Medium Baseline & $87.84 \pm 0.07$ & $0.0338 \pm 0.0001$ & $0.905 \pm 0.001$ \\
-M4 & Medium + Simple Attn & $90.25 \pm 0.07$ & $0.0311 \pm 0.0001$ & $0.919 \pm 0.001$ \\
-M5 & Medium + Additive Attn & $88.34 \pm 0.07$ & $0.0332 \pm 0.0001$ & $0.907 \pm 0.001$ \\
-M6 & Medium + Scaled DP & $89.60 \pm 0.07$ & $0.0319 \pm 0.0001$ & $0.915 \pm 0.001$ \\
+M1 & MLP Last & 3 & $70.01 \pm 0.10$ & $0.0590 \pm 0.0002$ & $0.708 \pm 0.003$ \\
+M2 & MLP Flat & 3 & $74.90 \pm 0.37$ & $0.0509 \pm 0.0004$ & $0.783 \pm 0.003$ \\
+M3 & Small Baseline & 3 & $82.55 \pm 0.18$ & $0.0409 \pm 0.0003$ & $0.860 \pm 0.003$ \\
+M4 & Small + Simple Attn & 3 & $81.95 \pm 0.26$ & $0.0418 \pm 0.0006$ & $0.854 \pm 0.004$ \\
+M5 & Medium Baseline & 3 & $88.15 \pm 0.80$ & $0.0335 \pm 0.0008$ & $0.906 \pm 0.005$ \\
+M6 & Medium + Simple Attn & 3 & $90.04 \pm 0.20$ & $0.0314 \pm 0.0003$ & $0.917 \pm 0.002$ \\
+M7 & Medium + Additive Attn & 3 & $88.73 \pm 0.35$ & $0.0328 \pm 0.0004$ & $0.910 \pm 0.002$ \\
+M8 & Medium + Scaled DP & 3 & $88.62 \pm 1.35$ & $0.0330 \pm 0.0016$ & $0.909 \pm 0.009$ \\
 \bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Permutation Test Results (10000 permutations)}
+\label{tab:model_comparisons}
+\begin{tabular}{llrrrc}
+\toprule
+Comparison & Category & $\Delta$ Acc (\%) & $\Delta$ R$^2$ & Cohen's $d$ & Effect \\
+\midrule
+M3 vs M4 & Baseline vs Attention & -0.56 & -0.005 & -0.053 & negligible \\
+M5 vs M6 & Baseline vs Attention & +1.87 & +0.010 & +0.129 & negligible \\
+M5 vs M7 & Baseline vs Attention & +0.56 & +0.003 & +0.039 & negligible \\
+M5 vs M8 & Baseline vs Attention & +0.73 & +0.004 & +0.048 & negligible \\
+\midrule
+M6 vs M7 & Attention vs Attention & -1.31 & -0.007 & -0.099 & negligible \\
+M6 vs M8 & Attention vs Attention & -1.14 & -0.007 & -0.085 & negligible \\
+M7 vs M8 & Attention vs Attention & +0.16 & +0.001 & +0.011 & negligible \\
+\midrule
+M1 vs M3 & MLP vs LSTM & +13.28 & +0.157 & +0.386 & small \\
+M2 vs M5 & MLP vs LSTM & +14.49 & +0.126 & +0.441 & small \\
+\bottomrule
+\multicolumn{6}{l}{\footnotesize Cohen's $d$: $|d|<0.2$ negligible, $0.2$--$0.5$ small, $0.5$--$0.8$ medium, $>0.8$ large} \\
 \end{tabular}
 \end{table}

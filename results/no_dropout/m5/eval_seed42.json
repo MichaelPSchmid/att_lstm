@@ -1,0 +1,61 @@
+{
+  "model": {
+    "name": "M5_Medium_Baseline",
+    "type": "baseline",
+    "parameters": 597633,
+    "flops": 30131328,
+    "flops_formatted": "30.131M",
+    "macs": 15065664,
+    "macs_formatted": "1",
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed42\\version_0\\checkpoints\\M5_Medium_Baseline-epoch=34-val_loss=0.0013.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.0011393034365028143,
+    "rmse": 0.03375356924093827,
+    "mae": 0.025476418435573578,
+    "mape": 151006.0,
+    "r2": 0.9045503735542297,
+    "accuracy": 87.84292703757376,
+    "accuracy_threshold": 0.05,
+    "num_samples": 220127
+  },
+  "inference": {
+    "mean_ms": 2.5329677400644868,
+    "std_ms": 0.09319148974097817,
+    "min_ms": 2.4846000014804304,
+    "max_ms": 3.7765000015497208,
+    "p50_ms": 2.506450010696426,
+    "p50_std_ms": 0.0049524715261254,
+    "p95_ms": 2.641107015660964,
+    "p95_std_ms": 0.0258322944927703,
+    "p99_ms": 2.912173996330239,
+    "p99_std_ms": 0.2538354562948189,
+    "device": "cpu",
+    "num_threads": 1,
+    "warmup_iterations": 100,
+    "num_samples": 1000,
+    "num_runs": 5,
+    "total_samples": 5000
+  },
+  "flops": {
+    "flops": 30131328,
+    "flops_formatted": "30.131M",
+    "macs": 15065664,
+    "macs_formatted": "1",
+    "params_thop": 597633,
+    "params_formatted": "597.633K"
+  },
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_42\\M5_Medium_Baseline_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_42\\M5_Medium_Baseline_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_42\\M5_Medium_Baseline_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_42\\M5_Medium_Baseline_error_distribution.png"
+  },
+  "predictions_csv": null,
+  "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m5_medium_baseline.yaml"
+}

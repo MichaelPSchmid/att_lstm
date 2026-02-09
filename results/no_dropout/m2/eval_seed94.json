@@ -1,0 +1,61 @@
+{
+  "model": {
+    "name": "M2_MLP_Flat",
+    "type": "mlp_flat",
+    "parameters": 40449,
+    "flops": 40256,
+    "flops_formatted": "40.256K",
+    "macs": 20128,
+    "macs_formatted": "2",
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M2_MLP_Flat_seed94\\version_0\\checkpoints\\M2_MLP_Flat_seed94-epoch=11-val_loss=0.0026.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.0026159530971199274,
+    "rmse": 0.05114638889618628,
+    "mae": 0.037124257534742355,
+    "mape": 342335.125,
+    "r2": 0.7808381915092468,
+    "accuracy": 74.56922594683978,
+    "accuracy_threshold": 0.05,
+    "num_samples": 220127
+  },
+  "inference": {
+    "mean_ms": 0.055587640427984294,
+    "std_ms": 0.006921922027546281,
+    "min_ms": 0.05289999535307288,
+    "max_ms": 0.24670001585036516,
+    "p50_ms": 0.05422000540420413,
+    "p50_std_ms": 9.798033577626338e-05,
+    "p95_ms": 0.06170401640702037,
+    "p95_std_ms": 0.003086473510053624,
+    "p99_ms": 0.08262941194698215,
+    "p99_std_ms": 0.001251047530436869,
+    "device": "cpu",
+    "num_threads": 1,
+    "warmup_iterations": 100,
+    "num_samples": 1000,
+    "num_runs": 5,
+    "total_samples": 5000
+  },
+  "flops": {
+    "flops": 40256,
+    "flops_formatted": "40.256K",
+    "macs": 20128,
+    "macs_formatted": "2",
+    "params_thop": 40449,
+    "params_formatted": "40.449K"
+  },
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_94\\M2_MLP_Flat_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_94\\M2_MLP_Flat_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_94\\M2_MLP_Flat_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_94\\M2_MLP_Flat_error_distribution.png"
+  },
+  "predictions_csv": null,
+  "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m2_mlp_flat.yaml"
+}
