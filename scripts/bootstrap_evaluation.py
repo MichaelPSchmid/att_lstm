@@ -71,12 +71,12 @@ def _calculate_bootstrap_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict
     y_true = y_true.flatten()
     y_pred = y_pred.flatten()
 
-    accuracy = np.mean(np.abs(y_true - y_pred) <= 0.05) * 100
-    rmse = np.sqrt(np.mean((y_true - y_pred) ** 2))
+    accuracy = float(np.mean(np.abs(y_true - y_pred) <= 0.05) * 100)
+    rmse = float(np.sqrt(np.mean((y_true - y_pred) ** 2)))
 
     ss_res = np.sum((y_true - y_pred) ** 2)
     ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
-    r2 = 1 - ss_res / ss_tot
+    r2 = float(1 - ss_res / ss_tot)
 
     return {"accuracy": accuracy, "rmse": rmse, "r2": r2}
 
@@ -783,7 +783,7 @@ def main():
             ci = seed_bootstrap_ci[seed]
             result["per_seed"][str(seed)] = {
                 "checkpoint": str(ckpt_path),
-                "val_loss": val_loss,
+                "val_loss": float(val_loss),
                 "point_metrics": pm,
                 "bootstrap_ci": {
                     metric: {k: v for k, v in ci[metric].items() if k != "distribution"}
