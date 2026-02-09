@@ -630,7 +630,7 @@ def main():
     # Store results and predictions for later comparison
     all_results = []
     all_predictions = {}  # model_id -> averaged predictions (for permutation test)
-    all_seed_predictions = {}  # model_id -> {seed -> predictions}
+    all_seed_distributions = {}  # model_id -> {seed -> {metric -> distribution array}}
     y_true_common = None
 
     # Evaluate each model
@@ -746,12 +746,19 @@ def main():
                     "per_seed_values": [seed_point_metrics[single_seed][metric]],
                 }
 
-        # Store predictions for permutation test and distribution saving
+        # Store averaged predictions for permutation test
         avg_predictions = np.mean(
             [seed_predictions[s] for s in seeds], axis=0
         )
         all_predictions[model_id] = avg_predictions
-        all_seed_predictions[model_id] = dict(seed_predictions)
+
+        # Cache per-seed bootstrap distributions for saving later
+        all_seed_distributions[model_id] = {}
+        for seed in seeds:
+            ci = seed_bootstrap_ci[seed]
+            all_seed_distributions[model_id][seed] = {
+                metric: ci[metric]["distribution"] for metric in ["accuracy", "rmse", "r2"]
+            }
 
         # Build result entry
         result = {
@@ -927,42 +934,35 @@ def main():
             ))
     print(f"LaTeX table saved to: {latex_path}")
 
-    # Save bootstrap distributions as .npy for later analysis
+    # Save cached bootstrap distributions as .npy (no recomputation)
     print("\nSaving bootstrap distributions...")
     for r_entry in all_results:
         mid = r_entry["model_id"]
-        if mid not in all_seed_predictions:
+        if mid not in all_seed_distributions:
             continue
 
-        seeds = r_entry.get("seeds", [42])
-        seed_preds = all_seed_predictions[mid]
+        seed_dists = all_seed_distributions[mid]
 
         # Save per-seed distributions
-        for seed in seeds:
-            if seed not in seed_preds:
-                continue
-            ci = bootstrap_confidence_intervals(
-                y_true_common, seed_preds[seed],
-                n_bootstrap=args.n_bootstrap, seed=args.seed
-            )
+        for seed, dists in seed_dists.items():
             dist_path = output_dir / f"bootstrap_dist_{mid}_seed{seed}_{model_set_name}.npy"
-            np.save(dist_path, {
-                "accuracy": ci["accuracy"]["distribution"],
-                "rmse": ci["rmse"]["distribution"],
-                "r2": ci["r2"]["distribution"]
-            })
+            np.save(dist_path, dists)
 
-        # Save combined distribution (using averaged predictions)
-        ci = bootstrap_confidence_intervals(
-            y_true_common, all_predictions[mid],
-            n_bootstrap=args.n_bootstrap, seed=args.seed
-        )
-        dist_path = output_dir / f"bootstrap_dist_{mid}_{model_set_name}.npy"
-        np.save(dist_path, {
-            "accuracy": ci["accuracy"]["distribution"],
-            "rmse": ci["rmse"]["distribution"],
-            "r2": ci["r2"]["distribution"]
-        })
+        # Save combined distribution (average across seeds)
+        if len(seed_dists) > 1:
+            combined = {}
+            seeds = sorted(seed_dists.keys())
+            for metric in ["accuracy", "rmse", "r2"]:
+                combined[metric] = np.mean(
+                    [seed_dists[s][metric] for s in seeds], axis=0
+                )
+            dist_path = output_dir / f"bootstrap_dist_{mid}_{model_set_name}.npy"
+            np.save(dist_path, combined)
+        else:
+            # Single seed: combined = per-seed
+            single_seed = list(seed_dists.keys())[0]
+            dist_path = output_dir / f"bootstrap_dist_{mid}_{model_set_name}.npy"
+            np.save(dist_path, seed_dists[single_seed])
 
     print(f"Bootstrap distributions saved to: {output_dir}/bootstrap_dist_*.npy")
 
