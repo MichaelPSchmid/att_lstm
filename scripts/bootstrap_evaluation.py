@@ -335,6 +335,53 @@ def _significance_stars(p: float) -> str:
     return ""
 
 
+def compute_cohens_d(
+    y_true: np.ndarray,
+    y_pred_a: np.ndarray,
+    y_pred_b: np.ndarray,
+) -> float:
+    """Compute paired Cohen's d on per-sample absolute errors.
+
+    Measures how much model B improves over model A in standardized units.
+    Positive d means B has smaller errors (B is better).
+
+    Args:
+        y_true: Ground truth values
+        y_pred_a: Predictions from model A
+        y_pred_b: Predictions from model B
+
+    Returns:
+        Paired Cohen's d (positive = B better)
+    """
+    y_true = y_true.flatten()
+    y_pred_a = y_pred_a.flatten()
+    y_pred_b = y_pred_b.flatten()
+
+    errors_a = np.abs(y_true - y_pred_a)
+    errors_b = np.abs(y_true - y_pred_b)
+
+    # Paired differences: positive = B has smaller error = B is better
+    diffs = errors_a - errors_b
+    d = float(np.mean(diffs) / np.std(diffs, ddof=1))
+    return d
+
+
+def effect_size_category(d: float) -> str:
+    """Categorize Cohen's d effect size.
+
+    Uses standard thresholds (Cohen, 1988).
+    """
+    d_abs = abs(d)
+    if d_abs < 0.2:
+        return "negligible"
+    elif d_abs < 0.5:
+        return "small"
+    elif d_abs < 0.8:
+        return "medium"
+    else:
+        return "large"
+
+
 def run_all_comparisons(
     pairs: List[Tuple[str, str, str]],
     all_predictions: Dict[str, np.ndarray],
@@ -362,17 +409,23 @@ def run_all_comparisons(
         if model_a not in all_predictions or model_b not in all_predictions:
             continue
 
+        pred_a = all_predictions[model_a]
+        pred_b = all_predictions[model_b]
+
+        # Cohen's d on paired per-sample absolute errors
+        d = compute_cohens_d(y_true, pred_a, pred_b)
+
         pair_result = {
             "model_a": model_a,
             "model_b": model_b,
             "category": category,
+            "cohens_d": d,
+            "effect_size": effect_size_category(d),
         }
 
         for metric in ["accuracy", "rmse", "r2"]:
             result = permutation_test(
-                y_true,
-                all_predictions[model_a],
-                all_predictions[model_b],
+                y_true, pred_a, pred_b,
                 metric=metric,
                 n_permutations=n_permutations,
                 seed=seed,
@@ -387,49 +440,43 @@ def run_all_comparisons(
 def generate_comparison_markdown(comparison_results: List[Dict[str, Any]]) -> str:
     """Generate Markdown table for permutation test results."""
     lines = [
-        "| Comparison | Category | \u0394 Acc (%) | p | \u0394 RMSE | p | \u0394 R\u00b2 | p |",
-        "|------------|----------|-----------|---|--------|---|------|---|",
+        "| Comparison | Category | \u0394 Acc (%) | \u0394 RMSE | \u0394 R\u00b2 | Cohen's d | Effect |",
+        "|------------|----------|-----------|--------|------|-----------|--------|",
     ]
 
     for c in comparison_results:
         label = f"{c['model_a']} \u2192 {c['model_b']}"
         cat = c["category"]
 
-        acc = c["accuracy"]
-        rmse = c["rmse"]
-        r2 = c["r2"]
-
-        acc_diff = f"{acc['observed_diff']:+.2f}"
-        rmse_diff = f"{rmse['observed_diff']:+.4f}"
-        r2_diff = f"{r2['observed_diff']:+.3f}"
-
-        acc_p = f"{acc['p_value']:.3f}{_significance_stars(acc['p_value'])}"
-        rmse_p = f"{rmse['p_value']:.3f}{_significance_stars(rmse['p_value'])}"
-        r2_p = f"{r2['p_value']:.3f}{_significance_stars(r2['p_value'])}"
+        acc_diff = f"{c['accuracy']['observed_diff']:+.2f}"
+        rmse_diff = f"{c['rmse']['observed_diff']:+.4f}"
+        r2_diff = f"{c['r2']['observed_diff']:+.3f}"
+        d = f"{c['cohens_d']:+.3f}"
+        effect = c["effect_size"]
 
         lines.append(
-            f"| {label} | {cat} | {acc_diff} | {acc_p} | {rmse_diff} | {rmse_p} | {r2_diff} | {r2_p} |"
+            f"| {label} | {cat} | {acc_diff} | {rmse_diff} | {r2_diff} | {d} | {effect} |"
         )
 
     lines.append("")
-    lines.append("Significance: \\*p<0.05, \\*\\*p<0.01, \\*\\*\\*p<0.001")
+    lines.append("Cohen's d: |d|<0.2 negligible, 0.2-0.5 small, 0.5-0.8 medium, >0.8 large")
 
     return "\n".join(lines)
 
 
 def generate_comparison_latex(
     comparison_results: List[Dict[str, Any]],
-    caption: str = "Permutation Test Results",
+    caption: str = "Pairwise Model Comparisons",
 ) -> str:
-    """Generate LaTeX table for permutation test results."""
+    """Generate LaTeX table for comparison results with effect sizes."""
     lines = [
         "\\begin{table}[htbp]",
         "\\centering",
         f"\\caption{{{caption}}}",
-        "\\label{tab:permutation_tests}",
-        "\\begin{tabular}{llrcrcrcc}",
+        "\\label{tab:model_comparisons}",
+        "\\begin{tabular}{llrrrc}",
         "\\toprule",
-        "Comparison & Category & $\\Delta$ Acc (\\%) & $p$ & $\\Delta$ RMSE & $p$ & $\\Delta$ R$^2$ & $p$ \\\\",
+        "Comparison & Category & $\\Delta$ Acc (\\%) & $\\Delta$ R$^2$ & Cohen's $d$ & Effect \\\\",
         "\\midrule",
     ]
 
@@ -443,29 +490,19 @@ def generate_comparison_latex(
             lines.append("\\midrule")
         prev_category = cat
 
-        acc = c["accuracy"]
-        rmse = c["rmse"]
-        r2 = c["r2"]
-
-        def fmt_p_latex(p_val: float) -> str:
-            stars = _significance_stars(p_val)
-            if p_val < 0.001:
-                return f"$<$0.001{stars}"
-            return f"{p_val:.3f}{stars}"
-
-        acc_diff = f"{acc['observed_diff']:+.2f}"
-        rmse_diff = f"{rmse['observed_diff']:+.4f}"
-        r2_diff = f"{r2['observed_diff']:+.3f}"
+        acc_diff = f"{c['accuracy']['observed_diff']:+.2f}"
+        r2_diff = f"{c['r2']['observed_diff']:+.3f}"
+        d = f"{c['cohens_d']:+.3f}"
+        effect = c["effect_size"]
 
         lines.append(
-            f"{label} & {cat} & {acc_diff} & {fmt_p_latex(acc['p_value'])} "
-            f"& {rmse_diff} & {fmt_p_latex(rmse['p_value'])} "
-            f"& {r2_diff} & {fmt_p_latex(r2['p_value'])} \\\\"
+            f"{label} & {cat} & {acc_diff} & {r2_diff} & {d} & {effect} \\\\"
         )
 
     lines.extend([
         "\\bottomrule",
-        "\\multicolumn{8}{l}{\\footnotesize *$p<0.05$, **$p<0.01$, ***$p<0.001$ (10\\,000 permutations)} \\\\",
+        "\\multicolumn{6}{l}{\\footnotesize Cohen's $d$: $|d|<0.2$ negligible, "
+        "$0.2$--$0.5$ small, $0.5$--$0.8$ medium, $>0.8$ large} \\\\",
         "\\end{tabular}",
         "\\end{table}",
     ])
@@ -853,7 +890,10 @@ def main():
 
             # Print results
             for c in comparison_results:
-                print(f"\n  {c['model_a']} vs {c['model_b']}  [{c['category']}]")
+                d = c["cohens_d"]
+                effect = c["effect_size"]
+                print(f"\n  {c['model_a']} vs {c['model_b']}  [{c['category']}]"
+                      f"  Cohen's d={d:+.3f} ({effect})")
                 for metric in ["accuracy", "rmse", "r2"]:
                     m = c[metric]
                     stars = _significance_stars(m["p_value"])
@@ -863,14 +903,14 @@ def main():
 
             # Print comparison tables
             print("\n" + "-" * 70)
-            print("Comparison Markdown Table:")
+            print("Comparison Table:")
             comp_md = generate_comparison_markdown(comparison_results)
             print(comp_md)
 
             print("\nComparison LaTeX Table:")
             comp_latex = generate_comparison_latex(
                 comparison_results,
-                caption=f"Permutation Test Results ({args.n_permutations} permutations)"
+                caption=f"Pairwise Model Comparisons ({args.n_permutations} permutations)"
             )
             print(comp_latex)
 
