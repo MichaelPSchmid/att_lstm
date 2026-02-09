@@ -22,6 +22,7 @@ from .checkpoints import (
 )
 from .metrics import (
     MetricResult,
+    aggregate_metrics_per_sequence,
     calculate_metrics,
     calculate_metrics_dict,
 )
@@ -65,6 +66,7 @@ __all__ = [
     "find_seed_variants",
     # Metrics
     "MetricResult",
+    "aggregate_metrics_per_sequence",
     "calculate_metrics",
     "calculate_metrics_dict",
 ]

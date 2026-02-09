@@ -1,8 +1,10 @@
 # Evaluation Pipeline Redesign - 2026-02-09
 
 ## Status
-- Aktiver Schritt: Planung / Code-Analyse abgeschlossen
-- Naechster: Phase 1a - sequence_ids im DataModule laden
+- Phase 1 (DataModule Fix): KOMPLETT (1a-1e)
+- Phase 3 (Evaluation anpassen): KOMPLETT (3a-3b)
+- Phase 4 (Statistische Tests): KOMPLETT (4a-4b)
+- Naechster: Phase 2 - Training (5 Seeds x 8 Modelle, ~70h)
 
 ## Kontext
 - Die bisherige Evaluationspipeline hat **6 identifizierte Probleme** (P1-P6)
@@ -51,25 +53,39 @@
 - [ ] Checkpoints + Config pro Run speichern
 
 ### Phase 3: Evaluation anpassen
-- [ ] **3a: Predictions speichern** (`scripts/evaluate_model.py`)
-  - `--save-predictions` standardmaessig aktivieren
-  - CSV erweitern: `sample_idx, sequence_id, y_true, y_pred, abs_error`
-  - Pfad: `results/{variant}/{model_id}/seed_{seed}/{model_id}_predictions.csv`
-- [ ] **3b: Aggregierte Metriken pro Sequenz berechnen**
-  - Pro Testsequenz: MAE, RMSE, Accuracy
-  - Ergebnis: ~500 unabhaengige Datenpunkte statt 220k abhaengige
+- [x] **3a: Predictions speichern** (2026-02-09)
+  - `--save-predictions` ist jetzt Default (neues Flag: `--no-save-predictions`)
+  - CSV Spalten: `sample_idx, sequence_id, y_true, y_pred, abs_error`
+  - Pfad: `results/{variant}/{model_name}/seed_{seed}/{model_name}_predictions.csv`
+  - `save_predictions_csv()` erweitert um optionalen `sequence_ids` Parameter
+  - 4 Tests in `TestSavePredictionsCsv`, alle gruen
+- [x] **3b: Aggregierte Metriken pro Sequenz berechnen** (2026-02-09)
+  - `aggregate_metrics_per_sequence()` in `scripts/shared/metrics.py`
+  - Pro Testsequenz: MAE, RMSE, Accuracy (ergibt ~500 unabhaengige Datenpunkte)
+  - Gibt (rows, summary) zurueck mit mean/std/median pro Metrik
+  - Sequence-Metriken CSV: `{model_name}_sequence_metrics.csv` im selben Verzeichnis
+  - Ergebnis in `eval.json` unter `sequence_metrics` key
+  - 9 Tests in `TestAggregateMetricsPerSequence`, alle gruen
+  - Total: 13 neue Tests + 27 bestehende = 40 Tests gruen
 
 ### Phase 4: Neue statistische Tests
-- [ ] **4a: Neue Datei `scripts/sequence_level_evaluation.py`** mit:
-  - `aggregate_per_sequence()` - Predictions pro Sequenz aggregieren
-  - `cohens_d_paired_sequences()` - Gepaarter Cohen's d auf Sequenz-Ebene + Hedge's g
-  - `permutation_test_sequences()` - Gepaarter Permutationstest (Sequenzen tauschen)
-  - `bootstrap_ci_sequences()` - Block-Bootstrap (ganze Sequenzen resampeln)
-  - `multi_seed_analysis()` - Aggregation ueber Seeds (Option A)
-- [ ] **4b: Output-Formate**
-  - `results/bootstrap/sequence_level_results.json`
-  - `results/bootstrap/sequence_level_table.tex`
-  - `results/bootstrap/sequence_level_table.md`
+- [x] **4a: `scripts/sequence_level_evaluation.py`** (2026-02-09)
+  - `bootstrap_ci_sequences()` - Block-Bootstrap auf per-Sequenz-Metriken (vectorisiert)
+  - `cohens_d_paired_sequences()` - Gepaarter Cohen's d + Hedge's g (bias-korrigiert)
+  - `permutation_test_sequences()` - Sign-Flip Permutationstest (vectorisiert)
+  - `multi_seed_sequence_analysis()` - Law of Total Variance ueber Seeds
+  - `_compute_seq_metric_arrays()` nutzt `aggregate_metrics_per_sequence` aus shared/metrics.py
+  - `run_all_comparisons()` - Alle Paare vergleichen (9 Paare, 3 Metriken)
+  - Folgt Muster von `bootstrap_evaluation.py`: Inference live, alle Modelle, multi-seed
+  - Metriken: accuracy, rmse, mae (statt accuracy, rmse, r2 bei Sample-Level)
+  - 26 Tests in `test_sequence_level_evaluation.py`, alle gruen
+- [x] **4b: Output-Formate** (2026-02-09)
+  - `results/bootstrap/sequence_level_results_{variant}.json`
+  - `results/bootstrap/sequence_level_table_{variant}.tex`
+  - `results/bootstrap/sequence_level_table_{variant}.md`
+  - Markdown + LaTeX Tabellen fuer Bootstrap CIs und Pairwise Comparisons
+  - Comparison-Tabellen enthalten: Cohen's d, Hedge's g, Effektstaerke, p-Werte
+  - Total: 39 neue Tests + 27 bestehende = 66 Tests gruen
 
 ## Analyse des bestehenden Codes
 
@@ -120,6 +136,10 @@ Phase 1 (DataModule) -> Phase 2 (Training) -> Phase 3 (Evaluation) -> Phase 4 (S
 - ~500 Testsequenzen sind deutlich weniger Datenpunkte als 220k -> Power sinkt, aber Validitaet steigt
 
 ## Naechste Session
-- Phase 1a beginnen: sequence_ids in DataModule laden
-- Tests schreiben fuer den neuen Sequenz-Level-Split
-- base_config.yaml um split_seed erweitern
+- Phase 2: Training starten (5 Seeds x 8 Modelle)
+  - Seeds: [42, 94, 123, 7, 2024]
+  - split_seed=0 bleibt fuer alle gleich (identischer Test-Split)
+  - Geschaetzte Dauer: ~70h (~3 Tage)
+  - Nach jedem Modell: `evaluate_model.py` (speichert Predictions + Seq-Metrics automatisch)
+- Danach: `python scripts/sequence_level_evaluation.py` ausfuehren
+- Code-Aenderungen Phase 1/3/4 sind komplett und getestet (66 Tests gruen)
