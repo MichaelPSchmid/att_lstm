@@ -44,7 +44,22 @@
       "Bash(git push:*)",
       "Bash(grep:*)",
       "Bash(.venv/Scripts/python:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(xargs -I{} sh -c 'echo \"\"{}:\"\"; grep \"\"patience:\"\" \"\"{}\"\" || echo \"\"  FEHLT!\"\"')",
+      "Bash(xargs -I{} sh -c 'echo \"\"{}:\"\"; grep \"\"patience:\"\" \"\"{}\"\"')",
+      "Bash(.venvScriptspip install thop)",
+      "Bash(C:/Users/MSchm/Documents/att_project/.venv/Scripts/pip.exe install:*)",
+      "Bash(.venv/Scripts/pip.exe:*)",
+      "Bash(git reset:*)",
+      "Bash(find:*)",
+      "Bash(git status:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(conda activate:*)",
+      "Bash(conda run:*)",
+      "Bash(conda env list:*)",
+      "Bash(.venvScriptsactivate)",
+      "Bash(xargs -I{} sh -c 'echo \"\"=== {} ===\"\" && grep -A5 \"\"attention:\"\" {}')",
+      "Bash(gh pr create --title \"feat: Multi-seed evaluation with bootstrap CI and Cohen''s d\" --body \"$\\(cat <<''EOF''\n## Summary\n\n- Add attention weight saving during training and evaluation\n- Restructure project: unified configs, batch runner, shared evaluation library\n- Add multi-seed support to bootstrap evaluation \\(law of total variance\\)\n- Add automatic pairwise model comparisons with permutation tests and Cohen''s d effect sizes\n- Add comprehensive evaluation report with statistical interpretation\n\n## Key Changes\n\n- **Attention saving**: Save attention weights per epoch and at test time via config flag\n- **Shared library** \\(`scripts/shared/`\\): Centralized model configs, checkpoint discovery, metrics, paths\n- **Batch runner** \\(`scripts/batch_runner.py`\\): Unified train/evaluate pipeline replacing .bat/.sh scripts\n- **Bootstrap evaluation**: Multi-seed aggregation, 9 predefined comparison pairs, Cohen''s d effect sizes\n- **Evaluation report**: Full results for 8 models x 3 seeds with statistical analysis\n\n## Test plan\n\n- [x] Bootstrap evaluation runs without errors across all 8 models and 3 seeds\n- [x] JSON serialization works for all numpy types\n- [x] Comparison tables generated in markdown and LaTeX\n- [x] Evaluation report reviewed for correctness\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\nEOF\n\\)\")"
     ]
   }
 }

@@ -1,0 +1,63 @@
+{
+  "model": {
+    "name": "M6_Medium_Simple_Attention",
+    "type": "simple_attention",
+    "parameters": 597762,
+    "flops": 30137728,
+    "flops_formatted": "30.138M",
+    "macs": 15068864,
+    "macs_formatted": "1",
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M6_Medium_Simple_Attention_seed42\\version_2\\checkpoints\\M6_Medium_Simple_Attention-epoch=40-val_loss=0.0011.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.0009661822696216404,
+    "rmse": 0.03108347261201104,
+    "mae": 0.023610465228557587,
+    "mape": 171557.453125,
+    "r2": 0.9190542697906494,
+    "accuracy": 90.24790234728134,
+    "accuracy_threshold": 0.05,
+    "num_samples": 220127
+  },
+  "inference": {
+    "mean_ms": 2.586989440175239,
+    "std_ms": 0.0992234619377927,
+    "min_ms": 2.5364000466652215,
+    "max_ms": 4.355999990366399,
+    "p50_ms": 2.5563300063367933,
+    "p50_std_ms": 0.003766365201833855,
+    "p95_ms": 2.7133970079012215,
+    "p95_std_ms": 0.035453738235825115,
+    "p99_ms": 2.9894932025345042,
+    "p99_std_ms": 0.2081209954250054,
+    "device": "cpu",
+    "num_threads": 1,
+    "warmup_iterations": 100,
+    "num_samples": 1000,
+    "num_runs": 5,
+    "total_samples": 5000
+  },
+  "flops": {
+    "flops": 30137728,
+    "flops_formatted": "30.138M",
+    "macs": 15068864,
+    "macs_formatted": "1",
+    "params_thop": 597762,
+    "params_formatted": "597.762K"
+  },
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m6\\seed_42\\M6_Medium_Simple_Attention_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m6\\seed_42\\M6_Medium_Simple_Attention_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m6\\seed_42\\M6_Medium_Simple_Attention_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m6\\seed_42\\M6_Medium_Simple_Attention_error_distribution.png",
+    "attention_npy": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m6\\seed_42\\M6_Medium_Simple_Attention_attention_weights.npy",
+    "attention_heatmap": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m6\\seed_42\\M6_Medium_Simple_Attention_attention_heatmap.png"
+  },
+  "predictions_csv": null,
+  "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m6_medium_simple_attn.yaml"
+}

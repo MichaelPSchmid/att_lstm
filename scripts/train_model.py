@@ -71,6 +71,12 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Directory for attention weights (default: attention_weights/<model_name>)"
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Random seed (overrides config). Appends '_seedX' to model name."
+    )
 
     return parser.parse_args()
 
@@ -88,10 +94,15 @@ def main():
         print("Dry run - exiting without training")
         return
 
-    # Set seed for reproducibility
+    # Set seed for reproducibility (CLI overrides config)
+    if args.seed is not None:
+        config["training"]["seed"] = args.seed
     seed = config["training"]["seed"]
     pl.seed_everything(seed)
     print(f"Random seed set to: {seed}")
+
+    # Append seed to model name for tracking
+    config["model"]["name"] = f"{config['model']['name']}_seed{seed}"
 
     # Enable Tensor Cores optimization
     torch.set_float32_matmul_precision('medium')

@@ -1,0 +1,63 @@
+{
+  "model": {
+    "name": "M8_Medium_Scaled_DP_Attention",
+    "type": "scaled_dp_attention",
+    "parameters": 597633,
+    "flops": 30131328,
+    "flops_formatted": "30.131M",
+    "macs": 15065664,
+    "macs_formatted": "1",
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M8_Medium_Scaled_DP_Attention_seed42\\version_1\\checkpoints\\M8_Medium_Scaled_DP_Attention-epoch=42-val_loss=0.0012.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.0010018685134127736,
+    "rmse": 0.0316523066049344,
+    "mae": 0.023971721529960632,
+    "mape": 187467.71875,
+    "r2": 0.9160645008087158,
+    "accuracy": 89.80134195260008,
+    "accuracy_threshold": 0.05,
+    "num_samples": 220127
+  },
+  "inference": {
+    "mean_ms": 2.654158160218503,
+    "std_ms": 0.09697778820721352,
+    "min_ms": 2.6005000108852983,
+    "max_ms": 4.019099986180663,
+    "p50_ms": 2.625850006006658,
+    "p50_std_ms": 0.0035209407928399853,
+    "p95_ms": 2.780585985747166,
+    "p95_std_ms": 0.029275570507868734,
+    "p99_ms": 3.017430182546377,
+    "p99_std_ms": 0.14379747129601347,
+    "device": "cpu",
+    "num_threads": 1,
+    "warmup_iterations": 100,
+    "num_samples": 1000,
+    "num_runs": 5,
+    "total_samples": 5000
+  },
+  "flops": {
+    "flops": 30131328,
+    "flops_formatted": "30.131M",
+    "macs": 15065664,
+    "macs_formatted": "1",
+    "params_thop": 597633,
+    "params_formatted": "597.633K"
+  },
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_42\\M8_Medium_Scaled_DP_Attention_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_42\\M8_Medium_Scaled_DP_Attention_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_42\\M8_Medium_Scaled_DP_Attention_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_42\\M8_Medium_Scaled_DP_Attention_error_distribution.png",
+    "attention_npy": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_42\\M8_Medium_Scaled_DP_Attention_attention_weights.npy",
+    "attention_heatmap": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_42\\M8_Medium_Scaled_DP_Attention_attention_heatmap.png"
+  },
+  "predictions_csv": null,
+  "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m8_medium_scaled_dp_attn.yaml"
+}

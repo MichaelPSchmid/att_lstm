@@ -1,97 +1,125 @@
 # Evaluation Results - No Dropout
 
-> Generated: 2026-01-27 09:22:40
+> Generated: 2026-02-09 09:18:03
+> Results show mean +/- std across multiple seeds
 
 ## Overview
 
-| Model | Type | Parameters | FLOPs | R2 | Accuracy | RMSE | Inference (ms) |
-|-------|------|------------|-------|-----|----------|------|----------------|
-| M1 Small Baseline | LSTM (64, 3) | 84,801 | 4.314M | 0.860 | 82.57% | 0.0408 | 0.92 |
-| M2 Small + Simple Attn | LSTM + Attention (64, 3) | 84,866 | 4.317M | 0.850 | 81.50% | 0.0423 | 0.97 |
-| M3 Medium Baseline | LSTM (128, 5) | 597,633 | 30.131M | 0.905 | 87.84% | 0.0338 | 2.66 |
-| **M4 Medium + Simple Attn** | LSTM + Attention (128, 5) | 597,762 | 30.138M | **0.919** | **90.25%** | 0.0311 | 2.75 |
-| M5 Medium + Additive Attn | LSTM + Additive (128, 5) | 630,529 | 31.770M | 0.907 | 88.34% | 0.0332 | 3.82 |
-| M6 Medium + Scaled DP | LSTM + Scaled DP (128, 5) | 597,633 | 30.131M | 0.907 | 88.17% | 0.0334 | 2.77 |
+| Model | Type | Params | R2 | Accuracy | RMSE | Seeds |
+|-------|------|--------|-----|----------|------|-------|
+| M1 MLP Last | MLP (5→64→64→1) | 4,609 | 0.708 +/- 0.001 | 70.0% +/- 0.0 | 0.0590 +/- 0.0001 | 3 |
+| M2 MLP Flat | MLP (250→128→64→1) | 40,449 | 0.783 +/- 0.002 | 74.9% +/- 0.3 | 0.0509 +/- 0.0003 | 3 |
+| M3 Small Baseline | LSTM (64, 3) | 84,801 | 0.860 +/- 0.002 | 82.5% +/- 0.1 | 0.0409 +/- 0.0003 | 3 |
+| M4 Small + Simple Attn | LSTM + Attention (64, 3) | 84,866 | 0.854 +/- 0.003 | 82.0% +/- 0.2 | 0.0418 +/- 0.0005 | 3 |
+| M5 Medium Baseline | LSTM (128, 5) | 597,633 | 0.906 +/- 0.004 | 88.2% +/- 0.7 | 0.0335 +/- 0.0007 | 3 |
+| **M6 Medium + Simple Attn** | LSTM + Attention (128, 5) | 597,762 | **0.917 +/- 0.001** | **90.0% +/- 0.2** | 0.0314 +/- 0.0002 | 3 |
+| M7 Medium + Additive Attn | LSTM + Additive (128, 5) | 630,529 | 0.910 +/- 0.002 | 88.7% +/- 0.3 | 0.0328 +/- 0.0003 | 3 |
+| M8 Medium + Scaled DP | LSTM + Scaled DP (128, 5) | 597,633 | 0.909 +/- 0.007 | 88.6% +/- 1.1 | 0.0330 +/- 0.0013 | 3 |
 
 ## Key Findings
 
-- **Best Model:** M4 Medium + Simple Attn (R2=0.919)
+- **Best Model:** M6 Medium + Simple Attn (R2=0.917)
 - **Variant:** No Dropout
-- **Models Evaluated:** 6/6
+- **Models Evaluated:** 8/8
+- **Note:** Results aggregated across multiple random seeds
 
 ## Model Details
 
-### M1 Small Baseline
+### M1 MLP Last
+
+- **Parameters:** 4,609
+- **FLOPs:** 4.480K
+- **MACs:** 2
+- **R2:** 0.7084 +/- 0.0013
+- **Accuracy:** 70.01% +/- 0.03
+- **RMSE:** 0.0590 +/- 0.0001
+- **MAE:** 0.0422 +/- 0.0001
+- **Inference (P95):** 0.07 +/- 0.00 ms
+- **Seeds:** [42, 94, 123]
+
+### M2 MLP Flat
+
+- **Parameters:** 40,449
+- **FLOPs:** 40.256K
+- **MACs:** 2
+- **R2:** 0.7830 +/- 0.0023
+- **Accuracy:** 74.90% +/- 0.29
+- **RMSE:** 0.0509 +/- 0.0003
+- **MAE:** 0.0369 +/- 0.0002
+- **Inference (P95):** 0.06 +/- 0.00 ms
+- **Seeds:** [42, 94, 123]
+
+### M3 Small Baseline
 
 - **Parameters:** 84,801
 - **FLOPs:** 4.314M
 - **MACs:** 2
-- **R2:** 0.8604
-- **Accuracy:** 82.57%
-- **RMSE:** 0.0408
-- **MAE:** 0.0300
-- **Inference (P95):** 0.92 ms (single-thread)
-- **Checkpoint:** `C:\Users\MSchm\Documents\att_project\lightning_logs\M1_Small_Baseline\version_0\checkpoints\M1_Small_Baseline-epoch=12-val_loss=0.0017.ckpt`
+- **R2:** 0.8595 +/- 0.0019
+- **Accuracy:** 82.55% +/- 0.13
+- **RMSE:** 0.0409 +/- 0.0003
+- **MAE:** 0.0300 +/- 0.0001
+- **Inference (P95):** 0.78 +/- 0.01 ms
+- **Seeds:** [42, 94, 123]
 
-### M2 Small + Simple Attn
+### M4 Small + Simple Attn
 
 - **Parameters:** 84,866
 - **FLOPs:** 4.317M
 - **MACs:** 2
-- **R2:** 0.8503
-- **Accuracy:** 81.50%
-- **RMSE:** 0.0423
-- **MAE:** 0.0309
-- **Inference (P95):** 0.97 ms (single-thread)
-- **Checkpoint:** `C:\Users\MSchm\Documents\att_project\lightning_logs\M2_Small_Simple_Attention\version_0\checkpoints\M2_Small_Simple_Attention-epoch=06-val_loss=0.0018.ckpt`
+- **R2:** 0.8536 +/- 0.0033
+- **Accuracy:** 81.95% +/- 0.21
+- **RMSE:** 0.0418 +/- 0.0005
+- **MAE:** 0.0305 +/- 0.0002
+- **Inference (P95):** 0.83 +/- 0.02 ms
+- **Seeds:** [42, 94, 123]
 
-### M3 Medium Baseline
+### M5 Medium Baseline
 
 - **Parameters:** 597,633
 - **FLOPs:** 30.131M
 - **MACs:** 1
-- **R2:** 0.9046
-- **Accuracy:** 87.84%
-- **RMSE:** 0.0338
-- **MAE:** 0.0255
-- **Inference (P95):** 2.66 ms (single-thread)
-- **Checkpoint:** `C:\Users\MSchm\Documents\att_project\lightning_logs\M3_Medium_Baseline\version_0\checkpoints\M3_Medium_Baseline-epoch=34-val_loss=0.0013.ckpt`
+- **R2:** 0.9062 +/- 0.0037
+- **Accuracy:** 88.15% +/- 0.65
+- **RMSE:** 0.0335 +/- 0.0007
+- **MAE:** 0.0253 +/- 0.0005
+- **Inference (P95):** 2.66 +/- 0.03 ms
+- **Seeds:** [42, 94, 123]
 
-### M4 Medium + Simple Attn
+### M6 Medium + Simple Attn
 
 - **Parameters:** 597,762
 - **FLOPs:** 30.138M
 - **MACs:** 1
-- **R2:** 0.9191
-- **Accuracy:** 90.25%
-- **RMSE:** 0.0311
-- **MAE:** 0.0236
-- **Inference (P95):** 2.75 ms (single-thread)
-- **Checkpoint:** `C:\Users\MSchm\Documents\att_project\lightning_logs\M4_Medium_Simple_Attention\version_2\checkpoints\M4_Medium_Simple_Attention-epoch=40-val_loss=0.0011.ckpt`
+- **R2:** 0.9174 +/- 0.0012
+- **Accuracy:** 90.04% +/- 0.16
+- **RMSE:** 0.0314 +/- 0.0002
+- **MAE:** 0.0238 +/- 0.0001
+- **Inference (P95):** 2.72 +/- 0.03 ms
+- **Seeds:** [42, 94, 123]
 
-### M5 Medium + Additive Attn
+### M7 Medium + Additive Attn
 
 - **Parameters:** 630,529
 - **FLOPs:** 31.770M
 - **MACs:** 1
-- **R2:** 0.9074
-- **Accuracy:** 88.34%
-- **RMSE:** 0.0332
-- **MAE:** 0.0251
-- **Inference (P95):** 3.82 ms (single-thread)
-- **Checkpoint:** `C:\Users\MSchm\Documents\att_project\lightning_logs\M5_Medium_Additive_Attention\version_0\checkpoints\M5_Medium_Additive_Attention-epoch=32-val_loss=0.0012.ckpt`
+- **R2:** 0.9096 +/- 0.0016
+- **Accuracy:** 88.73% +/- 0.28
+- **RMSE:** 0.0328 +/- 0.0003
+- **MAE:** 0.0248 +/- 0.0002
+- **Inference (P95):** 3.90 +/- 0.04 ms
+- **Seeds:** [42, 94, 123]
 
-### M6 Medium + Scaled DP
+### M8 Medium + Scaled DP
 
 - **Parameters:** 597,633
 - **FLOPs:** 30.131M
 - **MACs:** 1
-- **R2:** 0.9068
-- **Accuracy:** 88.17%
-- **RMSE:** 0.0334
-- **MAE:** 0.0252
-- **Inference (P95):** 2.77 ms (single-thread)
-- **Checkpoint:** `C:\Users\MSchm\Documents\att_project\lightning_logs\M6_Medium_Scaled_DP_Attention\version_0\checkpoints\M6_Medium_Scaled_DP_Attention-epoch=27-val_loss=0.0012.ckpt`
+- **R2:** 0.9087 +/- 0.0075
+- **Accuracy:** 88.62% +/- 1.10
+- **RMSE:** 0.0330 +/- 0.0013
+- **MAE:** 0.0249 +/- 0.0009
+- **Inference (P95):** 2.78 +/- 0.01 ms
+- **Seeds:** [42, 94, 123]
 
 ---
 

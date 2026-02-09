@@ -76,7 +76,8 @@ def get_model_class(model_type: str):
     Get the model class based on type string.
 
     Args:
-        model_type: One of "baseline", "simple_attention", "additive_attention", "scaled_dp_attention"
+        model_type: One of "baseline", "simple_attention", "additive_attention",
+                    "scaled_dp_attention", "mlp_last", "mlp_flat"
 
     Returns:
         Model class
@@ -93,6 +94,9 @@ def get_model_class(model_type: str):
     elif model_type == "scaled_dp_attention":
         from model.lstm_scaled_dp_attention import LSTMScaleDotAttentionModel
         return LSTMScaleDotAttentionModel
+    elif model_type in ("mlp_last", "mlp_flat"):
+        from model.mlp_baseline import MLPModel
+        return MLPModel
     else:
         raise ValueError(f"Unknown model type: {model_type}")
 
@@ -109,18 +113,32 @@ def create_model_from_config(config: Dict[str, Any]):
     """
     model_config = config["model"]
     training_config = config["training"]
+    data_config = config.get("data", {})
 
     model_class = get_model_class(model_config["type"])
+    model_type = model_config["type"]
 
-    # Build model kwargs
-    model_kwargs = {
-        "input_size": model_config["input_size"],
-        "hidden_size": model_config["hidden_size"],
-        "num_layers": model_config["num_layers"],
-        "output_size": model_config["output_size"],
-        "lr": training_config["learning_rate"],
-        "dropout": training_config.get("dropout", 0.0),
-    }
+    # MLP models have different parameters
+    if model_type in ("mlp_last", "mlp_flat"):
+        model_kwargs = {
+            "input_size": model_config["input_size"],
+            "hidden_sizes": model_config.get("hidden_sizes", [64, 64]),
+            "output_size": model_config["output_size"],
+            "lr": training_config["learning_rate"],
+            "dropout": training_config.get("dropout", 0.0),
+            "use_last_only": model_type == "mlp_last",
+            "seq_len": data_config.get("window_size", 50),
+        }
+    else:
+        # LSTM-based models
+        model_kwargs = {
+            "input_size": model_config["input_size"],
+            "hidden_size": model_config["hidden_size"],
+            "num_layers": model_config["num_layers"],
+            "output_size": model_config["output_size"],
+            "lr": training_config["learning_rate"],
+            "dropout": training_config.get("dropout", 0.0),
+        }
 
     return model_class(**model_kwargs)
 

@@ -1,0 +1,61 @@
+{
+  "model": {
+    "name": "M5_Medium_Baseline",
+    "type": "baseline",
+    "parameters": 597633,
+    "flops": 30131328,
+    "flops_formatted": "30.131M",
+    "macs": 15065664,
+    "macs_formatted": "1",
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed94\\version_0\\checkpoints\\M5_Medium_Baseline_seed94-epoch=38-val_loss=0.0012.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.0010584527626633644,
+    "rmse": 0.03253387100643519,
+    "mae": 0.024596242234110832,
+    "mape": 156240.328125,
+    "r2": 0.9113239645957947,
+    "accuracy": 89.05495463982156,
+    "accuracy_threshold": 0.05,
+    "num_samples": 220127
+  },
+  "inference": {
+    "mean_ms": 2.574176559841726,
+    "std_ms": 0.1019941796764973,
+    "min_ms": 2.503999974578619,
+    "max_ms": 4.399299970827997,
+    "p50_ms": 2.5458799966145307,
+    "p50_std_ms": 0.00753224225033423,
+    "p95_ms": 2.694454991724342,
+    "p95_std_ms": 0.039129483085288734,
+    "p99_ms": 2.9489645956782624,
+    "p99_std_ms": 0.02328601483169311,
+    "device": "cpu",
+    "num_threads": 1,
+    "warmup_iterations": 100,
+    "num_samples": 1000,
+    "num_runs": 5,
+    "total_samples": 5000
+  },
+  "flops": {
+    "flops": 30131328,
+    "flops_formatted": "30.131M",
+    "macs": 15065664,
+    "macs_formatted": "1",
+    "params_thop": 597633,
+    "params_formatted": "597.633K"
+  },
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_94\\M5_Medium_Baseline_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_94\\M5_Medium_Baseline_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_94\\M5_Medium_Baseline_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_94\\M5_Medium_Baseline_error_distribution.png"
+  },
+  "predictions_csv": null,
+  "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m5_medium_baseline.yaml"
+}

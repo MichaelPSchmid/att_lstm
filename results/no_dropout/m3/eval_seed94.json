@@ -1,0 +1,61 @@
+{
+  "model": {
+    "name": "M3_Small_Baseline",
+    "type": "baseline",
+    "parameters": 84801,
+    "flops": 4313664,
+    "flops_formatted": "4.314M",
+    "macs": 2156832,
+    "macs_formatted": "2",
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M3_Small_Baseline_seed94\\version_0\\checkpoints\\M3_Small_Baseline_seed94-epoch=12-val_loss=0.0017.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.0017041789833456278,
+    "rmse": 0.04128170276703261,
+    "mae": 0.030226394534111023,
+    "mape": 198585.265625,
+    "r2": 0.8572256565093994,
+    "accuracy": 82.36972293267068,
+    "accuracy_threshold": 0.05,
+    "num_samples": 220127
+  },
+  "inference": {
+    "mean_ms": 0.7382840795558877,
+    "std_ms": 0.03862125159505528,
+    "min_ms": 0.7212000200524926,
+    "max_ms": 1.4640999725088477,
+    "p50_ms": 0.728189991787076,
+    "p50_std_ms": 0.0014044169895943632,
+    "p95_ms": 0.7998479914385825,
+    "p95_std_ms": 0.022337323246359855,
+    "p99_ms": 0.9041086037177593,
+    "p99_std_ms": 0.07198856800736524,
+    "device": "cpu",
+    "num_threads": 1,
+    "warmup_iterations": 100,
+    "num_samples": 1000,
+    "num_runs": 5,
+    "total_samples": 5000
+  },
+  "flops": {
+    "flops": 4313664,
+    "flops_formatted": "4.314M",
+    "macs": 2156832,
+    "macs_formatted": "2",
+    "params_thop": 84801,
+    "params_formatted": "84.801K"
+  },
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m3\\seed_94\\M3_Small_Baseline_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m3\\seed_94\\M3_Small_Baseline_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m3\\seed_94\\M3_Small_Baseline_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m3\\seed_94\\M3_Small_Baseline_error_distribution.png"
+  },
+  "predictions_csv": null,
+  "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m3_small_baseline.yaml"
+}

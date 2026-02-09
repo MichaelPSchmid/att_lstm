@@ -148,92 +148,98 @@ setup_style()
 # MODEL DATA
 # =============================================================================
 
-# Model data from evaluation results (model_evaluation_results_no_dropout.md)
-# Naming scheme: M1-M2 = MLP, M3-M4 = Small LSTM, M5-M8 = Medium LSTM
-MODEL_DATA = {
-    'M1': {
-        'name': 'M1 MLP Last',
-        'type': 'mlp',
-        'accuracy': 69.98,
-        'accuracy_ci': (69.80, 70.17),
-        'r2': 0.708,
-        'rmse': 0.0590,
-        'inference_p95_ms': 0.06,
-        'params': 4609,
-    },
-    'M2': {
-        'name': 'M2 MLP Flat',
-        'type': 'mlp',
-        'accuracy': 75.28,
-        'accuracy_ci': (75.11, 75.46),
-        'r2': 0.786,
-        'rmse': 0.0505,
-        'inference_p95_ms': 0.08,
-        'params': 40449,
-    },
-    'M3': {
-        'name': 'M3 Small Baseline',
-        'type': 'lstm',
-        'accuracy': 82.60,
-        'accuracy_ci': (82.44, 82.76),
-        'r2': 0.862,
-        'rmse': 0.0406,
-        'inference_p95_ms': 1.07,
-        'params': 84801,
-    },
-    'M4': {
-        'name': 'M4 Small + Simple',
-        'type': 'lstm_attn',
-        'accuracy': 81.91,
-        'accuracy_ci': (81.75, 82.07),
-        'r2': 0.854,
-        'rmse': 0.0418,
-        'inference_p95_ms': 1.08,
-        'params': 84866,
-    },
-    'M5': {
-        'name': 'M5 Medium Baseline',
-        'type': 'lstm',
-        'accuracy': 87.85,
-        'accuracy_ci': (87.71, 87.98),
-        'r2': 0.905,
-        'rmse': 0.0337,
-        'inference_p95_ms': 3.22,
-        'params': 597633,
-    },
-    'M6': {
-        'name': 'M6 Medium + Simple',
-        'type': 'lstm_attn',
-        'accuracy': 90.25,
-        'accuracy_ci': (90.13, 90.38),
-        'r2': 0.919,
-        'rmse': 0.0311,
-        'inference_p95_ms': 3.41,
-        'params': 597762,
-    },
-    'M7': {
-        'name': 'M7 Medium + Additive',
-        'type': 'lstm_attn',
-        'accuracy': 88.34,
-        'accuracy_ci': (88.21, 88.47),
-        'r2': 0.907,
-        'rmse': 0.0332,
-        'inference_p95_ms': 4.66,
-        'params': 630529,
-    },
-    'M8': {
-        'name': 'M8 Medium + Scaled DP',
-        'type': 'lstm_attn',
-        'accuracy': 89.80,
-        'accuracy_ci': (89.68, 89.92),
-        'r2': 0.916,
-        'rmse': 0.0316,
-        'inference_p95_ms': 3.45,
-        'params': 597633,
-    },
-}
+def load_model_data(comparison_path: Optional[Path] = None,
+                    bootstrap_path: Optional[Path] = None) -> Dict[str, Dict]:
+    """
+    Load model data from evaluation results JSON.
+
+    Args:
+        comparison_path: Path to comparison.json (default: results/no_dropout/comparison.json)
+        bootstrap_path: Path to bootstrap results JSON (default: results/bootstrap/bootstrap_results_no_dropout.json)
+
+    Returns:
+        Dictionary with model data in the expected format
+    """
+    import json
+
+    if comparison_path is None:
+        comparison_path = PROJECT_ROOT / 'results' / 'no_dropout' / 'comparison.json'
+
+    if bootstrap_path is None:
+        bootstrap_path = PROJECT_ROOT / 'results' / 'bootstrap' / 'bootstrap_results_no_dropout.json'
+
+    # Load comparison results
+    with open(comparison_path, 'r', encoding='utf-8') as f:
+        comparison = json.load(f)
+
+    # Load bootstrap results for confidence intervals (optional)
+    bootstrap_data = {}
+    if bootstrap_path.exists():
+        with open(bootstrap_path, 'r', encoding='utf-8') as f:
+            bootstrap = json.load(f)
+            for model in bootstrap.get('models', []):
+                model_id = model['model_id']
+                bootstrap_data[model_id] = {
+                    'accuracy_ci': (model['ci_lower'], model['ci_upper'])
+                }
+
+    # Map model type from name to category
+    def get_model_type(name: str) -> str:
+        name_lower = name.lower()
+        if 'mlp' in name_lower:
+            return 'mlp'
+        elif 'attention' in name_lower or 'attn' in name_lower or 'simple' in name_lower or 'additive' in name_lower or 'scaled' in name_lower:
+            return 'lstm_attn'
+        else:
+            return 'lstm'
+
+    model_data = {}
+    for model_key, data in comparison['models'].items():
+        model_id = model_key.upper()  # m1 -> M1
+
+        # Get bootstrap CI if available
+        accuracy_ci = bootstrap_data.get(model_id, {}).get('accuracy_ci', (None, None))
+
+        model_data[model_id] = {
+            'name': data['name'],
+            'type': get_model_type(data['name']),
+            'accuracy': data['metrics']['accuracy'],
+            'accuracy_ci': accuracy_ci,
+            'r2': data['metrics']['r2'],
+            'rmse': data['metrics']['rmse'],
+            'inference_p95_ms': data['inference']['p95_ms'],
+            'inference_p95_std_ms': data['inference']['p95_std_ms'],
+            'params': data['parameters'],
+        }
+
+    return model_data
+
+
+# Load model data from results (lazy initialization)
+_MODEL_DATA_CACHE = None
+
+
+def get_model_data() -> Dict[str, Dict]:
+    """Get model data, loading from JSON on first access."""
+    global _MODEL_DATA_CACHE
+    if _MODEL_DATA_CACHE is None:
+        try:
+            _MODEL_DATA_CACHE = load_model_data()
+            print(f"Loaded model data for {len(_MODEL_DATA_CACHE)} models from comparison.json")
+        except FileNotFoundError as e:
+            print(f"WARNING: Could not load model data: {e}")
+            print("Using empty model data - some figures may not generate")
+            _MODEL_DATA_CACHE = {}
+    return _MODEL_DATA_CACHE
+
+
+# For backwards compatibility, MODEL_DATA is now a property-like access
+# Use get_model_data() in functions instead
+MODEL_DATA = None  # Deprecated, use get_model_data() instead
 
 # Dropout comparison data (only LSTM models M3-M8)
+# NOTE: Hardcoded values - no dropout comparison.json available
+# TODO: Load from results/dropout/comparison.json when available
 DROPOUT_DATA = {
     'M3': {'no_dropout': 82.60, 'dropout': 80.49},
     'M4': {'no_dropout': 81.91, 'dropout': 80.07},
@@ -286,6 +292,11 @@ def fig_inference_tradeoff(output_dir: Path) -> List[Path]:
     Uses logarithmic x-axis to accommodate the wide inference time range.
     M6 (best model) is highlighted with a red ring.
     """
+    model_data = get_model_data()
+    if not model_data:
+        print("  WARNING: No model data available, skipping")
+        return []
+
     fig, ax = plt.subplots(figsize=(3.5, 2.8))
 
     # Marker configuration
@@ -293,7 +304,7 @@ def fig_inference_tradeoff(output_dir: Path) -> List[Path]:
 
     # Plot each model type
     plotted_types = set()
-    for model_id, data in MODEL_DATA.items():
+    for model_id, data in model_data.items():
         mtype = data['type']
 
         # Label only first of each type for legend
@@ -320,7 +331,7 @@ def fig_inference_tradeoff(output_dir: Path) -> List[Path]:
         'M7': (1, -5),    'M8': (5, 0),
     }
 
-    for model_id, data in MODEL_DATA.items():
+    for model_id, data in model_data.items():
         x_off, y_off = label_offsets[model_id]
         ha = 'left' if x_off > 0 else 'right'
         va = 'bottom' if y_off > 0 else 'top'
