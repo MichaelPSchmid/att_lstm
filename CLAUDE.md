@@ -1,4 +1,4 @@
-# WEND - Wavelet-based Event Novelty Detection
+# ATT_PROJECT - COMPARISON of Attention Mechanisms
 
 > **Detaillierter Plan:** `docs/IMPLEMENTIERUNGSPLAN.md`  
 > **Fortschritt:** `docs/PROGRESS.md`  

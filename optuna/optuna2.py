@@ -8,9 +8,9 @@ import gc
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from model.LSTM import LSTMModel
-from data_module import TimeSeriesDataModule
-from config import FEATURE_PATH, TARGET_PATH
+from model.lstm_baseline import LSTMModel
+from model.data_module import TimeSeriesDataModule
+from config.settings import FEATURE_PATH, TARGET_PATH
 
 # Enable Tensor Cores optimization
 torch.set_float32_matmul_precision('medium')

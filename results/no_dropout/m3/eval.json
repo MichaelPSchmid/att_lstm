@@ -1,0 +1,56 @@
+{
+  "model": {
+    "name": "M3_Medium_Baseline",
+    "type": "baseline",
+    "parameters": 597633,
+    "flops": 30131328,
+    "flops_formatted": "30.131M",
+    "macs": 15065664,
+    "macs_formatted": "1",
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M3_Medium_Baseline\\version_0\\checkpoints\\M3_Medium_Baseline-epoch=34-val_loss=0.0013.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.0011393034365028143,
+    "rmse": 0.033753570169210434,
+    "mae": 0.025476418435573578,
+    "mape": 151006.0,
+    "r2": 0.9045503735542297,
+    "accuracy": 87.84292703757376,
+    "accuracy_threshold": 0.05,
+    "num_samples": 220127
+  },
+  "inference": {
+    "mean_ms": 2.535573400382418,
+    "std_ms": 0.08544796170370106,
+    "min_ms": 2.4773000041022897,
+    "max_ms": 3.3440000261180103,
+    "p50_ms": 2.5118000339716673,
+    "p95_ms": 2.6620250107953325,
+    "p99_ms": 2.972659991355613,
+    "device": "cpu",
+    "num_threads": 1,
+    "warmup_iterations": 100,
+    "num_samples": 1000
+  },
+  "flops": {
+    "flops": 30131328,
+    "flops_formatted": "30.131M",
+    "macs": 15065664,
+    "macs_formatted": "1",
+    "params_thop": 597633,
+    "params_formatted": "597.633K"
+  },
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m3\\M3_Medium_Baseline_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m3\\M3_Medium_Baseline_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m3\\M3_Medium_Baseline_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m3\\M3_Medium_Baseline_error_distribution.png"
+  },
+  "predictions_csv": null,
+  "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m3_medium_baseline.yaml"
+}

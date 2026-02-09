@@ -18,3 +18,6 @@ model:
 
 training:
   learning_rate: 0.0005    # Paper used 0.0005 for larger models
+  dropout: 0.0             # Ablation: test without dropout
+  early_stopping:
+    patience: 5            # Faster convergence without dropout

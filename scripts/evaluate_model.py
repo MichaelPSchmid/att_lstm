@@ -1,11 +1,21 @@
 """
 Evaluation script for trained LSTM-Attention models.
 
-Loads a trained checkpoint, evaluates on test set, and measures CPU inference time.
+Loads a trained checkpoint, evaluates on test set, measures CPU inference time,
+and generates visualizations including attention heatmaps for attention models.
 
 Usage:
+    # Basic evaluation
     python scripts/evaluate_model.py --checkpoint path/to/checkpoint.ckpt --config config/model_configs/m1_small_baseline.yaml
+
+    # Save results as JSON
     python scripts/evaluate_model.py --checkpoint path/to/checkpoint.ckpt --config config/model_configs/m1_small_baseline.yaml --output results/m1_results.json
+
+    # Full evaluation with predictions CSV
+    python scripts/evaluate_model.py --checkpoint path/to/checkpoint.ckpt --config config/model_configs/m5_medium_additive_attn.yaml --save-predictions
+
+    # Skip plots for faster evaluation
+    python scripts/evaluate_model.py --checkpoint path/to/checkpoint.ckpt --config config/model_configs/m1_small_baseline.yaml --no-plots
 """
 
 import argparse
@@ -19,15 +29,22 @@ from typing import Dict, Any, Optional
 project_root = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(project_root))
 
+import inspect
+
 import numpy as np
 import torch
 import pytorch_lightning as pl
+from thop import profile, clever_format
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
+import seaborn as sns
 
-from config_loader import load_config, get_model_class
-from data_module import TimeSeriesDataModule
-from config import get_preprocessed_paths
+from config.loader import load_config, get_model_class
+from model.data_module import TimeSeriesDataModule
+from config.settings import get_preprocessed_paths
+
+# Import from shared library (project_root already in path)
+from scripts.shared import calculate_metrics_dict
 
 
 def parse_args() -> argparse.Namespace:
@@ -82,6 +99,16 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Directory to save plots (default: results/figures/{model_name}/)"
     )
+    parser.add_argument(
+        "--save-predictions",
+        action="store_true",
+        help="Save individual predictions as CSV file"
+    )
+    parser.add_argument(
+        "--no-attention-plot",
+        action="store_true",
+        help="Skip attention heatmap generation (for attention models)"
+    )
 
     return parser.parse_args()
 
@@ -91,8 +118,10 @@ def calculate_metrics(
     targets: np.ndarray,
     accuracy_threshold: float = 0.05
 ) -> Dict[str, float]:
-    """
-    Calculate evaluation metrics.
+    """Calculate evaluation metrics.
+
+    This is a thin wrapper around the shared library function for
+    backwards compatibility with existing code.
 
     Args:
         predictions: Model predictions [N, 1]
@@ -102,41 +131,7 @@ def calculate_metrics(
     Returns:
         Dictionary with metrics
     """
-    # Flatten arrays
-    preds = predictions.flatten()
-    targs = targets.flatten()
-
-    # MSE
-    mse = np.mean((preds - targs) ** 2)
-
-    # RMSE
-    rmse = np.sqrt(mse)
-
-    # MAE
-    mae = np.mean(np.abs(preds - targs))
-
-    # MAPE (avoid division by zero)
-    mape = np.mean(np.abs((preds - targs) / (targs + 1e-8))) * 100
-
-    # R² Score
-    ss_res = np.sum((preds - targs) ** 2)
-    ss_tot = np.sum((targs - np.mean(targs)) ** 2)
-    r2 = 1 - ss_res / (ss_tot + 1e-8)
-
-    # Accuracy (predictions within threshold)
-    correct = np.abs(preds - targs) < accuracy_threshold
-    accuracy = np.mean(correct) * 100
-
-    return {
-        "mse": float(mse),
-        "rmse": float(rmse),
-        "mae": float(mae),
-        "mape": float(mape),
-        "r2": float(r2),
-        "accuracy": float(accuracy),
-        "accuracy_threshold": accuracy_threshold,
-        "num_samples": len(preds)
-    }
+    return calculate_metrics_dict(predictions, targets, accuracy_threshold)
 
 
 def generate_evaluation_plots(
@@ -288,60 +283,306 @@ def generate_evaluation_plots(
     return saved_plots
 
 
+def has_attention_support(model: torch.nn.Module) -> bool:
+    """Check if model supports return_attention parameter."""
+    sig = inspect.signature(model.forward)
+    return "return_attention" in sig.parameters
+
+
+def generate_attention_heatmap(
+    model: torch.nn.Module,
+    test_dataloader: DataLoader,
+    model_name: str,
+    output_dir: Path,
+    device: str = "cuda"
+) -> Dict[str, str]:
+    """
+    Generate attention heatmap visualization for attention-based models.
+
+    Args:
+        model: PyTorch model with return_attention support
+        test_dataloader: Test DataLoader
+        model_name: Name of the model for titles
+        output_dir: Directory to save plots
+        device: Device to run on
+
+    Returns:
+        Dictionary with paths to saved files
+    """
+    if not has_attention_support(model):
+        print("  Model does not support attention extraction, skipping...")
+        return {}
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    model = model.to(device)
+    model.eval()
+
+    saved_files = {}
+
+    # Collect attention weights
+    all_attentions = []
+    print("  Collecting attention weights from test set...")
+
+    with torch.no_grad():
+        for batch in test_dataloader:
+            X_batch, _ = batch
+            X_batch = X_batch.to(device)
+
+            try:
+                _, attention_weights = model(X_batch, return_attention=True)
+                all_attentions.append(attention_weights.cpu())
+            except Exception as e:
+                print(f"  Warning: Failed to extract attention: {e}")
+                return {}
+
+    if not all_attentions:
+        return {}
+
+    # Concatenate and compute average
+    all_attentions_tensor = torch.cat(all_attentions, dim=0)  # (N, ...) various shapes
+
+    # Handle different attention shapes
+    if all_attentions_tensor.dim() == 2:
+        # Simple attention: (N, seq_len) -> average over samples
+        avg_attention = torch.mean(all_attentions_tensor, dim=0).numpy()  # (seq_len,)
+        is_matrix = False
+    elif all_attentions_tensor.dim() == 3:
+        # Matrix attention: (N, seq_len, seq_len) -> average over samples
+        avg_attention = torch.mean(all_attentions_tensor, dim=0).numpy()  # (seq_len, seq_len)
+        is_matrix = True
+    else:
+        print(f"  Unexpected attention shape: {all_attentions_tensor.shape}")
+        return {}
+
+    # Save as numpy file
+    npy_path = output_dir / f"{model_name}_attention_weights.npy"
+    np.save(npy_path, avg_attention)
+    saved_files["attention_npy"] = str(npy_path)
+    print(f"  Attention weights saved to: {npy_path}")
+
+    # Generate heatmap visualization
+    seq_len = avg_attention.shape[-1]
+    time_labels = [f"t-{seq_len - i}" for i in range(seq_len)]
+
+    if is_matrix:
+        # Full attention matrix heatmap
+        fig, ax = plt.subplots(figsize=(12, 10))
+        sns.heatmap(
+            avg_attention,
+            annot=False,
+            cmap="YlGnBu",
+            xticklabels=time_labels if seq_len <= 20 else False,
+            yticklabels=time_labels if seq_len <= 20 else False,
+            ax=ax
+        )
+        ax.set_title(f"{model_name}\nAverage Attention Matrix (Test Set)", fontsize=14)
+        ax.set_xlabel("Key (attended to)", fontsize=12)
+        ax.set_ylabel("Query (attending from)", fontsize=12)
+    else:
+        # 1D attention weights bar plot
+        fig, ax = plt.subplots(figsize=(14, 6))
+        x_pos = np.arange(seq_len)
+        ax.bar(x_pos, avg_attention, color="steelblue", edgecolor="black", linewidth=0.5)
+        ax.set_xticks(x_pos[::5])  # Show every 5th tick
+        ax.set_xticklabels([time_labels[i] for i in range(0, seq_len, 5)], rotation=45)
+        ax.set_title(f"{model_name}\nAverage Attention Weights (Test Set)", fontsize=14)
+        ax.set_xlabel("Time Step", fontsize=12)
+        ax.set_ylabel("Attention Weight", fontsize=12)
+        ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    heatmap_path = output_dir / f"{model_name}_attention_heatmap.png"
+    fig.savefig(heatmap_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    saved_files["attention_heatmap"] = str(heatmap_path)
+    print(f"  Attention heatmap saved to: {heatmap_path}")
+
+    return saved_files
+
+
+def save_predictions_csv(
+    predictions: np.ndarray,
+    targets: np.ndarray,
+    model_name: str,
+    output_dir: Path
+) -> str:
+    """
+    Save predictions and targets as CSV file.
+
+    Args:
+        predictions: Model predictions [N, 1]
+        targets: Ground truth targets [N, 1]
+        model_name: Name of the model
+        output_dir: Directory to save CSV
+
+    Returns:
+        Path to saved CSV file
+    """
+    try:
+        import pandas as pd
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        df = pd.DataFrame({
+            "sample_idx": np.arange(len(predictions)),
+            "prediction": predictions.flatten(),
+            "target": targets.flatten(),
+            "error": (predictions - targets).flatten(),
+            "abs_error": np.abs(predictions - targets).flatten()
+        })
+
+        csv_path = output_dir / f"{model_name}_predictions.csv"
+        df.to_csv(csv_path, index=False)
+
+        return str(csv_path)
+
+    except ImportError:
+        print("  Warning: pandas not available, skipping CSV export")
+        return ""
+
+
+def calculate_flops(
+    model: torch.nn.Module,
+    sample_input: torch.Tensor
+) -> Dict[str, Any]:
+    """
+    Calculate FLOPs (Floating Point Operations) for a single forward pass.
+
+    Moves model to CPU for calculation. Subsequent functions (measure_inference_time,
+    generate_attention_heatmap) handle device placement themselves.
+
+    Args:
+        model: PyTorch model
+        sample_input: Single input sample [1, seq_len, features]
+
+    Returns:
+        Dictionary with FLOPs statistics
+    """
+    # Move model to CPU for FLOPs calculation
+    model.cpu()
+    model.eval()
+
+    # Ensure input is on CPU
+    input_clone = sample_input.clone().cpu()
+
+    # Use thop to profile FLOPs and parameters
+    with torch.no_grad():
+        flops, params = profile(model, inputs=(input_clone,), verbose=False)
+
+    # Format for human readability
+    flops_formatted, params_formatted = clever_format([flops, params], "%.3f")
+
+    return {
+        "flops": int(flops),
+        "flops_formatted": flops_formatted,
+        "macs": int(flops / 2),  # MACs ≈ FLOPs / 2
+        "macs_formatted": clever_format([flops / 2], "%.3f")[0],
+        "params_thop": int(params),
+        "params_formatted": params_formatted
+    }
+
+
 def measure_inference_time(
     model: torch.nn.Module,
     sample_input: torch.Tensor,
     warmup_iterations: int = 100,
     num_samples: int = 1000,
+    num_runs: int = 5,
     device: str = "cpu"
 ) -> Dict[str, float]:
     """
-    Measure CPU inference time for a single sample.
+    Measure CPU inference time for a single sample using single-threaded execution.
+
+    Runs multiple benchmark runs to capture system-level variance and compute
+    robust statistics (mean ± std) for percentiles.
+
+    Uses torch.set_num_threads(1) for reproducible, single-threaded measurements
+    that are comparable across different hardware configurations.
 
     Args:
         model: PyTorch model
         sample_input: Single input sample [1, seq_len, features]
-        warmup_iterations: Number of warm-up iterations
-        num_samples: Number of samples to average
+        warmup_iterations: Number of warm-up iterations (once at start)
+        num_samples: Number of samples per run
+        num_runs: Number of complete benchmark runs for statistics
         device: Device to run on ("cpu" recommended for embedded relevance)
 
     Returns:
-        Dictionary with timing statistics
+        Dictionary with timing statistics including cross-run variance
     """
-    model = model.to(device)
-    model.eval()
-    sample_input = sample_input.to(device)
+    # Store original thread count and set to single-thread for reproducible measurements
+    original_num_threads = torch.get_num_threads()
+    torch.set_num_threads(1)
 
-    # Warm-up
-    print(f"  Warming up ({warmup_iterations} iterations)...")
-    with torch.no_grad():
-        for _ in range(warmup_iterations):
-            _ = model(sample_input)
+    try:
+        model = model.to(device)
+        model.eval()
+        sample_input = sample_input.to(device)
 
-    # Measure inference time
-    print(f"  Measuring ({num_samples} samples)...")
-    times = []
-    with torch.no_grad():
-        for _ in range(num_samples):
-            start = time.perf_counter()
-            _ = model(sample_input)
-            end = time.perf_counter()
-            times.append((end - start) * 1000)  # Convert to ms
+        # Warm-up (once at start)
+        print(f"  Warming up ({warmup_iterations} iterations)...")
+        with torch.no_grad():
+            for _ in range(warmup_iterations):
+                _ = model(sample_input)
 
-    times = np.array(times)
+        # Multiple benchmark runs
+        print(f"  Measuring ({num_runs} runs x {num_samples} samples, single-thread)...")
 
-    return {
-        "mean_ms": float(np.mean(times)),
-        "std_ms": float(np.std(times)),
-        "min_ms": float(np.min(times)),
-        "max_ms": float(np.max(times)),
-        "p50_ms": float(np.percentile(times, 50)),
-        "p95_ms": float(np.percentile(times, 95)),
-        "p99_ms": float(np.percentile(times, 99)),
-        "device": device,
-        "warmup_iterations": warmup_iterations,
-        "num_samples": num_samples
-    }
+        run_p50s = []
+        run_p95s = []
+        run_p99s = []
+        run_means = []
+        all_times = []
+
+        for run in range(num_runs):
+            times = []
+            with torch.no_grad():
+                for _ in range(num_samples):
+                    start = time.perf_counter()
+                    _ = model(sample_input)
+                    end = time.perf_counter()
+                    times.append((end - start) * 1000)  # Convert to ms
+
+            times = np.array(times)
+            all_times.extend(times)
+
+            run_means.append(np.mean(times))
+            run_p50s.append(np.percentile(times, 50))
+            run_p95s.append(np.percentile(times, 95))
+            run_p99s.append(np.percentile(times, 99))
+
+            print(f"    Run {run + 1}/{num_runs}: p95={run_p95s[-1]:.3f}ms")
+
+        all_times = np.array(all_times)
+        run_p50s = np.array(run_p50s)
+        run_p95s = np.array(run_p95s)
+        run_p99s = np.array(run_p99s)
+        run_means = np.array(run_means)
+
+        return {
+            # Aggregate statistics (across all samples from all runs)
+            "mean_ms": float(np.mean(all_times)),
+            "std_ms": float(np.std(all_times)),
+            "min_ms": float(np.min(all_times)),
+            "max_ms": float(np.max(all_times)),
+            # Percentiles with cross-run statistics
+            "p50_ms": float(np.mean(run_p50s)),
+            "p50_std_ms": float(np.std(run_p50s)),
+            "p95_ms": float(np.mean(run_p95s)),
+            "p95_std_ms": float(np.std(run_p95s)),
+            "p99_ms": float(np.mean(run_p99s)),
+            "p99_std_ms": float(np.std(run_p99s)),
+            # Metadata
+            "device": device,
+            "num_threads": 1,
+            "warmup_iterations": warmup_iterations,
+            "num_samples": num_samples,
+            "num_runs": num_runs,
+            "total_samples": num_samples * num_runs
+        }
+    finally:
+        # Restore original thread count
+        torch.set_num_threads(original_num_threads)
 
 
 def run_test_evaluation(
@@ -455,35 +696,50 @@ def main():
     print(f"  Accuracy:   {metrics['accuracy']:.2f}% (threshold: {accuracy_threshold})")
     print(f"  Samples:    {metrics['num_samples']:,}")
 
-    # Measure CPU inference time
+    # Create sample input for FLOPs and inference measurement
+    sample_input = torch.randn(1, data_config["window_size"], config["model"]["input_size"])
+
+    # Calculate FLOPs
+    print("\n" + "=" * 60)
+    print("Model Complexity (FLOPs)")
+    print("=" * 60)
+
+    flops_results = calculate_flops(model, sample_input)
+
+    print(f"  FLOPs:      {flops_results['flops_formatted']}")
+    print(f"  MACs:       {flops_results['macs_formatted']}")
+    print(f"  Parameters: {flops_results['params_formatted']}")
+
+    # Measure CPU inference time (single-threaded)
     inference_results = None
     if not args.skip_inference_test:
         print("\n" + "=" * 60)
-        print("CPU Inference Time Measurement")
+        print("CPU Inference Time Measurement (Single-Thread)")
         print("=" * 60)
 
         eval_config = config["evaluation"]["inference"]
-        sample_input = torch.randn(1, data_config["window_size"], config["model"]["input_size"])
 
         inference_results = measure_inference_time(
             model,
             sample_input,
             warmup_iterations=eval_config["warmup_iterations"],
             num_samples=eval_config["num_samples"],
+            num_runs=eval_config.get("num_runs", 5),
             device=eval_config["device"]
         )
 
         target_ms = config["evaluation"]["target_inference_ms"]
-        meets_target = inference_results["mean_ms"] < target_ms
+        meets_target = inference_results["p95_ms"] < target_ms
 
         print(f"  Mean:       {inference_results['mean_ms']:.3f} ms")
         print(f"  Std:        {inference_results['std_ms']:.3f} ms")
         print(f"  Min:        {inference_results['min_ms']:.3f} ms")
         print(f"  Max:        {inference_results['max_ms']:.3f} ms")
-        print(f"  P50:        {inference_results['p50_ms']:.3f} ms")
-        print(f"  P95:        {inference_results['p95_ms']:.3f} ms")
-        print(f"  P99:        {inference_results['p99_ms']:.3f} ms")
-        print(f"  Target:     <{target_ms} ms {'[PASS]' if meets_target else '[FAIL]'}")
+        print(f"  P50:        {inference_results['p50_ms']:.3f} ± {inference_results['p50_std_ms']:.3f} ms")
+        print(f"  P95:        {inference_results['p95_ms']:.3f} ± {inference_results['p95_std_ms']:.3f} ms")
+        print(f"  P99:        {inference_results['p99_ms']:.3f} ± {inference_results['p99_std_ms']:.3f} ms")
+        print(f"  Runs:       {inference_results['num_runs']} x {inference_results['num_samples']} samples")
+        print(f"  Target:     P95 < {target_ms} ms {'[PASS]' if meets_target else '[FAIL]'}")
 
     # Generate plots
     plot_paths = None
@@ -506,12 +762,58 @@ def main():
         print(f"  Timeline:          {plot_paths['timeline']}")
         print(f"  Error distribution: {plot_paths['error_distribution']}")
 
+    # Generate attention heatmap (for attention models)
+    attention_paths = None
+    if not args.no_plots and not args.no_attention_plot:
+        if has_attention_support(model):
+            print("\n" + "=" * 60)
+            print("Generating Attention Heatmap")
+            print("=" * 60)
+
+            if args.plots_dir:
+                attention_dir = Path(args.plots_dir)
+            else:
+                attention_dir = project_root / "results" / "figures" / model_name
+
+            attention_paths = generate_attention_heatmap(
+                model, test_loader, model_name, attention_dir, device
+            )
+
+            if attention_paths:
+                if plot_paths:
+                    plot_paths.update(attention_paths)
+                else:
+                    plot_paths = attention_paths
+
+    # Save predictions as CSV
+    predictions_csv_path = None
+    if args.save_predictions:
+        print("\n" + "=" * 60)
+        print("Saving Predictions")
+        print("=" * 60)
+
+        if args.plots_dir:
+            csv_dir = Path(args.plots_dir)
+        else:
+            csv_dir = project_root / "results" / "predictions"
+
+        predictions_csv_path = save_predictions_csv(
+            predictions, targets, model_name, csv_dir
+        )
+
+        if predictions_csv_path:
+            print(f"  Predictions CSV:   {predictions_csv_path}")
+
     # Compile results
     results = {
         "model": {
             "name": model_name,
             "type": model_type,
             "parameters": num_params,
+            "flops": flops_results["flops"],
+            "flops_formatted": flops_results["flops_formatted"],
+            "macs": flops_results["macs"],
+            "macs_formatted": flops_results["macs_formatted"],
             "checkpoint": args.checkpoint
         },
         "data": {
@@ -521,7 +823,9 @@ def main():
         },
         "metrics": metrics,
         "inference": inference_results,
+        "flops": flops_results,
         "plots": plot_paths,
+        "predictions_csv": predictions_csv_path,
         "config_path": args.config
     }
 

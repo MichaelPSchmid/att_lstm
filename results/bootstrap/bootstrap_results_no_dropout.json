@@ -1,0 +1,151 @@
+{
+  "model_set": "no_dropout",
+  "n_bootstrap": 1000,
+  "seed": 42,
+  "results": [
+    {
+      "model_id": "M1",
+      "model_name": "Small Baseline",
+      "config_file": "m1_small_baseline.yaml",
+      "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M1_Small_Baseline\\version_0\\checkpoints\\M1_Small_Baseline-epoch=12-val_loss=0.0017.ckpt",
+      "accuracy": {
+        "mean": 82.57611924025676,
+        "std": 0.08180691674623018,
+        "ci_lower": 82.42377127748982,
+        "ci_upper": 82.72815238475971
+      },
+      "rmse": {
+        "mean": 0.040810972452163696,
+        "std": 0.00010237560491077602,
+        "ci_lower": 0.04061068221926689,
+        "ci_upper": 0.041010625660419464
+      },
+      "r2": {
+        "mean": 0.8604491949081421,
+        "std": 0.001097233034670353,
+        "ci_lower": 0.8583333492279053,
+        "ci_upper": 0.8627590537071228
+      }
+    },
+    {
+      "model_id": "M2",
+      "model_name": "Small + Simple Attn",
+      "config_file": "m2_small_simple_attn.yaml",
+      "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M2_Small_Simple_Attention\\version_0\\checkpoints\\M2_Small_Simple_Attention-epoch=06-val_loss=0.0018.ckpt",
+      "accuracy": {
+        "mean": 81.50477406224589,
+        "std": 0.08546772043510914,
+        "ci_lower": 81.34304287979212,
+        "ci_upper": 81.6742380534873
+      },
+      "rmse": {
+        "mean": 0.04227227345108986,
+        "std": 0.00011202115274500102,
+        "ci_lower": 0.04206113889813423,
+        "ci_upper": 0.042488716542720795
+      },
+      "r2": {
+        "mean": 0.8502763509750366,
+        "std": 0.001220915699377656,
+        "ci_lower": 0.8479138612747192,
+        "ci_upper": 0.8529027700424194
+      }
+    },
+    {
+      "model_id": "M3",
+      "model_name": "Medium Baseline",
+      "config_file": "m3_medium_baseline.yaml",
+      "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M3_Medium_Baseline\\version_0\\checkpoints\\M3_Medium_Baseline-epoch=34-val_loss=0.0013.ckpt",
+      "accuracy": {
+        "mean": 87.84401686299272,
+        "std": 0.06890342399244784,
+        "ci_lower": 87.70890213376823,
+        "ci_upper": 87.97740622458853
+      },
+      "rmse": {
+        "mean": 0.033750440925359726,
+        "std": 7.85481242928654e-05,
+        "ci_lower": 0.03360103815793991,
+        "ci_upper": 0.03390045836567879
+      },
+      "r2": {
+        "mean": 0.9045577645301819,
+        "std": 0.0008303173235617578,
+        "ci_lower": 0.9030181765556335,
+        "ci_upper": 0.9062774181365967
+      }
+    },
+    {
+      "model_id": "M4",
+      "model_name": "Medium + Simple Attn",
+      "config_file": "m4_medium_simple_attn.yaml",
+      "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M4_Medium_Simple_Attention\\version_2\\checkpoints\\M4_Medium_Simple_Attention-epoch=40-val_loss=0.0011.ckpt",
+      "accuracy": {
+        "mean": 90.25074525160477,
+        "std": 0.06512893052376093,
+        "ci_lower": 90.1279602229622,
+        "ci_upper": 90.37875862570245
+      },
+      "rmse": {
+        "mean": 0.0310798492282629,
+        "std": 6.766729347873479e-05,
+        "ci_lower": 0.030950387939810753,
+        "ci_upper": 0.03120967373251915
+      },
+      "r2": {
+        "mean": 0.919064462184906,
+        "std": 0.0006937701837159693,
+        "ci_lower": 0.9176692962646484,
+        "ci_upper": 0.9204842448234558
+      }
+    },
+    {
+      "model_id": "M5",
+      "model_name": "Medium + Additive Attn",
+      "config_file": "m5_medium_additive_attn.yaml",
+      "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Additive_Attention\\version_0\\checkpoints\\M5_Medium_Additive_Attention-epoch=32-val_loss=0.0012.ckpt",
+      "accuracy": {
+        "mean": 88.34083097484636,
+        "std": 0.06822621877668313,
+        "ci_lower": 88.20679653109342,
+        "ci_upper": 88.47081457522248
+      },
+      "rmse": {
+        "mean": 0.03323930501937866,
+        "std": 7.560470112366602e-05,
+        "ci_lower": 0.033091891556978226,
+        "ci_upper": 0.03339016065001488
+      },
+      "r2": {
+        "mean": 0.9074267745018005,
+        "std": 0.0007955025648698211,
+        "ci_lower": 0.9058973789215088,
+        "ci_upper": 0.9090232849121094
+      }
+    },
+    {
+      "model_id": "M6",
+      "model_name": "Medium + Scaled DP",
+      "config_file": "m6_medium_scaled_dp_attn.yaml",
+      "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M6_Medium_Scaled_DP_Attention\\version_1\\checkpoints\\M6_Medium_Scaled_DP_Attention-epoch=37-val_loss=0.0012.ckpt",
+      "accuracy": {
+        "mean": 89.59546307358934,
+        "std": 0.0650233141853559,
+        "ci_lower": 89.4696697815352,
+        "ci_upper": 89.71732227305147
+      },
+      "rmse": {
+        "mean": 0.031879205256700516,
+        "std": 7.273058872669935e-05,
+        "ci_lower": 0.0317356251180172,
+        "ci_upper": 0.0320250578224659
+      },
+      "r2": {
+        "mean": 0.9148476719856262,
+        "std": 0.0007376629509963095,
+        "ci_lower": 0.913437008857727,
+        "ci_upper": 0.9163126945495605
+      }
+    }
+  ]
+}

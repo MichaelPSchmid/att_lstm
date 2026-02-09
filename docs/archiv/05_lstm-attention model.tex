@@ -1,0 +1,98 @@
+%!TeX root = ../main.tex
+% Add the above to each chapter to make compiling the PDF easier in some editors.
+
+\chapter{LSTM-Attention Based Model: Structure and Implementation}\label{chapter:data source and preparation}
+
+In this chapter, the first section will introduce the basic structure of the Long Short-Term Memory (LSTM) network and explain how it operates. Subsequently, the working principle of the attention mechanism will be elaborated. I will elaborate on how I leverage the strengths of both the LSTM network and the attention mechanism and integrate them into my model. The final section presents the transition from an LSTM-based model to an LSTM-Attention-based model. By comparing the performance of both models with initial parameters on the preprocessed data, the optimized model architecture is proposed.
+
+
+\section{Comparison between LSTM-Based Model and LSTM-Attention-Based Model}
+
+My task is temporal sequence prediction, which is to predict a target value at a future time step according to the historical feature data. The aim is to use the machine learning model to learn the relationship between given features and the target in a time-series data. The model I designed is based on LSTM network and improved by adding an attention mechanism into the model. Compared with traditional RNN network, LSTM can capture long-term dependencies between data. Typically, an LSTM-based model utilizes the hidden state at the last time step to make forecasts. Although the effective information at previous time steps is embedded into this hidden state, some information at first time steps might be lost when more new information is fed into the model.
+
+To solve this problem, I added an attention mechanism, which dynamically assigns weights to the hidden states at all time steps. In this way, the model will pay more attention to the most relevant time steps in the sliding window rather than merely depending on the last hidden state. This allows the model to take consideration into the features’ lagged effect on the predictive target value. For example, some factors may not affect the steering torque immediately but requires some time delay. This enhancement improves the model’s ability to capture key dependencies and improve the overall prediction accuracy.
+
+To verify my hypothesis, I compared the predicition accuracy on the testing set between the LSTM-based model and the LSTM-attention-based model with same parameters. The result proves that the model embedded with this attention mechanism has a higher accuracy to predict the target values. The detailed model structures and the comparison between LSTM-based model and LSTM-attention-based model will be introduced in the following sections.
+
+\subsection{LSTM-Based Model}
+
+The LSTM-based model consists of an input layer, stacked LSTM layers, a fully connected layer and an output layer. The data preprocessed by sliding window approach is fed into the input layer. The input data first pass through the stacked LSTM layers. The complexity of the LSTM layers is determined by two parameters: hidden size and number of layers. Hidden size represents the dimension of the hidden state, which means how many features the hidden state captures at each time step. The number of layers controlled the depth of the LSTM network. Both of them can enhance the learning capacity. LSTM outputs the hidden state of the last time step of each window as a feature input to the fully connected layer. The fully connected layer applies an affine linear transformation on the hidden state, reduces the dimension of the hidden state and maps it to the target output dimension to generate the final prediction value. The architecture of LSTM-based model is shown as Fig 4.3.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{chapters/images/Fig9.pdf} 
+    \caption{Internal Structure of an LSTM Cell (Left) and LSTM Network Architecture (Right)}
+    \label{fig:example} 
+\end{figure}
+
+\subsection{LSTM-Attention-Based Model}
+
+To make the model pay more attention to the important time steps, I added an attention layer after the stacked LSTM layers.Firstly, an affine linear transformation is applied to the hidden states. The multi-dimensional features in the hidden state at each time step are mapped to an attention score. Then, the attention scores are normalized to attention weights using softmax function. The weights are multiplicated with the hidden states (outputs of the LSTM Network). Thus, the hidden state at each time step is assigned different levels of importance. Finally, the weighted vectors are summed up, generating a context vector which aggregates the most relevant information of the original sequence. The fully connected layer maps the context vector to the final prediction. The structure of LSTM-Attention-Based Model is shown in Fig 4.4.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{chapters/images/Fig10.pdf} 
+    \caption{Internal Structure of an LSTM Cell (Left) and LSTM Network Architecture (Right)}
+    \label{fig:example} 
+\end{figure}
+
+\subsection{Model Performance Comparison}
+
+To evaluate the effectiveness of incorporating the attention mechanism, I compare the validation set accuracy of both models. To ensure a fair comparison, both models are trained with identical hyperparameters, dataset splits, and random seeds. Two experiments were conducted in total, with the first experiment employing a model with the relatively simple structure. The specific parameters used in the first experiment are presented in Table 4.1.
+
+\begin{table}[htpb]
+  \caption{Parameter Settings in the first experiment.}\label{tab:sample}
+  \centering
+  \begin{tabular}{l l}
+    \toprule
+      Parameter & Value \\
+    \midrule
+      window size & 50 \\
+      hidden size & 64 \\
+      learning rate & 0.0005 \\
+      number of LSTM layers & 3 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+In Table 4.1, “hidden size” defines the dimension of the hidden state in each LSTM cell. In the first experiment, both models adopt a simpler architecture, namely smaller hidden size and less LSTM layers. Both models trained 50 epochs. Early stopping mechanism was engaged to prevent the model from overfitting during the training process. The patience of early stopping was set at 5. This means if the validation loss doesn’t decrease in 5 epochs, the training process will be stopped.
+
+As shown in Fig 4.5, after 50 epochs of training, the overall validation accuracy of the LSTM-based model is slightly higher than that of the LSTM-Attention-based model, with both models requiring approximately six hours to complete training. The highest validation accuracy of LSTM model is 85.06\%, while the LSTM-Attention-based model reached a maximum accuracy of 84.82\%. The difference between the maximum accuracy of both models is 0.23\%. During the later stage of the training process (4-6 hours), LSTM-based model indicates higher sensitivity to training data and lower robustness. In contrast, LSTM-Attention-based model has fewer fluctuations and greater stability. 
+
+The performance difference between the LSTM-based model and the LSTM-attention-based model is relatively small in this experiment, with their validation accuracy curves following similar trajectories and ending at comparable values.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{chapters/images/lstm_comparison.pdf} 
+    \caption{Validation Accuracy of Both Models in the First Experiment}
+    \label{fig:example} 
+\end{figure}
+
+Due to the minimal difference on performance between two models, I conducted a second experiment with larger model parameters to potentially amplify any architecture advantages. Using larger model parameters, a better assessment of each architecture's ability to leverage increased capacity might be observed. The detailed parameter values of the second experiment is presented in Table 4.2. The hidden size of each hidden state has been increased to 128 and the number of LSTM layers has been increased to 5.
+
+\begin{table}[H]
+  \caption{Parameter Settings in the second experiment.}\label{tab:sample}
+  \centering
+  \begin{tabular}{l l}
+    \toprule
+      Parameter & Value \\
+    \midrule
+      window size & 50 \\
+      hidden size & 128 \\
+      learning rate & 0.0005 \\
+      number of LSTM layers & 5 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{chapters/images/lstm_comparison_128_5.pdf} 
+    \caption{Validation Accuracy of Both Models in the Second Experiment}
+    \label{fig:example} 
+\end{figure}
+
+The validation accuracy of both models during the training process is presented as Fig 4.6. The maximum number of epochs was set to 50. The early stopping mechanism was adopted to avoid overfitting. Compared with the first experiment, the validation accuracy of both models have increased significantly. The LSTM-Attention-based model achieved the highest accuracy of 87.53\% in a shorter training time compared to the LSTM-based model, which reached 86.75\%. This illustrates that the LSTM-Attention-based model has a higher learning efficiency, achieving a better performance within a shorter time. 
+
+However, the validation accuracies of both models showed one large fluctuation during the training phase, which might be caused by the selection of the random seed. The significant drop of both models during the training process was likely because of a challenging data batch or a local difficult region in the optimization process.To enhance the robustness of the model, I tried other random seeds and utilized hyperparameter tuning to select the best parameters, which will be illustrated in the next chapter.
+
+Based on a comprehensive analysis of both experiments, the LSTM-Attention-based model demonstrates better overall performance, which is due to its stronger learning capacity and superior performance with larger parameters.

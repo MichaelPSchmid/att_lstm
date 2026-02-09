@@ -1,0 +1,58 @@
+{
+  "model": {
+    "name": "M2_Small_Simple_Attention_Dropout",
+    "type": "simple_attention",
+    "parameters": 84866,
+    "flops": 4316864,
+    "flops_formatted": "4.317M",
+    "macs": 2158432,
+    "macs_formatted": "2",
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M2_Small_Simple_Attention_Dropout\\version_0\\checkpoints\\M2_Small_Simple_Attention_Dropout-epoch=06-val_loss=0.0020.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.0019805016927421093,
+    "rmse": 0.044502828270196915,
+    "mae": 0.03228303790092468,
+    "mape": 237506.71875,
+    "r2": 0.8340756893157959,
+    "accuracy": 80.07332130997106,
+    "accuracy_threshold": 0.05,
+    "num_samples": 220127
+  },
+  "inference": {
+    "mean_ms": 0.8125033006654121,
+    "std_ms": 0.10152523193915021,
+    "min_ms": 0.756800000090152,
+    "max_ms": 1.4358999906107783,
+    "p50_ms": 0.7642999989911914,
+    "p95_ms": 1.013824975234456,
+    "p99_ms": 1.151748979464173,
+    "device": "cpu",
+    "num_threads": 1,
+    "warmup_iterations": 100,
+    "num_samples": 1000
+  },
+  "flops": {
+    "flops": 4316864,
+    "flops_formatted": "4.317M",
+    "macs": 2158432,
+    "macs_formatted": "2",
+    "params_thop": 84866,
+    "params_formatted": "84.866K"
+  },
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m2\\M2_Small_Simple_Attention_Dropout_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m2\\M2_Small_Simple_Attention_Dropout_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m2\\M2_Small_Simple_Attention_Dropout_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m2\\M2_Small_Simple_Attention_Dropout_error_distribution.png",
+    "attention_npy": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m2\\M2_Small_Simple_Attention_Dropout_attention_weights.npy",
+    "attention_heatmap": "C:\\Users\\MSchm\\Documents\\att_project\\results\\dropout\\m2\\M2_Small_Simple_Attention_Dropout_attention_heatmap.png"
+  },
+  "predictions_csv": null,
+  "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m2_small_simple_attn_dropout.yaml"
+}

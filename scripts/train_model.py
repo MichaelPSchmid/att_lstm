@@ -4,6 +4,7 @@ Training script for LSTM-Attention models.
 Usage:
     python scripts/train_model.py --config config/model_configs/m1_small_baseline.yaml
     python scripts/train_model.py --config config/model_configs/m2_small_simple_attn.yaml
+    python scripts/train_model.py --config config/model_configs/m3_small_additive.yaml --save-attention
 """
 
 import argparse
@@ -19,9 +20,10 @@ import torch
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from config_loader import load_config, create_model_from_config, print_config
-from data_module import TimeSeriesDataModule
-from config import get_preprocessed_paths
+from config.loader import load_config, create_model_from_config, print_config
+from model.data_module import TimeSeriesDataModule
+from config.settings import get_preprocessed_paths
+from scripts.callbacks import AttentionSaveCallback
 
 
 def parse_args() -> argparse.Namespace:
@@ -52,6 +54,22 @@ def parse_args() -> argparse.Namespace:
         "--dry-run",
         action="store_true",
         help="Print config and exit without training"
+    )
+    parser.add_argument(
+        "--save-attention",
+        action="store_true",
+        help="Save attention weights (overrides config, enables saving)"
+    )
+    parser.add_argument(
+        "--no-save-attention",
+        action="store_true",
+        help="Disable attention weight saving (overrides config)"
+    )
+    parser.add_argument(
+        "--attention-dir",
+        type=str,
+        default=None,
+        help="Directory for attention weights (default: attention_weights/<model_name>)"
     )
 
     return parser.parse_args()
@@ -127,6 +145,29 @@ def main():
             filename=f"{model_name}" + "-{epoch:02d}-{val_loss:.4f}"
         )
         callbacks.append(checkpoint_callback)
+
+    # Attention saving (config or CLI flag)
+    attention_config = config.get("attention", {})
+    save_attention = attention_config.get("enabled", False)
+
+    # CLI flags override config
+    if args.save_attention:
+        save_attention = True
+    if args.no_save_attention:
+        save_attention = False
+
+    if save_attention:
+        attention_dir = args.attention_dir
+        if attention_dir is None:
+            base_dir = attention_config.get("output_dir", "attention_weights")
+            attention_dir = Path(base_dir) / model_name
+        attention_callback = AttentionSaveCallback(
+            output_dir=str(attention_dir),
+            save_per_epoch=attention_config.get("save_per_epoch", True),
+            save_csv=attention_config.get("save_csv", True),
+        )
+        callbacks.append(attention_callback)
+        print(f"Attention weights will be saved to: {attention_dir}")
 
     # Logger
     logger = TensorBoardLogger(
