@@ -531,7 +531,7 @@ def permutation_test(
     return {
         "observed_diff": float(observed_diff),
         "p_value": float(p_value),
-        "significant": p_value < 0.05,
+        "significant": bool(p_value < 0.05),
         "metric": metric
     }
 
