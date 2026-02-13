@@ -46,11 +46,11 @@
   - Alle 5 Skripte lesen `data_config.get("split_seed", 0)` und geben ihn an DataModule weiter
 
 ### Phase 2: Training (5 Seeds x 8 Modelle)
-- [ ] Seeds: [42, 94, 123, 7, 2024]
-- [ ] Daten-Split bleibt identisch (gleicher split_seed=0)
-- [ ] Nur Modellinitialisierung und Shuffling aendern sich pro Seed
-- [ ] Geschaetzte Dauer: ~70h (~3 Tage)
-- [ ] Checkpoints + Config pro Run speichern
+- [x] Seeds: [42, 94, 123, 7, 2024]
+- [x] Daten-Split bleibt identisch (gleicher split_seed=0)
+- [x] Nur Modellinitialisierung und Shuffling aendern sich pro Seed
+- [x] Geschaetzte Dauer: ~70h (~3 Tage)
+- [x] Checkpoints + Config pro Run speichern
 
 ### Phase 3: Evaluation anpassen
 - [x] **3a: Predictions speichern** (2026-02-09)
@@ -137,7 +137,12 @@ Phase 1 (DataModule) -> Phase 2 (Training) -> Phase 3 (Evaluation) -> Phase 4 (S
 
 ## Naechste Session
 - Phase 2: Training starten (5 Seeds x 8 Modelle)
-  - Seeds: [42, 94, 123, 7, 2024]
+  - Seeds: [42, 94, 123, 7, 231]
+    - [x] Seed 42
+    - [x] Seed 94
+    - [x] Seed 123
+    - [x] Seed 7
+    - [x] Seed 231
   - split_seed=0 bleibt fuer alle gleich (identischer Test-Split)
   - Geschaetzte Dauer: ~70h (~3 Tage)
   - Nach jedem Modell: `evaluate_model.py` (speichert Predictions + Seq-Metrics automatisch)

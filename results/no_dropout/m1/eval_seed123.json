@@ -7,7 +7,7 @@
     "flops_formatted": "4.480K",
     "macs": 2240,
     "macs_formatted": "2",
-    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M1_MLP_Last_seed123\\version_0\\checkpoints\\M1_MLP_Last_seed123-epoch=04-val_loss=0.0035.ckpt"
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M1_MLP_Last_seed123\\version_0\\checkpoints\\M1_MLP_Last_seed123-epoch=18-val_loss=0.0034.ckpt"
   },
   "data": {
     "variant": "paper",
@@ -15,26 +15,38 @@
     "window_size": 50
   },
   "metrics": {
-    "mse": 0.003496874123811722,
-    "rmse": 0.05913437345412329,
-    "mae": 0.04223082959651947,
-    "mape": 265667.375,
-    "r2": 0.7070355415344238,
-    "accuracy": 70.01685390706274,
+    "mse": 0.0035027237609028816,
+    "rmse": 0.05918381333525985,
+    "mae": 0.0421479195356369,
+    "mape": 228773.53125,
+    "r2": 0.69163578748703,
+    "accuracy": 70.27085678633917,
     "accuracy_threshold": 0.05,
-    "num_samples": 220127
+    "num_samples": 221187
+  },
+  "sequence_metrics": {
+    "n_sequences": 500,
+    "mae_mean": 0.043449131809175014,
+    "mae_std": 0.019030270695014728,
+    "mae_median": 0.038855595514178276,
+    "rmse_mean": 0.0559855561889708,
+    "rmse_std": 0.02444560394578834,
+    "rmse_median": 0.05034594424068928,
+    "accuracy_mean": 69.12197344098068,
+    "accuracy_std": 16.893086019854024,
+    "accuracy_median": 71.33763868190098
   },
   "inference": {
-    "mean_ms": 0.06095362021587789,
-    "std_ms": 0.01633697320505297,
-    "min_ms": 0.05670002428814769,
-    "max_ms": 0.6562000489793718,
-    "p50_ms": 0.05829998990520835,
-    "p50_std_ms": 0.00017887378573508563,
-    "p95_ms": 0.06988698558416218,
-    "p95_std_ms": 0.009648362164172862,
-    "p99_ms": 0.10882100148592137,
-    "p99_std_ms": 0.018463099270458774,
+    "mean_ms": 0.05923207998275757,
+    "std_ms": 0.006032874491083208,
+    "min_ms": 0.05649999366141856,
+    "max_ms": 0.16649998724460602,
+    "p50_ms": 0.057640002341941,
+    "p50_std_ms": 4.899016788813169e-05,
+    "p95_ms": 0.06919500825461,
+    "p95_std_ms": 0.005994810958857071,
+    "p99_ms": 0.08614360966021195,
+    "p99_std_ms": 0.0031227982213775734,
     "device": "cpu",
     "num_threads": 1,
     "warmup_iterations": 100,
@@ -56,6 +68,6 @@
     "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m1\\seed_123\\M1_MLP_Last_timeline.png",
     "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m1\\seed_123\\M1_MLP_Last_error_distribution.png"
   },
-  "predictions_csv": null,
+  "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M1_MLP_Last\\seed_42\\M1_MLP_Last_predictions.csv",
   "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m1_mlp_last.yaml"
 }

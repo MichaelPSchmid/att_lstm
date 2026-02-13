@@ -7,7 +7,7 @@
     "flops_formatted": "4.317M",
     "macs": 2158432,
     "macs_formatted": "2",
-    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M4_Small_Simple_Attention_seed42\\version_0\\checkpoints\\M4_Small_Simple_Attention-epoch=11-val_loss=0.0018.ckpt"
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M4_Small_Simple_Attention_seed42\\version_0\\checkpoints\\M4_Small_Simple_Attention_seed42-epoch=08-val_loss=0.0019.ckpt"
   },
   "data": {
     "variant": "paper",
@@ -15,26 +15,38 @@
     "window_size": 50
   },
   "metrics": {
-    "mse": 0.001744811306707561,
-    "rmse": 0.0417709385423354,
-    "mae": 0.030603183433413506,
-    "mape": 203780.0,
-    "r2": 0.8538215160369873,
-    "accuracy": 81.90680834245686,
+    "mse": 0.001947927288711071,
+    "rmse": 0.04413532925798867,
+    "mae": 0.03191304951906204,
+    "mape": 256814.234375,
+    "r2": 0.8285131454467773,
+    "accuracy": 80.55175032890722,
     "accuracy_threshold": 0.05,
-    "num_samples": 220127
+    "num_samples": 221187
+  },
+  "sequence_metrics": {
+    "n_sequences": 500,
+    "mae_mean": 0.03267630236968398,
+    "mae_std": 0.011739538667773783,
+    "mae_median": 0.030226060189306736,
+    "rmse_mean": 0.042372726060450075,
+    "rmse_std": 0.01570586972961355,
+    "rmse_median": 0.03931103274226189,
+    "accuracy_mean": 79.64534455439804,
+    "accuracy_std": 13.023541301503125,
+    "accuracy_median": 81.99378881987577
   },
   "inference": {
-    "mean_ms": 0.767186660610605,
-    "std_ms": 0.043441104291611625,
-    "min_ms": 0.749099999666214,
-    "max_ms": 1.615300017874688,
-    "p50_ms": 0.7565399981103837,
-    "p50_std_ms": 0.0004454245406827879,
-    "p95_ms": 0.8332830009749159,
-    "p95_std_ms": 0.06650224578211579,
-    "p99_ms": 0.938515198067762,
-    "p99_std_ms": 0.12429520452434882,
+    "mean_ms": 0.7593329801515211,
+    "std_ms": 0.03973295548350682,
+    "min_ms": 0.746300007449463,
+    "max_ms": 1.3281999854370952,
+    "p50_ms": 0.7516199955716729,
+    "p50_std_ms": 0.000495584006558416,
+    "p95_ms": 0.7874650004669093,
+    "p95_std_ms": 0.008805579506218767,
+    "p99_ms": 0.9631083935964853,
+    "p99_std_ms": 0.12862161097991473,
     "device": "cpu",
     "num_threads": 1,
     "warmup_iterations": 100,
@@ -58,6 +70,6 @@
     "attention_npy": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m4\\seed_42\\M4_Small_Simple_Attention_attention_weights.npy",
     "attention_heatmap": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m4\\seed_42\\M4_Small_Simple_Attention_attention_heatmap.png"
   },
-  "predictions_csv": null,
+  "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M4_Small_Simple_Attention\\seed_42\\M4_Small_Simple_Attention_predictions.csv",
   "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m4_small_simple_attn.yaml"
 }

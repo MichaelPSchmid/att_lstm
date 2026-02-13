@@ -1,0 +1,73 @@
+{
+  "model": {
+    "name": "M2_MLP_Flat",
+    "type": "mlp_flat",
+    "parameters": 40449,
+    "flops": 40256,
+    "flops_formatted": "40.256K",
+    "macs": 20128,
+    "macs_formatted": "2",
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M2_MLP_Flat_seed7\\version_0\\checkpoints\\M2_MLP_Flat_seed7-epoch=07-val_loss=0.0026.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.0026343693025410175,
+    "rmse": 0.05132610741660639,
+    "mae": 0.03737074136734009,
+    "mape": 387611.8125,
+    "r2": 0.7680818438529968,
+    "accuracy": 74.39949002427811,
+    "accuracy_threshold": 0.05,
+    "num_samples": 221187
+  },
+  "sequence_metrics": {
+    "n_sequences": 500,
+    "mae_mean": 0.03842865745350719,
+    "mae_std": 0.015781817078320926,
+    "mae_median": 0.03478168323636055,
+    "rmse_mean": 0.04933538368344307,
+    "rmse_std": 0.020444970835626318,
+    "rmse_median": 0.04351712204515934,
+    "accuracy_mean": 73.52188733000102,
+    "accuracy_std": 14.793178070431361,
+    "accuracy_median": 75.99514306831381
+  },
+  "inference": {
+    "mean_ms": 0.05504395993775688,
+    "std_ms": 0.005623840228789529,
+    "min_ms": 0.05199998850002885,
+    "max_ms": 0.1432000135537237,
+    "p50_ms": 0.05362000083550811,
+    "p50_std_ms": 9.798033577626338e-05,
+    "p95_ms": 0.06400799873517822,
+    "p95_std_ms": 0.0035790587217426903,
+    "p99_ms": 0.08142700290773064,
+    "p99_std_ms": 0.0025135684758199016,
+    "device": "cpu",
+    "num_threads": 1,
+    "warmup_iterations": 100,
+    "num_samples": 1000,
+    "num_runs": 5,
+    "total_samples": 5000
+  },
+  "flops": {
+    "flops": 40256,
+    "flops_formatted": "40.256K",
+    "macs": 20128,
+    "macs_formatted": "2",
+    "params_thop": 40449,
+    "params_formatted": "40.449K"
+  },
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_7\\M2_MLP_Flat_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_7\\M2_MLP_Flat_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_7\\M2_MLP_Flat_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_7\\M2_MLP_Flat_error_distribution.png"
+  },
+  "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M2_MLP_Flat\\seed_42\\M2_MLP_Flat_predictions.csv",
+  "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m2_mlp_flat.yaml"
+}
