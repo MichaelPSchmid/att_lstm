@@ -5,6 +5,7 @@ nul
 *.ckpt
 logs/
 lightning_logs/
+lightning_logs_backup*/
 
 # Datasets and large files
 data/
