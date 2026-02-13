@@ -7,7 +7,7 @@
     "flops_formatted": "30.131M",
     "macs": 15065664,
     "macs_formatted": "1",
-    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M8_Medium_Scaled_DP_Attention_seed42\\version_1\\checkpoints\\M8_Medium_Scaled_DP_Attention-epoch=42-val_loss=0.0012.ckpt"
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M8_Medium_Scaled_DP_Attention_seed7\\version_0\\checkpoints\\M8_Medium_Scaled_DP_Attention_seed7-epoch=05-val_loss=0.0020.ckpt"
   },
   "data": {
     "variant": "paper",
@@ -15,125 +15,143 @@
     "window_size": 50
   },
   "seeds": [
+    7,
     42,
     94,
-    123
+    123,
+    231
   ],
-  "num_seeds": 3,
+  "num_seeds": 5,
   "metrics": {
     "mse": {
-      "mean": 0.0010901745020722349,
-      "std": 8.949278104475355e-05,
+      "mean": 0.0019836550345644355,
+      "std": 2.4105116685214805e-05,
       "values": [
-        0.0010018685134127736,
-        0.0012128448579460382,
-        0.001055810134857893
+        0.0019753938540816307,
+        0.0019475911976769567,
+        0.002004981739446521,
+        0.0020153673831373453,
+        0.001974940998479724
       ]
     },
     "rmse": {
-      "mean": 0.032990486985551105,
-      "std": 0.0013424866958067216,
+      "mean": 0.04453741974208235,
+      "std": 0.0002706977687547275,
       "values": [
-        0.0316523066049344,
-        0.034825922212427314,
-        0.03249323213929161
+        0.04444540307030223,
+        0.04413152158805491,
+        0.04477702244953902,
+        0.04489284333986148,
+        0.04444030826265412
       ]
     },
     "mae": {
-      "mean": 0.024919606124361355,
-      "std": 0.0009172516159114229,
+      "mean": 0.032217732071876524,
+      "std": 0.00018015786190674085,
       "values": [
-        0.023971721529960632,
-        0.0261604655534029,
-        0.024626631289720535
+        0.032065801322460175,
+        0.032126184552907944,
+        0.032504912465810776,
+        0.03234981745481491,
+        0.032041944563388824
       ]
     },
     "mape": {
-      "mean": 185897.72395833334,
-      "std": 3314.7648630611766,
+      "mean": 308608.7375,
+      "std": 25552.39277757779,
       "values": [
-        187467.71875,
-        188938.015625,
-        181287.4375
+        273364.65625,
+        291310.1875,
+        321059.8125,
+        309102.75,
+        348206.28125
       ]
     },
     "r2": {
-      "mean": 0.9086663325627645,
-      "std": 0.007497595580772502,
+      "mean": 0.8253678321838379,
+      "std": 0.0021220933529565084,
       "values": [
-        0.9160645008087158,
-        0.8983891606330872,
-        0.9115453362464905
+        0.8260951042175293,
+        0.8285427093505859,
+        0.8234903216362,
+        0.8225760459899902,
+        0.826134979724884
       ]
     },
     "accuracy": {
-      "mean": 88.62474844067287,
-      "std": 1.1014527745300464,
+      "mean": 80.17243328043692,
+      "std": 0.20377602702516276,
       "values": [
-        89.80134195260008,
-        87.15241655953155,
-        88.92048680988702
+        80.32117619932455,
+        80.16429536998105,
+        79.8423958008382,
+        80.09602734337913,
+        80.43827168866163
       ]
     },
     "accuracy_threshold": {
-      "mean": 0.05000000000000001,
-      "std": 6.938893903907228e-18,
+      "mean": 0.05,
+      "std": 0.0,
       "values": [
+        0.05,
+        0.05,
         0.05,
         0.05,
         0.05
       ]
     },
     "num_samples": {
-      "mean": 220127.0,
+      "mean": 221187.0,
       "std": 0.0,
       "values": [
-        220127,
-        220127,
-        220127
+        221187,
+        221187,
+        221187,
+        221187,
+        221187
       ]
     }
   },
   "inference": {
     "mean_ms": {
-      "mean": 2.6538469470300092,
-      "std": 0.006255622903252432
+      "mean": 2.7301892440067603,
+      "std": 0.06532642491458704
     },
     "std_ms": {
-      "mean": 0.09400395600563018,
-      "std": 0.0022166632119419365
+      "mean": 0.2287180245266601,
+      "std": 0.09560256351303309
     },
     "min_ms": {
-      "mean": 2.597566674618671,
-      "std": 0.0052449043801840595
+      "mean": 2.583180001238361,
+      "std": 0.002197630160470673
     },
     "max_ms": {
-      "mean": 4.16819997675096,
-      "std": 0.29409430114596
+      "mean": 5.027259996859357,
+      "std": 1.164631689604332
     },
     "p50_ms": {
-      "mean": 2.626453338113303,
-      "std": 0.006199664319024194
+      "mean": 2.6456000027246773,
+      "std": 0.0252183004740713
     },
     "p50_std_ms": {
-      "mean": 0.0028781693391522842,
-      "std": 0.0007131196586119019
+      "mean": 0.016637325593747268,
+      "std": 0.019025619583607295
     },
     "p95_ms": {
-      "mean": 2.778538322309032,
-      "std": 0.008800515323885585
+      "mean": 3.240269204310607,
+      "std": 0.2821723101901519
     },
     "p95_std_ms": {
-      "mean": 0.027871908615822477,
-      "std": 0.006815130609066606
+      "mean": 0.11204179602877495,
+      "std": 0.08281563095994363
     },
     "p99_ms": {
-      "mean": 3.024902800641333,
-      "std": 0.021178109120680976
+      "mean": 3.611870559153613,
+      "std": 0.37918078003136835
     },
     "p99_std_ms": {
-      "mean": 0.12466364365862902,
-      "std": 0.03962577424498245
+      "mean": 0.11829068599892271,
+      "std": 0.0911545428768708
     },
     "device": "cpu",
     "num_threads": {
@@ -158,6 +176,81 @@
     }
   },
   "per_seed": {
+    "7": {
+      "model": {
+        "name": "M8_Medium_Scaled_DP_Attention",
+        "type": "scaled_dp_attention",
+        "parameters": 597633,
+        "flops": 30131328,
+        "flops_formatted": "30.131M",
+        "macs": 15065664,
+        "macs_formatted": "1",
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M8_Medium_Scaled_DP_Attention_seed7\\version_0\\checkpoints\\M8_Medium_Scaled_DP_Attention_seed7-epoch=05-val_loss=0.0020.ckpt"
+      },
+      "data": {
+        "variant": "paper",
+        "vehicle": "HYUNDAI_SONATA_2020",
+        "window_size": 50
+      },
+      "metrics": {
+        "mse": 0.0019753938540816307,
+        "rmse": 0.04444540307030223,
+        "mae": 0.032065801322460175,
+        "mape": 273364.65625,
+        "r2": 0.8260951042175293,
+        "accuracy": 80.32117619932455,
+        "accuracy_threshold": 0.05,
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.0329449584428221,
+        "mae_std": 0.012176528019579351,
+        "mae_median": 0.030771296471357346,
+        "rmse_mean": 0.04277466231584549,
+        "rmse_std": 0.01623177104487737,
+        "rmse_median": 0.039710601791739464,
+        "accuracy_mean": 79.34465358582342,
+        "accuracy_std": 13.144350209301717,
+        "accuracy_median": 81.1184674844564
+      },
+      "inference": {
+        "mean_ms": 2.6249791600042953,
+        "std_ms": 0.06687721365396807,
+        "min_ms": 2.5836999993771315,
+        "max_ms": 3.4613999887369573,
+        "p50_ms": 2.603320009075105,
+        "p50_std_ms": 0.0020417117102314183,
+        "p95_ms": 2.725209005002398,
+        "p95_std_ms": 0.015508369120007618,
+        "p99_ms": 2.882831999915652,
+        "p99_std_ms": 0.08631241294963725,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000,
+        "num_runs": 5,
+        "total_samples": 5000
+      },
+      "flops": {
+        "flops": 30131328,
+        "flops_formatted": "30.131M",
+        "macs": 15065664,
+        "macs_formatted": "1",
+        "params_thop": 597633,
+        "params_formatted": "597.633K"
+      },
+      "plots": {
+        "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_7\\M8_Medium_Scaled_DP_Attention_scatter.png",
+        "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_7\\M8_Medium_Scaled_DP_Attention_residuals.png",
+        "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_7\\M8_Medium_Scaled_DP_Attention_timeline.png",
+        "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_7\\M8_Medium_Scaled_DP_Attention_error_distribution.png",
+        "attention_npy": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_7\\M8_Medium_Scaled_DP_Attention_attention_weights.npy",
+        "attention_heatmap": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_7\\M8_Medium_Scaled_DP_Attention_attention_heatmap.png"
+      },
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M8_Medium_Scaled_DP_Attention\\seed_42\\M8_Medium_Scaled_DP_Attention_predictions.csv",
+      "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m8_medium_scaled_dp_attn.yaml"
+    },
     "42": {
       "model": {
         "name": "M8_Medium_Scaled_DP_Attention",
@@ -167,7 +260,7 @@
         "flops_formatted": "30.131M",
         "macs": 15065664,
         "macs_formatted": "1",
-        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M8_Medium_Scaled_DP_Attention_seed42\\version_1\\checkpoints\\M8_Medium_Scaled_DP_Attention-epoch=42-val_loss=0.0012.ckpt"
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M8_Medium_Scaled_DP_Attention_seed42\\version_0\\checkpoints\\M8_Medium_Scaled_DP_Attention_seed42-epoch=02-val_loss=0.0020.ckpt"
       },
       "data": {
         "variant": "paper",
@@ -175,26 +268,38 @@
         "window_size": 50
       },
       "metrics": {
-        "mse": 0.0010018685134127736,
-        "rmse": 0.0316523066049344,
-        "mae": 0.023971721529960632,
-        "mape": 187467.71875,
-        "r2": 0.9160645008087158,
-        "accuracy": 89.80134195260008,
+        "mse": 0.0019475911976769567,
+        "rmse": 0.04413152158805491,
+        "mae": 0.032126184552907944,
+        "mape": 291310.1875,
+        "r2": 0.8285427093505859,
+        "accuracy": 80.16429536998105,
         "accuracy_threshold": 0.05,
-        "num_samples": 220127
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.032959877006709576,
+        "mae_std": 0.01190040549420896,
+        "mae_median": 0.030278186313807964,
+        "rmse_mean": 0.04252506095916033,
+        "rmse_std": 0.01566205881837107,
+        "rmse_median": 0.03918359987437725,
+        "accuracy_mean": 79.2244798795332,
+        "accuracy_std": 13.141456457145733,
+        "accuracy_median": 81.42466822794691
       },
       "inference": {
-        "mean_ms": 2.654158160218503,
-        "std_ms": 0.09697778820721352,
-        "min_ms": 2.6005000108852983,
-        "max_ms": 4.019099986180663,
-        "p50_ms": 2.625850006006658,
-        "p50_std_ms": 0.0035209407928399853,
-        "p95_ms": 2.780585985747166,
-        "p95_std_ms": 0.029275570507868734,
-        "p99_ms": 3.017430182546377,
-        "p99_std_ms": 0.14379747129601347,
+        "mean_ms": 2.8308660998940467,
+        "std_ms": 0.3669039902031975,
+        "min_ms": 2.581100008683279,
+        "max_ms": 7.024899998214096,
+        "p50_ms": 2.680380007950589,
+        "p50_std_ms": 0.0539968626169988,
+        "p95_ms": 3.585755007225088,
+        "p95_std_ms": 0.25034977887042714,
+        "p99_ms": 3.9961504007223994,
+        "p99_std_ms": 0.29828899952473964,
         "device": "cpu",
         "num_threads": 1,
         "warmup_iterations": 100,
@@ -218,7 +323,7 @@
         "attention_npy": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_42\\M8_Medium_Scaled_DP_Attention_attention_weights.npy",
         "attention_heatmap": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_42\\M8_Medium_Scaled_DP_Attention_attention_heatmap.png"
       },
-      "predictions_csv": null,
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M8_Medium_Scaled_DP_Attention\\seed_42\\M8_Medium_Scaled_DP_Attention_predictions.csv",
       "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m8_medium_scaled_dp_attn.yaml"
     },
     "94": {
@@ -230,7 +335,7 @@
         "flops_formatted": "30.131M",
         "macs": 15065664,
         "macs_formatted": "1",
-        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M8_Medium_Scaled_DP_Attention_seed94\\version_0\\checkpoints\\M8_Medium_Scaled_DP_Attention_seed94-epoch=20-val_loss=0.0013.ckpt"
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M8_Medium_Scaled_DP_Attention_seed94\\version_0\\checkpoints\\M8_Medium_Scaled_DP_Attention_seed94-epoch=03-val_loss=0.0020.ckpt"
       },
       "data": {
         "variant": "paper",
@@ -238,26 +343,38 @@
         "window_size": 50
       },
       "metrics": {
-        "mse": 0.0012128448579460382,
-        "rmse": 0.034825922212427314,
-        "mae": 0.0261604655534029,
-        "mape": 188938.015625,
-        "r2": 0.8983891606330872,
-        "accuracy": 87.15241655953155,
+        "mse": 0.002004981739446521,
+        "rmse": 0.04477702244953902,
+        "mae": 0.032504912465810776,
+        "mape": 321059.8125,
+        "r2": 0.8234903216362,
+        "accuracy": 79.8423958008382,
         "accuracy_threshold": 0.05,
-        "num_samples": 220127
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.03317493657954037,
+        "mae_std": 0.012052438841822923,
+        "mae_median": 0.030607431195676327,
+        "rmse_mean": 0.042856850937008854,
+        "rmse_std": 0.015891867751796976,
+        "rmse_median": 0.03965497575700283,
+        "accuracy_mean": 79.01303648445712,
+        "accuracy_std": 13.37439252501693,
+        "accuracy_median": 81.30853033514907
       },
       "inference": {
-        "mean_ms": 2.6613481404609045,
-        "std_ms": 0.09337589683144772,
-        "min_ms": 2.6020000223070383,
-        "max_ms": 3.9064999436959624,
-        "p50_ms": 2.634330012369901,
-        "p50_std_ms": 0.003229794098847301,
-        "p95_ms": 2.7881459961645305,
-        "p95_std_ms": 0.03542788051302391,
-        "p99_ms": 3.053756602457724,
-        "p99_std_ms": 0.16071169949605535,
+        "mean_ms": 2.7245397001330276,
+        "std_ms": 0.24602612407827476,
+        "min_ms": 2.586599992355332,
+        "max_ms": 4.923700005747378,
+        "p50_ms": 2.6377999980468303,
+        "p50_std_ms": 0.012462068436813252,
+        "p95_ms": 3.31134499690961,
+        "p95_std_ms": 0.15529576963606084,
+        "p99_ms": 3.735012399032712,
+        "p99_std_ms": 0.09195368005780608,
         "device": "cpu",
         "num_threads": 1,
         "warmup_iterations": 100,
@@ -281,7 +398,7 @@
         "attention_npy": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_94\\M8_Medium_Scaled_DP_Attention_attention_weights.npy",
         "attention_heatmap": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_94\\M8_Medium_Scaled_DP_Attention_attention_heatmap.png"
       },
-      "predictions_csv": null,
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M8_Medium_Scaled_DP_Attention\\seed_42\\M8_Medium_Scaled_DP_Attention_predictions.csv",
       "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m8_medium_scaled_dp_attn.yaml"
     },
     "123": {
@@ -293,7 +410,7 @@
         "flops_formatted": "30.131M",
         "macs": 15065664,
         "macs_formatted": "1",
-        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M8_Medium_Scaled_DP_Attention_seed123\\version_1\\checkpoints\\M8_Medium_Scaled_DP_Attention_seed123-epoch=32-val_loss=0.0012.ckpt"
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M8_Medium_Scaled_DP_Attention_seed123\\version_0\\checkpoints\\M8_Medium_Scaled_DP_Attention_seed123-epoch=04-val_loss=0.0020.ckpt"
       },
       "data": {
         "variant": "paper",
@@ -301,26 +418,38 @@
         "window_size": 50
       },
       "metrics": {
-        "mse": 0.001055810134857893,
-        "rmse": 0.03249323213929161,
-        "mae": 0.024626631289720535,
-        "mape": 181287.4375,
-        "r2": 0.9115453362464905,
-        "accuracy": 88.92048680988702,
+        "mse": 0.0020153673831373453,
+        "rmse": 0.04489284333986148,
+        "mae": 0.03234981745481491,
+        "mape": 309102.75,
+        "r2": 0.8225760459899902,
+        "accuracy": 80.09602734337913,
         "accuracy_threshold": 0.05,
-        "num_samples": 220127
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.0331050852779299,
+        "mae_std": 0.012205354102528695,
+        "mae_median": 0.030654761008918285,
+        "rmse_mean": 0.04296299617737532,
+        "rmse_std": 0.016265849161557648,
+        "rmse_median": 0.03964502736926079,
+        "accuracy_mean": 79.1831407071313,
+        "accuracy_std": 13.145779997664189,
+        "accuracy_median": 81.24039048200123
       },
       "inference": {
-        "mean_ms": 2.646034540410619,
-        "std_ms": 0.09165818297822931,
-        "min_ms": 2.5901999906636775,
-        "max_ms": 4.579000000376254,
-        "p50_ms": 2.61917999596335,
-        "p50_std_ms": 0.0018837731257695662,
-        "p95_ms": 2.7668829850153998,
-        "p95_std_ms": 0.01891227482657478,
-        "p99_ms": 3.0035216169198975,
-        "p99_std_ms": 0.0694817601838182,
+        "mean_ms": 2.740228159929393,
+        "std_ms": 0.23866379268599996,
+        "min_ms": 2.580500004114583,
+        "max_ms": 5.233800009591505,
+        "p50_ms": 2.6547799992840737,
+        "p50_std_ms": 0.005008251970529683,
+        "p95_ms": 3.3316840045154095,
+        "p95_std_ms": 0.08291617154232471,
+        "p99_ms": 3.723443604016211,
+        "p99_std_ms": 0.061105142424198344,
         "device": "cpu",
         "num_threads": 1,
         "warmup_iterations": 100,
@@ -344,7 +473,82 @@
         "attention_npy": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_123\\M8_Medium_Scaled_DP_Attention_attention_weights.npy",
         "attention_heatmap": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_123\\M8_Medium_Scaled_DP_Attention_attention_heatmap.png"
       },
-      "predictions_csv": null,
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M8_Medium_Scaled_DP_Attention\\seed_42\\M8_Medium_Scaled_DP_Attention_predictions.csv",
+      "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m8_medium_scaled_dp_attn.yaml"
+    },
+    "231": {
+      "model": {
+        "name": "M8_Medium_Scaled_DP_Attention",
+        "type": "scaled_dp_attention",
+        "parameters": 597633,
+        "flops": 30131328,
+        "flops_formatted": "30.131M",
+        "macs": 15065664,
+        "macs_formatted": "1",
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M8_Medium_Scaled_DP_Attention_seed231\\version_0\\checkpoints\\M8_Medium_Scaled_DP_Attention_seed231-epoch=04-val_loss=0.0020.ckpt"
+      },
+      "data": {
+        "variant": "paper",
+        "vehicle": "HYUNDAI_SONATA_2020",
+        "window_size": 50
+      },
+      "metrics": {
+        "mse": 0.001974940998479724,
+        "rmse": 0.04444030826265412,
+        "mae": 0.032041944563388824,
+        "mape": 348206.28125,
+        "r2": 0.826134979724884,
+        "accuracy": 80.43827168866163,
+        "accuracy_threshold": 0.05,
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.03284919350966811,
+        "mae_std": 0.01196892124489913,
+        "mae_median": 0.03053691890090704,
+        "rmse_mean": 0.04258882649242878,
+        "rmse_std": 0.016254988979893043,
+        "rmse_median": 0.03936200588941574,
+        "accuracy_mean": 79.52398572685844,
+        "accuracy_std": 12.76368228234032,
+        "accuracy_median": 81.12419404136406
+      },
+      "inference": {
+        "mean_ms": 2.7303331000730395,
+        "std_ms": 0.22511900201186025,
+        "min_ms": 2.5840000016614795,
+        "max_ms": 4.492499982006848,
+        "p50_ms": 2.6517199992667884,
+        "p50_std_ms": 0.009677733234163191,
+        "p95_ms": 3.2473530079005286,
+        "p95_std_ms": 0.05613889097505439,
+        "p99_ms": 3.7219143920810893,
+        "p99_std_ms": 0.05379319503823231,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000,
+        "num_runs": 5,
+        "total_samples": 5000
+      },
+      "flops": {
+        "flops": 30131328,
+        "flops_formatted": "30.131M",
+        "macs": 15065664,
+        "macs_formatted": "1",
+        "params_thop": 597633,
+        "params_formatted": "597.633K"
+      },
+      "plots": {
+        "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_231\\M8_Medium_Scaled_DP_Attention_scatter.png",
+        "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_231\\M8_Medium_Scaled_DP_Attention_residuals.png",
+        "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_231\\M8_Medium_Scaled_DP_Attention_timeline.png",
+        "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_231\\M8_Medium_Scaled_DP_Attention_error_distribution.png",
+        "attention_npy": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_231\\M8_Medium_Scaled_DP_Attention_attention_weights.npy",
+        "attention_heatmap": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m8\\seed_231\\M8_Medium_Scaled_DP_Attention_attention_heatmap.png"
+      },
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M8_Medium_Scaled_DP_Attention\\seed_42\\M8_Medium_Scaled_DP_Attention_predictions.csv",
       "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m8_medium_scaled_dp_attn.yaml"
     }
   }

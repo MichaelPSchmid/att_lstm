@@ -537,7 +537,9 @@ def _load_model_and_data(config_path: str, log_dir: str):
     data_module = TimeSeriesDataModule(
         feature_path=str(paths["features"]),
         target_path=str(paths["targets"]),
-        batch_size=256
+        sequence_ids_path=str(paths["sequence_ids"]),
+        batch_size=256,
+        split_seed=data_config.get("split_seed", 0),
     )
     data_module.setup()
 
@@ -777,7 +779,9 @@ def fig_prediction_timeseries(output_dir: Path) -> List[Path]:
         data_module = TimeSeriesDataModule(
             feature_path=str(paths["features"]),
             target_path=str(paths["targets"]),
-            batch_size=512
+            sequence_ids_path=str(paths["sequence_ids"]),
+            batch_size=512,
+            split_seed=data_config.get("split_seed", 0),
         )
         data_module.setup()
 

@@ -7,7 +7,7 @@
     "flops_formatted": "30.131M",
     "macs": 15065664,
     "macs_formatted": "1",
-    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed42\\version_0\\checkpoints\\M5_Medium_Baseline-epoch=34-val_loss=0.0013.ckpt"
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed7\\version_0\\checkpoints\\M5_Medium_Baseline_seed7-epoch=03-val_loss=0.0020.ckpt"
   },
   "data": {
     "variant": "paper",
@@ -15,125 +15,143 @@
     "window_size": 50
   },
   "seeds": [
+    7,
     42,
     94,
-    123
+    123,
+    231
   ],
-  "num_seeds": 3,
+  "num_seeds": 5,
   "metrics": {
     "mse": {
-      "mean": 0.0011196991351122658,
-      "std": 4.4232374467840884e-05,
+      "mean": 0.0019553941674530506,
+      "std": 3.106409095721562e-05,
       "values": [
-        0.0011393034365028143,
-        0.0010584527626633644,
-        0.0011613412061706185
+        0.001925963326357305,
+        0.0019517852924764156,
+        0.001966521143913269,
+        0.001924031530506909,
+        0.0020086695440113544
       ]
     },
     "rmse": {
-      "mean": 0.03345529895857589,
-      "std": 0.0006649110501238174,
+      "mean": 0.044218450949490534,
+      "std": 0.00035037562779120416,
       "values": [
-        0.03375356924093827,
-        0.03253387100643519,
-        0.0340784566283542
+        0.04388579868656038,
+        0.04417901416370012,
+        0.04434547489782096,
+        0.04386378381429159,
+        0.04481818318507963
       ]
     },
     "mae": {
-      "mean": 0.025251540665825207,
-      "std": 0.00047090267649185433,
+      "mean": 0.03187120482325554,
+      "std": 0.00022709664317952704,
       "values": [
-        0.025476418435573578,
-        0.024596242234110832,
-        0.025681961327791214
+        0.03172018378973007,
+        0.03163667395710945,
+        0.031878214329481125,
+        0.031827714294195175,
+        0.03229323774576187
       ]
     },
     "mape": {
-      "mean": 152129.79166666666,
-      "std": 3004.4446040216785,
+      "mean": 265600.20625,
+      "std": 18187.876299260104,
       "values": [
-        151006.0,
-        156240.328125,
-        149143.046875
+        278505.40625,
+        236789.15625,
+        265413.34375,
+        289892.34375,
+        257400.78125
       ]
     },
     "r2": {
-      "mean": 0.9061927994092306,
-      "std": 0.003705748731569176,
+      "mean": 0.8278558015823364,
+      "std": 0.002734755822828189,
       "values": [
-        0.9045503735542297,
-        0.9113239645957947,
-        0.9027040600776672
+        0.8304467797279358,
+        0.8281735181808472,
+        0.8268762230873108,
+        0.83061683177948,
+        0.8231656551361084
       ]
     },
     "accuracy": {
-      "mean": 88.15017391475527,
-      "std": 0.650660050348172,
+      "mean": 80.54623463404269,
+      "std": 0.29704307639494226,
       "values": [
-        87.84292703757376,
-        89.05495463982156,
-        87.5526400668705
+        80.69642429256693,
+        80.89941994782696,
+        80.54361241845136,
+        80.5861103952764,
+        80.00560611609181
       ]
     },
     "accuracy_threshold": {
-      "mean": 0.05000000000000001,
-      "std": 6.938893903907228e-18,
+      "mean": 0.05,
+      "std": 0.0,
       "values": [
+        0.05,
+        0.05,
         0.05,
         0.05,
         0.05
       ]
     },
     "num_samples": {
-      "mean": 220127.0,
+      "mean": 221187.0,
       "std": 0.0,
       "values": [
-        220127,
-        220127,
-        220127
+        221187,
+        221187,
+        221187,
+        221187,
+        221187
       ]
     }
   },
   "inference": {
     "mean_ms": {
-      "mean": 2.543774893375424,
-      "std": 0.02179450108330177
+      "mean": 2.5266557761072184,
+      "std": 0.0031374011458189612
     },
     "std_ms": {
-      "mean": 0.08826267590876909,
-      "std": 0.013675462873899842
+      "mean": 0.06385244402852895,
+      "std": 0.007543319725767258
     },
     "min_ms": {
-      "mean": 2.490233319501082,
-      "std": 0.009787853622842508
+      "mean": 2.4810400034766644,
+      "std": 0.0036114227031777022
     },
     "max_ms": {
-      "mean": 3.988533338997513,
-      "std": 0.2905066174293952
+      "mean": 3.5560599993914366,
+      "std": 0.11244780920145327
     },
     "p50_ms": {
-      "mean": 2.5176766697162143,
-      "std": 0.020080444659234635
+      "mean": 2.507075999164954,
+      "std": 0.00418084018727441
     },
     "p50_std_ms": {
-      "mean": 0.005874428072981716,
-      "std": 0.0011747110528809047
+      "mean": 0.00520744097127496,
+      "std": 0.0008671582818536898
     },
     "p95_ms": {
-      "mean": 2.6556979992892593,
-      "std": 0.027682709690972425
+      "mean": 2.623032800562214,
+      "std": 0.008332580990212491
     },
     "p95_std_ms": {
-      "mean": 0.029390668577273765,
-      "std": 0.0069690835833549816
+      "mean": 0.021131377583484757,
+      "std": 0.010249331588486163
     },
     "p99_ms": {
-      "mean": 2.8818585979364193,
-      "std": 0.07050571309647195
+      "mean": 2.7757238406105897,
+      "std": 0.036513851272669214
     },
     "p99_std_ms": {
-      "mean": 0.1204448741507188,
-      "std": 0.09754593633734682
+      "mean": 0.0929498439227197,
+      "std": 0.04658902790924003
     },
     "device": "cpu",
     "num_threads": {
@@ -158,6 +176,79 @@
     }
   },
   "per_seed": {
+    "7": {
+      "model": {
+        "name": "M5_Medium_Baseline",
+        "type": "baseline",
+        "parameters": 597633,
+        "flops": 30131328,
+        "flops_formatted": "30.131M",
+        "macs": 15065664,
+        "macs_formatted": "1",
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed7\\version_0\\checkpoints\\M5_Medium_Baseline_seed7-epoch=03-val_loss=0.0020.ckpt"
+      },
+      "data": {
+        "variant": "paper",
+        "vehicle": "HYUNDAI_SONATA_2020",
+        "window_size": 50
+      },
+      "metrics": {
+        "mse": 0.001925963326357305,
+        "rmse": 0.04388579868656038,
+        "mae": 0.03172018378973007,
+        "mape": 278505.40625,
+        "r2": 0.8304467797279358,
+        "accuracy": 80.69642429256693,
+        "accuracy_threshold": 0.05,
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.03252972566522658,
+        "mae_std": 0.01190901738304798,
+        "mae_median": 0.029915787279605865,
+        "rmse_mean": 0.04212392329797149,
+        "rmse_std": 0.015887449961030604,
+        "rmse_median": 0.03883378021419048,
+        "accuracy_mean": 79.74152463804371,
+        "accuracy_std": 13.127516281683944,
+        "accuracy_median": 82.33151183970855
+      },
+      "inference": {
+        "mean_ms": 2.522225259972038,
+        "std_ms": 0.06509290159716512,
+        "min_ms": 2.4802999978419393,
+        "max_ms": 3.5850999993272126,
+        "p50_ms": 2.502289999392815,
+        "p50_std_ms": 0.0059268390771780805,
+        "p95_ms": 2.6104559990926646,
+        "p95_std_ms": 0.018344675497038495,
+        "p99_ms": 2.781373601173982,
+        "p99_std_ms": 0.09103309063424717,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000,
+        "num_runs": 5,
+        "total_samples": 5000
+      },
+      "flops": {
+        "flops": 30131328,
+        "flops_formatted": "30.131M",
+        "macs": 15065664,
+        "macs_formatted": "1",
+        "params_thop": 597633,
+        "params_formatted": "597.633K"
+      },
+      "plots": {
+        "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_7\\M5_Medium_Baseline_scatter.png",
+        "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_7\\M5_Medium_Baseline_residuals.png",
+        "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_7\\M5_Medium_Baseline_timeline.png",
+        "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_7\\M5_Medium_Baseline_error_distribution.png"
+      },
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M5_Medium_Baseline\\seed_42\\M5_Medium_Baseline_predictions.csv",
+      "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m5_medium_baseline.yaml"
+    },
     "42": {
       "model": {
         "name": "M5_Medium_Baseline",
@@ -167,7 +258,7 @@
         "flops_formatted": "30.131M",
         "macs": 15065664,
         "macs_formatted": "1",
-        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed42\\version_0\\checkpoints\\M5_Medium_Baseline-epoch=34-val_loss=0.0013.ckpt"
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed42\\version_0\\checkpoints\\M5_Medium_Baseline_seed42-epoch=06-val_loss=0.0020.ckpt"
       },
       "data": {
         "variant": "paper",
@@ -175,26 +266,38 @@
         "window_size": 50
       },
       "metrics": {
-        "mse": 0.0011393034365028143,
-        "rmse": 0.03375356924093827,
-        "mae": 0.025476418435573578,
-        "mape": 151006.0,
-        "r2": 0.9045503735542297,
-        "accuracy": 87.84292703757376,
+        "mse": 0.0019517852924764156,
+        "rmse": 0.04417901416370012,
+        "mae": 0.03163667395710945,
+        "mape": 236789.15625,
+        "r2": 0.8281735181808472,
+        "accuracy": 80.89941994782696,
         "accuracy_threshold": 0.05,
-        "num_samples": 220127
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.032452506501227614,
+        "mae_std": 0.012219201746739905,
+        "mae_median": 0.029997559264302254,
+        "rmse_mean": 0.0422175684273243,
+        "rmse_std": 0.01664711697789894,
+        "rmse_median": 0.038712278008461,
+        "accuracy_mean": 79.97636157542158,
+        "accuracy_std": 13.081467881391795,
+        "accuracy_median": 82.09139332772638
       },
       "inference": {
-        "mean_ms": 2.5329677400644868,
-        "std_ms": 0.09319148974097817,
-        "min_ms": 2.4846000014804304,
-        "max_ms": 3.7765000015497208,
-        "p50_ms": 2.506450010696426,
-        "p50_std_ms": 0.0049524715261254,
-        "p95_ms": 2.641107015660964,
-        "p95_std_ms": 0.0258322944927703,
-        "p99_ms": 2.912173996330239,
-        "p99_std_ms": 0.2538354562948189,
+        "mean_ms": 2.5281915201223457,
+        "std_ms": 0.05771161309413123,
+        "min_ms": 2.477100002579391,
+        "max_ms": 3.5305999917909503,
+        "p50_ms": 2.512479995493777,
+        "p50_std_ms": 0.004051746293598828,
+        "p95_ms": 2.619214990409091,
+        "p95_std_ms": 0.0096707725734251,
+        "p99_ms": 2.7487929983180948,
+        "p99_std_ms": 0.04800001888977378,
         "device": "cpu",
         "num_threads": 1,
         "warmup_iterations": 100,
@@ -216,7 +319,7 @@
         "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_42\\M5_Medium_Baseline_timeline.png",
         "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_42\\M5_Medium_Baseline_error_distribution.png"
       },
-      "predictions_csv": null,
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M5_Medium_Baseline\\seed_42\\M5_Medium_Baseline_predictions.csv",
       "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m5_medium_baseline.yaml"
     },
     "94": {
@@ -228,7 +331,7 @@
         "flops_formatted": "30.131M",
         "macs": 15065664,
         "macs_formatted": "1",
-        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed94\\version_0\\checkpoints\\M5_Medium_Baseline_seed94-epoch=38-val_loss=0.0012.ckpt"
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed94\\version_0\\checkpoints\\M5_Medium_Baseline_seed94-epoch=04-val_loss=0.0020.ckpt"
       },
       "data": {
         "variant": "paper",
@@ -236,26 +339,38 @@
         "window_size": 50
       },
       "metrics": {
-        "mse": 0.0010584527626633644,
-        "rmse": 0.03253387100643519,
-        "mae": 0.024596242234110832,
-        "mape": 156240.328125,
-        "r2": 0.9113239645957947,
-        "accuracy": 89.05495463982156,
+        "mse": 0.001966521143913269,
+        "rmse": 0.04434547489782096,
+        "mae": 0.031878214329481125,
+        "mape": 265413.34375,
+        "r2": 0.8268762230873108,
+        "accuracy": 80.54361241845136,
         "accuracy_threshold": 0.05,
-        "num_samples": 220127
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.032667637012898924,
+        "mae_std": 0.0122567840956427,
+        "mae_median": 0.030344553291797638,
+        "rmse_mean": 0.04243618384003639,
+        "rmse_std": 0.016277926906876215,
+        "rmse_median": 0.039434218779206276,
+        "accuracy_mean": 79.62323391846631,
+        "accuracy_std": 13.256359330953076,
+        "accuracy_median": 81.40495588155687
       },
       "inference": {
-        "mean_ms": 2.574176559841726,
-        "std_ms": 0.1019941796764973,
-        "min_ms": 2.503999974578619,
-        "max_ms": 4.399299970827997,
-        "p50_ms": 2.5458799966145307,
-        "p50_std_ms": 0.00753224225033423,
-        "p95_ms": 2.694454991724342,
-        "p95_std_ms": 0.039129483085288734,
-        "p99_ms": 2.9489645956782624,
-        "p99_std_ms": 0.02328601483169311,
+        "mean_ms": 2.52361877959338,
+        "std_ms": 0.06031924273375432,
+        "min_ms": 2.479200018569827,
+        "max_ms": 3.388000011909753,
+        "p50_ms": 2.5027699972270057,
+        "p50_std_ms": 0.005971984760455351,
+        "p95_ms": 2.6297910007997416,
+        "p95_std_ms": 0.03129053506278141,
+        "p99_ms": 2.7497566056554206,
+        "p99_std_ms": 0.06985288112959903,
         "device": "cpu",
         "num_threads": 1,
         "warmup_iterations": 100,
@@ -277,7 +392,7 @@
         "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_94\\M5_Medium_Baseline_timeline.png",
         "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_94\\M5_Medium_Baseline_error_distribution.png"
       },
-      "predictions_csv": null,
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M5_Medium_Baseline\\seed_42\\M5_Medium_Baseline_predictions.csv",
       "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m5_medium_baseline.yaml"
     },
     "123": {
@@ -289,7 +404,7 @@
         "flops_formatted": "30.131M",
         "macs": 15065664,
         "macs_formatted": "1",
-        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed123\\version_1\\checkpoints\\M5_Medium_Baseline_seed123-epoch=34-val_loss=0.0013.ckpt"
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed123\\version_0\\checkpoints\\M5_Medium_Baseline_seed123-epoch=03-val_loss=0.0019.ckpt"
       },
       "data": {
         "variant": "paper",
@@ -297,26 +412,38 @@
         "window_size": 50
       },
       "metrics": {
-        "mse": 0.0011613412061706185,
-        "rmse": 0.0340784566283542,
-        "mae": 0.025681961327791214,
-        "mape": 149143.046875,
-        "r2": 0.9027040600776672,
-        "accuracy": 87.5526400668705,
+        "mse": 0.001924031530506909,
+        "rmse": 0.04386378381429159,
+        "mae": 0.031827714294195175,
+        "mape": 289892.34375,
+        "r2": 0.83061683177948,
+        "accuracy": 80.5861103952764,
         "accuracy_threshold": 0.05,
-        "num_samples": 220127
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.03258887918107212,
+        "mae_std": 0.011778192829474314,
+        "mae_median": 0.030628003180027008,
+        "rmse_mean": 0.04213455897942185,
+        "rmse_std": 0.015661342359432628,
+        "rmse_median": 0.03961532935500145,
+        "accuracy_mean": 79.66692510036263,
+        "accuracy_std": 13.052005968090533,
+        "accuracy_median": 81.41692789968653
       },
       "inference": {
-        "mean_ms": 2.5241803802200593,
-        "std_ms": 0.06960235830883181,
-        "min_ms": 2.482099982444197,
-        "max_ms": 3.7898000446148217,
-        "p50_ms": 2.5007000018376857,
-        "p50_std_ms": 0.00513857044248552,
-        "p95_ms": 2.631531990482472,
-        "p95_std_ms": 0.023210228153762266,
-        "p99_ms": 2.784437201800756,
-        "p99_std_ms": 0.0842131513256444,
+        "mean_ms": 2.5291677003726365,
+        "std_ms": 0.07799933006713042,
+        "min_ms": 2.480800001649186,
+        "max_ms": 3.7382000009529293,
+        "p50_ms": 2.5066900008823723,
+        "p50_std_ms": 0.005839638052591667,
+        "p95_ms": 2.634266005770769,
+        "p95_std_ms": 0.0348922747002709,
+        "p99_ms": 2.844727606745437,
+        "p99_std_ms": 0.182003828513949,
         "device": "cpu",
         "num_threads": 1,
         "warmup_iterations": 100,
@@ -338,7 +465,80 @@
         "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_123\\M5_Medium_Baseline_timeline.png",
         "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_123\\M5_Medium_Baseline_error_distribution.png"
       },
-      "predictions_csv": null,
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M5_Medium_Baseline\\seed_42\\M5_Medium_Baseline_predictions.csv",
+      "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m5_medium_baseline.yaml"
+    },
+    "231": {
+      "model": {
+        "name": "M5_Medium_Baseline",
+        "type": "baseline",
+        "parameters": 597633,
+        "flops": 30131328,
+        "flops_formatted": "30.131M",
+        "macs": 15065664,
+        "macs_formatted": "1",
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M5_Medium_Baseline_seed231\\version_0\\checkpoints\\M5_Medium_Baseline_seed231-epoch=05-val_loss=0.0020.ckpt"
+      },
+      "data": {
+        "variant": "paper",
+        "vehicle": "HYUNDAI_SONATA_2020",
+        "window_size": 50
+      },
+      "metrics": {
+        "mse": 0.0020086695440113544,
+        "rmse": 0.04481818318507963,
+        "mae": 0.03229323774576187,
+        "mape": 257400.78125,
+        "r2": 0.8231656551361084,
+        "accuracy": 80.00560611609181,
+        "accuracy_threshold": 0.05,
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.03301701593957841,
+        "mae_std": 0.0125572140563352,
+        "mae_median": 0.030011733062565327,
+        "rmse_mean": 0.04275830677896738,
+        "rmse_std": 0.01643909610495753,
+        "rmse_median": 0.03917384520173073,
+        "accuracy_mean": 79.1256516762306,
+        "accuracy_std": 13.789592912761224,
+        "accuracy_median": 81.83829444891393
+      },
+      "inference": {
+        "mean_ms": 2.530075620475691,
+        "std_ms": 0.05813913265046367,
+        "min_ms": 2.4877999967429787,
+        "max_ms": 3.5383999929763377,
+        "p50_ms": 2.511150002828799,
+        "p50_std_ms": 0.004246996672550871,
+        "p95_ms": 2.6214360067388043,
+        "p95_std_ms": 0.011458630083907882,
+        "p99_ms": 2.753968391160015,
+        "p99_std_ms": 0.07385940044602952,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000,
+        "num_runs": 5,
+        "total_samples": 5000
+      },
+      "flops": {
+        "flops": 30131328,
+        "flops_formatted": "30.131M",
+        "macs": 15065664,
+        "macs_formatted": "1",
+        "params_thop": 597633,
+        "params_formatted": "597.633K"
+      },
+      "plots": {
+        "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_231\\M5_Medium_Baseline_scatter.png",
+        "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_231\\M5_Medium_Baseline_residuals.png",
+        "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_231\\M5_Medium_Baseline_timeline.png",
+        "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m5\\seed_231\\M5_Medium_Baseline_error_distribution.png"
+      },
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M5_Medium_Baseline\\seed_42\\M5_Medium_Baseline_predictions.csv",
       "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m5_medium_baseline.yaml"
     }
   }

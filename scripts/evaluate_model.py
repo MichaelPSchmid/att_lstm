@@ -44,7 +44,7 @@ from model.data_module import TimeSeriesDataModule
 from config.settings import get_preprocessed_paths
 
 # Import from shared library (project_root already in path)
-from scripts.shared import calculate_metrics_dict
+from scripts.shared import aggregate_metrics_per_sequence, calculate_metrics_dict
 
 
 def parse_args() -> argparse.Namespace:
@@ -100,9 +100,9 @@ def parse_args() -> argparse.Namespace:
         help="Directory to save plots (default: results/figures/{model_name}/)"
     )
     parser.add_argument(
-        "--save-predictions",
+        "--no-save-predictions",
         action="store_true",
-        help="Save individual predictions as CSV file"
+        help="Skip saving individual predictions as CSV file (saved by default)"
     )
     parser.add_argument(
         "--no-attention-plot",
@@ -404,16 +404,17 @@ def save_predictions_csv(
     predictions: np.ndarray,
     targets: np.ndarray,
     model_name: str,
-    output_dir: Path
+    output_dir: Path,
+    sequence_ids: Optional[np.ndarray] = None,
 ) -> str:
-    """
-    Save predictions and targets as CSV file.
+    """Save predictions and targets as CSV file.
 
     Args:
         predictions: Model predictions [N, 1]
         targets: Ground truth targets [N, 1]
         model_name: Name of the model
         output_dir: Directory to save CSV
+        sequence_ids: Per-sample sequence IDs aligned with predictions
 
     Returns:
         Path to saved CSV file
@@ -423,13 +424,22 @@ def save_predictions_csv(
 
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        df = pd.DataFrame({
+        data = {
             "sample_idx": np.arange(len(predictions)),
-            "prediction": predictions.flatten(),
-            "target": targets.flatten(),
-            "error": (predictions - targets).flatten(),
-            "abs_error": np.abs(predictions - targets).flatten()
-        })
+            "y_true": targets.flatten(),
+            "y_pred": predictions.flatten(),
+            "abs_error": np.abs(predictions - targets).flatten(),
+        }
+        if sequence_ids is not None:
+            data["sequence_id"] = sequence_ids
+
+        # Ensure sequence_id comes after sample_idx
+        col_order = ["sample_idx"]
+        if sequence_ids is not None:
+            col_order.append("sequence_id")
+        col_order.extend(["y_true", "y_pred", "abs_error"])
+
+        df = pd.DataFrame(data)[col_order]
 
         csv_path = output_dir / f"{model_name}_predictions.csv"
         df.to_csv(csv_path, index=False)
@@ -660,7 +670,9 @@ def main():
     data_module = TimeSeriesDataModule(
         feature_path=str(paths["features"]),
         target_path=str(paths["targets"]),
-        batch_size=batch_size
+        sequence_ids_path=str(paths["sequence_ids"]),
+        batch_size=batch_size,
+        split_seed=data_config.get("split_seed", 0),
     )
     data_module.setup()
 
@@ -785,24 +797,50 @@ def main():
                 else:
                     plot_paths = attention_paths
 
-    # Save predictions as CSV
+    # Save predictions as CSV (default: on)
     predictions_csv_path = None
-    if args.save_predictions:
+    seq_summary = None
+    if not args.no_save_predictions:
         print("\n" + "=" * 60)
         print("Saving Predictions")
         print("=" * 60)
 
-        if args.plots_dir:
-            csv_dir = Path(args.plots_dir)
-        else:
-            csv_dir = project_root / "results" / "predictions"
+        variant = data_config.get("variant", "no_dropout")
+        csv_dir = project_root / "results" / variant / model_name / f"seed_{seed}"
+
+        test_sequence_ids = data_module.get_split_sequence_ids("test")
 
         predictions_csv_path = save_predictions_csv(
-            predictions, targets, model_name, csv_dir
+            predictions, targets, model_name, csv_dir,
+            sequence_ids=test_sequence_ids,
         )
 
         if predictions_csv_path:
             print(f"  Predictions CSV:   {predictions_csv_path}")
+
+        # Sequence-level metrics
+        print("\n  Sequence-Level Metrics:")
+        seq_rows, seq_summary = aggregate_metrics_per_sequence(
+            predictions, targets, test_sequence_ids,
+            threshold=accuracy_threshold,
+        )
+        print(f"  Sequences:  {seq_summary['n_sequences']}")
+        print(f"  MAE:        {seq_summary['mae_mean']:.4f} +/- {seq_summary['mae_std']:.4f}"
+              f"  (median: {seq_summary['mae_median']:.4f})")
+        print(f"  RMSE:       {seq_summary['rmse_mean']:.4f} +/- {seq_summary['rmse_std']:.4f}"
+              f"  (median: {seq_summary['rmse_median']:.4f})")
+        print(f"  Accuracy:   {seq_summary['accuracy_mean']:.2f}% +/- {seq_summary['accuracy_std']:.2f}%"
+              f"  (median: {seq_summary['accuracy_median']:.2f}%)")
+
+        # Save sequence metrics CSV
+        try:
+            import pandas as pd
+            seq_df = pd.DataFrame(seq_rows)
+            seq_csv_path = csv_dir / f"{model_name}_sequence_metrics.csv"
+            seq_df.to_csv(seq_csv_path, index=False)
+            print(f"  Sequence CSV:  {seq_csv_path}")
+        except ImportError:
+            seq_csv_path = None
 
     # Compile results
     results = {
@@ -822,6 +860,7 @@ def main():
             "window_size": data_config["window_size"]
         },
         "metrics": metrics,
+        "sequence_metrics": seq_summary,
         "inference": inference_results,
         "flops": flops_results,
         "plots": plot_paths,

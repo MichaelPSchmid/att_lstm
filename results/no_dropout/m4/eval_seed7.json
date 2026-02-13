@@ -1,0 +1,75 @@
+{
+  "model": {
+    "name": "M4_Small_Simple_Attention",
+    "type": "simple_attention",
+    "parameters": 84866,
+    "flops": 4316864,
+    "flops_formatted": "4.317M",
+    "macs": 2158432,
+    "macs_formatted": "2",
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M4_Small_Simple_Attention_seed7\\version_0\\checkpoints\\M4_Small_Simple_Attention_seed7-epoch=05-val_loss=0.0020.ckpt"
+  },
+  "data": {
+    "variant": "paper",
+    "vehicle": "HYUNDAI_SONATA_2020",
+    "window_size": 50
+  },
+  "metrics": {
+    "mse": 0.0019493100699037313,
+    "rmse": 0.04415099172050081,
+    "mae": 0.032104842364788055,
+    "mape": 317866.125,
+    "r2": 0.828391432762146,
+    "accuracy": 80.19142173816725,
+    "accuracy_threshold": 0.05,
+    "num_samples": 221187
+  },
+  "sequence_metrics": {
+    "n_sequences": 500,
+    "mae_mean": 0.032812473582103846,
+    "mae_std": 0.011456487753432325,
+    "mae_median": 0.03062319476157427,
+    "rmse_mean": 0.04248199473693967,
+    "rmse_std": 0.01532570858637239,
+    "rmse_median": 0.03951037488877773,
+    "accuracy_mean": 79.37559384476363,
+    "accuracy_std": 12.879607601614747,
+    "accuracy_median": 81.41286185250416
+  },
+  "inference": {
+    "mean_ms": 0.7581601799698546,
+    "std_ms": 0.029892999233090526,
+    "min_ms": 0.746000005165115,
+    "max_ms": 1.273699977900833,
+    "p50_ms": 0.7514199998695403,
+    "p50_std_ms": 0.0009744739318876542,
+    "p95_ms": 0.7949770052800886,
+    "p95_std_ms": 0.02543453403616718,
+    "p99_ms": 0.8658957979059778,
+    "p99_std_ms": 0.060542352800462704,
+    "device": "cpu",
+    "num_threads": 1,
+    "warmup_iterations": 100,
+    "num_samples": 1000,
+    "num_runs": 5,
+    "total_samples": 5000
+  },
+  "flops": {
+    "flops": 4316864,
+    "flops_formatted": "4.317M",
+    "macs": 2158432,
+    "macs_formatted": "2",
+    "params_thop": 84866,
+    "params_formatted": "84.866K"
+  },
+  "plots": {
+    "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m4\\seed_7\\M4_Small_Simple_Attention_scatter.png",
+    "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m4\\seed_7\\M4_Small_Simple_Attention_residuals.png",
+    "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m4\\seed_7\\M4_Small_Simple_Attention_timeline.png",
+    "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m4\\seed_7\\M4_Small_Simple_Attention_error_distribution.png",
+    "attention_npy": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m4\\seed_7\\M4_Small_Simple_Attention_attention_weights.npy",
+    "attention_heatmap": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m4\\seed_7\\M4_Small_Simple_Attention_attention_heatmap.png"
+  },
+  "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M4_Small_Simple_Attention\\seed_42\\M4_Small_Simple_Attention_predictions.csv",
+  "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m4_small_simple_attn.yaml"
+}

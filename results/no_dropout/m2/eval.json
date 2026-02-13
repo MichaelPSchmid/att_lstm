@@ -7,7 +7,7 @@
     "flops_formatted": "40.256K",
     "macs": 20128,
     "macs_formatted": "2",
-    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M2_MLP_Flat_seed42\\version_0\\checkpoints\\M2_MLP_Flat-epoch=09-val_loss=0.0025.ckpt"
+    "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M2_MLP_Flat_seed7\\version_0\\checkpoints\\M2_MLP_Flat_seed7-epoch=07-val_loss=0.0026.ckpt"
   },
   "data": {
     "variant": "paper",
@@ -15,125 +15,143 @@
     "window_size": 50
   },
   "seeds": [
+    7,
     42,
     94,
-    123
+    123,
+    231
   ],
-  "num_seeds": 3,
+  "num_seeds": 5,
   "metrics": {
     "mse": {
-      "mean": 0.0025901217789699635,
-      "std": 2.735679937458476e-05,
+      "mean": 0.00260403067804873,
+      "std": 6.013999169535307e-05,
       "values": [
-        0.002552263205870986,
-        0.0026159530971199274,
-        0.002602149033918977
+        0.0026343693025410175,
+        0.002579605206847191,
+        0.002541081979870796,
+        0.00270663620904088,
+        0.0025584606919437647
       ]
     },
     "rmse": {
-      "mean": 0.05089252716330067,
-      "std": 0.00026918005621861006,
+      "mean": 0.05102632757199711,
+      "std": 0.0005870030357482123,
       "values": [
-        0.050519928799148024,
-        0.05114638889618628,
-        0.05101126379456773
+        0.05132610741660639,
+        0.05078981400681824,
+        0.050409145795885055,
+        0.05202534198869701,
+        0.05058122865197884
       ]
     },
     "mae": {
-      "mean": 0.03691373268763224,
-      "std": 0.0001993208840879913,
+      "mean": 0.03729793205857277,
+      "std": 0.0004280023247111464,
       "values": [
-        0.03664613515138626,
-        0.037124257534742355,
-        0.03697080537676811
+        0.03737074136734009,
+        0.03710325062274933,
+        0.036825891584157944,
+        0.03808147832751274,
+        0.037108298391103745
       ]
     },
     "mape": {
-      "mean": 336400.1458333333,
-      "std": 14187.461852471046,
+      "mean": 330124.325,
+      "std": 38459.023688869376,
       "values": [
-        316834.21875,
-        342335.125,
-        350031.09375
+        387611.8125,
+        331338.0,
+        336546.78125,
+        328606.09375,
+        266518.9375
       ]
     },
     "r2": {
-      "mean": 0.7830023169517517,
-      "std": 0.002291918923695905,
+      "mean": 0.7707527279853821,
+      "std": 0.00529444646910845,
       "values": [
-        0.7861740589141846,
-        0.7808381915092468,
-        0.7819947004318237
+        0.7680818438529968,
+        0.7729030251502991,
+        0.776294469833374,
+        0.761719822883606,
+        0.7747644782066345
       ]
     },
     "accuracy": {
-      "mean": 74.89767270711907,
-      "std": 0.2925261713113235,
+      "mean": 74.3480403459516,
+      "std": 0.506998554164703,
       "values": [
-        75.27972488608849,
-        74.56922594683978,
-        74.84406728842895
+        74.39949002427811,
+        74.63458521522513,
+        74.90946574617857,
+        73.40802126707266,
+        74.38863947700362
       ]
     },
     "accuracy_threshold": {
-      "mean": 0.05000000000000001,
-      "std": 6.938893903907228e-18,
+      "mean": 0.05,
+      "std": 0.0,
       "values": [
+        0.05,
+        0.05,
         0.05,
         0.05,
         0.05
       ]
     },
     "num_samples": {
-      "mean": 220127.0,
+      "mean": 221187.0,
       "std": 0.0,
       "values": [
-        220127,
-        220127,
-        220127
+        221187,
+        221187,
+        221187,
+        221187,
+        221187
       ]
     }
   },
   "inference": {
     "mean_ms": {
-      "mean": 0.056206220240953064,
-      "std": 0.00044049593814829066
+      "mean": 0.054426151979714635,
+      "std": 0.0003792731737563216
     },
     "std_ms": {
-      "mean": 0.00965749030867208,
-      "std": 0.0029589958641150845
+      "mean": 0.006894227529453281,
+      "std": 0.0022068073340651443
     },
     "min_ms": {
-      "mean": 0.05313333046312133,
-      "std": 0.00020548203139528443
+      "mean": 0.051879987586289644,
+      "std": 0.00024819536278737115
     },
     "max_ms": {
-      "mean": 0.3343000231931607,
-      "std": 0.17266938910167234
+      "mean": 0.28126000543124974,
+      "std": 0.21325757492053804
     },
     "p50_ms": {
-      "mean": 0.0543600064702332,
-      "std": 0.00014514471224221518
+      "mean": 0.05316800263244659,
+      "std": 0.0002639984560611744
     },
     "p50_std_ms": {
-      "mean": 7.880463460845941e-05,
-      "std": 2.136814820845904e-05
+      "mean": 0.00010296640444523914,
+      "std": 5.1739324728315174e-05
     },
     "p95_ms": {
-      "mean": 0.06368500374568004,
-      "std": 0.0016061639519785675
+      "mean": 0.06105499831028281,
+      "std": 0.0035377602690287685
     },
     "p95_std_ms": {
-      "mean": 0.005977016092627671,
-      "std": 0.0028322841907757568
+      "mean": 0.004285091825300875,
+      "std": 0.0018073334422267645
     },
     "p99_ms": {
-      "mean": 0.09425233673149097,
-      "std": 0.00978816867699378
+      "mean": 0.08060268363915384,
+      "std": 0.0019556725884245087
     },
     "p99_std_ms": {
-      "mean": 0.018376867360750747,
-      "std": 0.01243987062267938
+      "mean": 0.005256991294633277,
+      "std": 0.0029268724077690118
     },
     "device": "cpu",
     "num_threads": {
@@ -158,6 +176,79 @@
     }
   },
   "per_seed": {
+    "7": {
+      "model": {
+        "name": "M2_MLP_Flat",
+        "type": "mlp_flat",
+        "parameters": 40449,
+        "flops": 40256,
+        "flops_formatted": "40.256K",
+        "macs": 20128,
+        "macs_formatted": "2",
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M2_MLP_Flat_seed7\\version_0\\checkpoints\\M2_MLP_Flat_seed7-epoch=07-val_loss=0.0026.ckpt"
+      },
+      "data": {
+        "variant": "paper",
+        "vehicle": "HYUNDAI_SONATA_2020",
+        "window_size": 50
+      },
+      "metrics": {
+        "mse": 0.0026343693025410175,
+        "rmse": 0.05132610741660639,
+        "mae": 0.03737074136734009,
+        "mape": 387611.8125,
+        "r2": 0.7680818438529968,
+        "accuracy": 74.39949002427811,
+        "accuracy_threshold": 0.05,
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.03842865745350719,
+        "mae_std": 0.015781817078320926,
+        "mae_median": 0.03478168323636055,
+        "rmse_mean": 0.04933538368344307,
+        "rmse_std": 0.020444970835626318,
+        "rmse_median": 0.04351712204515934,
+        "accuracy_mean": 73.52188733000102,
+        "accuracy_std": 14.793178070431361,
+        "accuracy_median": 75.99514306831381
+      },
+      "inference": {
+        "mean_ms": 0.05504395993775688,
+        "std_ms": 0.005623840228789529,
+        "min_ms": 0.05199998850002885,
+        "max_ms": 0.1432000135537237,
+        "p50_ms": 0.05362000083550811,
+        "p50_std_ms": 9.798033577626338e-05,
+        "p95_ms": 0.06400799873517822,
+        "p95_std_ms": 0.0035790587217426903,
+        "p99_ms": 0.08142700290773064,
+        "p99_std_ms": 0.0025135684758199016,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000,
+        "num_runs": 5,
+        "total_samples": 5000
+      },
+      "flops": {
+        "flops": 40256,
+        "flops_formatted": "40.256K",
+        "macs": 20128,
+        "macs_formatted": "2",
+        "params_thop": 40449,
+        "params_formatted": "40.449K"
+      },
+      "plots": {
+        "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_7\\M2_MLP_Flat_scatter.png",
+        "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_7\\M2_MLP_Flat_residuals.png",
+        "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_7\\M2_MLP_Flat_timeline.png",
+        "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_7\\M2_MLP_Flat_error_distribution.png"
+      },
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M2_MLP_Flat\\seed_42\\M2_MLP_Flat_predictions.csv",
+      "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m2_mlp_flat.yaml"
+    },
     "42": {
       "model": {
         "name": "M2_MLP_Flat",
@@ -167,7 +258,7 @@
         "flops_formatted": "40.256K",
         "macs": 20128,
         "macs_formatted": "2",
-        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M2_MLP_Flat_seed42\\version_0\\checkpoints\\M2_MLP_Flat-epoch=09-val_loss=0.0025.ckpt"
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M2_MLP_Flat_seed42\\version_0\\checkpoints\\M2_MLP_Flat_seed42-epoch=08-val_loss=0.0026.ckpt"
       },
       "data": {
         "variant": "paper",
@@ -175,26 +266,38 @@
         "window_size": 50
       },
       "metrics": {
-        "mse": 0.002552263205870986,
-        "rmse": 0.050519928799148024,
-        "mae": 0.03664613515138626,
-        "mape": 316834.21875,
-        "r2": 0.7861740589141846,
-        "accuracy": 75.27972488608849,
+        "mse": 0.002579605206847191,
+        "rmse": 0.05078981400681824,
+        "mae": 0.03710325062274933,
+        "mape": 331338.0,
+        "r2": 0.7729030251502991,
+        "accuracy": 74.63458521522513,
         "accuracy_threshold": 0.05,
-        "num_samples": 220127
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.038190714184194806,
+        "mae_std": 0.0156376898528856,
+        "mae_median": 0.034597039222717285,
+        "rmse_mean": 0.04901100295782089,
+        "rmse_std": 0.019914347563027013,
+        "rmse_median": 0.044480716809630394,
+        "accuracy_mean": 73.7221572983771,
+        "accuracy_std": 15.320247144794392,
+        "accuracy_median": 76.52409339294584
       },
       "inference": {
-        "mean_ms": 0.056579340144526216,
-        "std_ms": 0.013767715774085722,
-        "min_ms": 0.053099996875971556,
-        "max_ms": 0.575500016566366,
-        "p50_ms": 0.0543000060133636,
-        "p50_std_ms": 8.944340016098317e-05,
-        "p95_ms": 0.06371299503371117,
-        "p95_std_ms": 0.009823604374593361,
-        "p99_ms": 0.10657479625660922,
-        "p99_std_ms": 0.03042622145561617,
+        "mean_ms": 0.05464039978105575,
+        "std_ms": 0.011293157115725675,
+        "min_ms": 0.05199998850002885,
+        "max_ms": 0.6990999972913414,
+        "p50_ms": 0.05302000208757818,
+        "p50_std_ms": 7.482438388437595e-05,
+        "p95_ms": 0.06379099708283319,
+        "p95_std_ms": 0.005558795801189416,
+        "p99_ms": 0.08263461192836985,
+        "p99_std_ms": 0.005158267214535007,
         "device": "cpu",
         "num_threads": 1,
         "warmup_iterations": 100,
@@ -216,7 +319,7 @@
         "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_42\\M2_MLP_Flat_timeline.png",
         "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_42\\M2_MLP_Flat_error_distribution.png"
       },
-      "predictions_csv": null,
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M2_MLP_Flat\\seed_42\\M2_MLP_Flat_predictions.csv",
       "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m2_mlp_flat.yaml"
     },
     "94": {
@@ -228,7 +331,7 @@
         "flops_formatted": "40.256K",
         "macs": 20128,
         "macs_formatted": "2",
-        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M2_MLP_Flat_seed94\\version_0\\checkpoints\\M2_MLP_Flat_seed94-epoch=11-val_loss=0.0026.ckpt"
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M2_MLP_Flat_seed94\\version_0\\checkpoints\\M2_MLP_Flat_seed94-epoch=10-val_loss=0.0026.ckpt"
       },
       "data": {
         "variant": "paper",
@@ -236,26 +339,38 @@
         "window_size": 50
       },
       "metrics": {
-        "mse": 0.0026159530971199274,
-        "rmse": 0.05114638889618628,
-        "mae": 0.037124257534742355,
-        "mape": 342335.125,
-        "r2": 0.7808381915092468,
-        "accuracy": 74.56922594683978,
+        "mse": 0.002541081979870796,
+        "rmse": 0.050409145795885055,
+        "mae": 0.036825891584157944,
+        "mape": 336546.78125,
+        "r2": 0.776294469833374,
+        "accuracy": 74.90946574617857,
         "accuracy_threshold": 0.05,
-        "num_samples": 220127
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.03790677563101053,
+        "mae_std": 0.015268499371857749,
+        "mae_median": 0.034452928230166435,
+        "rmse_mean": 0.04856734865158796,
+        "rmse_std": 0.019713221183913575,
+        "rmse_median": 0.04355095699429512,
+        "accuracy_mean": 73.95153945635124,
+        "accuracy_std": 14.643161015083326,
+        "accuracy_median": 75.95141601859626
       },
       "inference": {
-        "mean_ms": 0.055587640427984294,
-        "std_ms": 0.006921922027546281,
-        "min_ms": 0.05289999535307288,
-        "max_ms": 0.24670001585036516,
-        "p50_ms": 0.05422000540420413,
-        "p50_std_ms": 9.798033577626338e-05,
-        "p95_ms": 0.06170401640702037,
-        "p95_std_ms": 0.003086473510053624,
-        "p99_ms": 0.08262941194698215,
-        "p99_std_ms": 0.001251047530436869,
+        "mean_ms": 0.05420269988244399,
+        "std_ms": 0.005721468687253251,
+        "min_ms": 0.05219999002292752,
+        "max_ms": 0.1998000079765916,
+        "p50_ms": 0.05329999839887023,
+        "p50_std_ms": 6.324603478621313e-05,
+        "p95_ms": 0.057426995190326124,
+        "p95_std_ms": 0.004156968451059138,
+        "p99_ms": 0.0805944024468772,
+        "p99_std_ms": 0.005275335243142445,
         "device": "cpu",
         "num_threads": 1,
         "warmup_iterations": 100,
@@ -277,7 +392,7 @@
         "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_94\\M2_MLP_Flat_timeline.png",
         "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_94\\M2_MLP_Flat_error_distribution.png"
       },
-      "predictions_csv": null,
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M2_MLP_Flat\\seed_42\\M2_MLP_Flat_predictions.csv",
       "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m2_mlp_flat.yaml"
     },
     "123": {
@@ -289,7 +404,7 @@
         "flops_formatted": "40.256K",
         "macs": 20128,
         "macs_formatted": "2",
-        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M2_MLP_Flat_seed123\\version_0\\checkpoints\\M2_MLP_Flat_seed123-epoch=12-val_loss=0.0026.ckpt"
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M2_MLP_Flat_seed123\\version_0\\checkpoints\\M2_MLP_Flat_seed123-epoch=03-val_loss=0.0028.ckpt"
       },
       "data": {
         "variant": "paper",
@@ -297,26 +412,38 @@
         "window_size": 50
       },
       "metrics": {
-        "mse": 0.002602149033918977,
-        "rmse": 0.05101126379456773,
-        "mae": 0.03697080537676811,
-        "mape": 350031.09375,
-        "r2": 0.7819947004318237,
-        "accuracy": 74.84406728842895,
+        "mse": 0.00270663620904088,
+        "rmse": 0.05202534198869701,
+        "mae": 0.03808147832751274,
+        "mape": 328606.09375,
+        "r2": 0.761719822883606,
+        "accuracy": 73.40802126707266,
         "accuracy_threshold": 0.05,
-        "num_samples": 220127
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.03905672626942396,
+        "mae_std": 0.015283359650986128,
+        "mae_median": 0.03514242544770241,
+        "rmse_mean": 0.05003374360874295,
+        "rmse_std": 0.019449716352439684,
+        "rmse_median": 0.045203233137726784,
+        "accuracy_mean": 72.56064953853019,
+        "accuracy_std": 15.257577093148676,
+        "accuracy_median": 75.50565883368938
       },
       "inference": {
-        "mean_ms": 0.056451680150348696,
-        "std_ms": 0.00828283312438424,
-        "min_ms": 0.05339999916031957,
-        "max_ms": 0.18070003716275096,
-        "p50_ms": 0.054560007993131876,
-        "p50_std_ms": 4.899016788813169e-05,
-        "p95_ms": 0.06563799979630858,
-        "p95_std_ms": 0.00502097039323603,
-        "p99_ms": 0.09355280199088156,
-        "p99_std_ms": 0.0234533330961992,
+        "mean_ms": 0.05428996002301574,
+        "std_ms": 0.005695406057563288,
+        "min_ms": 0.05169998621568084,
+        "max_ms": 0.1210999907925725,
+        "p50_ms": 0.052880001021549106,
+        "p50_std_ms": 7.482749553813453e-05,
+        "p95_ms": 0.06396699813194573,
+        "p95_std_ms": 0.00672035571204225,
+        "p99_ms": 0.08144359744619578,
+        "p99_std_ms": 0.0027122826552147487,
         "device": "cpu",
         "num_threads": 1,
         "warmup_iterations": 100,
@@ -338,7 +465,80 @@
         "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_123\\M2_MLP_Flat_timeline.png",
         "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_123\\M2_MLP_Flat_error_distribution.png"
       },
-      "predictions_csv": null,
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M2_MLP_Flat\\seed_42\\M2_MLP_Flat_predictions.csv",
+      "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m2_mlp_flat.yaml"
+    },
+    "231": {
+      "model": {
+        "name": "M2_MLP_Flat",
+        "type": "mlp_flat",
+        "parameters": 40449,
+        "flops": 40256,
+        "flops_formatted": "40.256K",
+        "macs": 20128,
+        "macs_formatted": "2",
+        "checkpoint": "C:\\Users\\MSchm\\Documents\\att_project\\lightning_logs\\M2_MLP_Flat_seed231\\version_0\\checkpoints\\M2_MLP_Flat_seed231-epoch=14-val_loss=0.0026.ckpt"
+      },
+      "data": {
+        "variant": "paper",
+        "vehicle": "HYUNDAI_SONATA_2020",
+        "window_size": 50
+      },
+      "metrics": {
+        "mse": 0.0025584606919437647,
+        "rmse": 0.05058122865197884,
+        "mae": 0.037108298391103745,
+        "mape": 266518.9375,
+        "r2": 0.7747644782066345,
+        "accuracy": 74.38863947700362,
+        "accuracy_threshold": 0.05,
+        "num_samples": 221187
+      },
+      "sequence_metrics": {
+        "n_sequences": 500,
+        "mae_mean": 0.038286232624202964,
+        "mae_std": 0.016156983268103862,
+        "mae_median": 0.034920936450362206,
+        "rmse_mean": 0.04901132299005985,
+        "rmse_std": 0.020363454141768923,
+        "rmse_median": 0.04443213529884815,
+        "accuracy_mean": 73.43046647228093,
+        "accuracy_std": 14.775180878498022,
+        "accuracy_median": 75.9956230022749
+      },
+      "inference": {
+        "mean_ms": 0.0539537402743008,
+        "std_ms": 0.0061372655579346605,
+        "min_ms": 0.051499984692782164,
+        "max_ms": 0.2431000175420195,
+        "p50_ms": 0.053020010818727314,
+        "p50_std_ms": 0.00020395377224120874,
+        "p95_ms": 0.056082002411130816,
+        "p95_std_ms": 0.00141028044047088,
+        "p99_ms": 0.07691380346659571,
+        "p99_std_ms": 0.010625502884454284,
+        "device": "cpu",
+        "num_threads": 1,
+        "warmup_iterations": 100,
+        "num_samples": 1000,
+        "num_runs": 5,
+        "total_samples": 5000
+      },
+      "flops": {
+        "flops": 40256,
+        "flops_formatted": "40.256K",
+        "macs": 20128,
+        "macs_formatted": "2",
+        "params_thop": 40449,
+        "params_formatted": "40.449K"
+      },
+      "plots": {
+        "scatter": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_231\\M2_MLP_Flat_scatter.png",
+        "residuals": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_231\\M2_MLP_Flat_residuals.png",
+        "timeline": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_231\\M2_MLP_Flat_timeline.png",
+        "error_distribution": "C:\\Users\\MSchm\\Documents\\att_project\\results\\no_dropout\\m2\\seed_231\\M2_MLP_Flat_error_distribution.png"
+      },
+      "predictions_csv": "C:\\Users\\MSchm\\Documents\\att_project\\results\\paper\\M2_MLP_Flat\\seed_42\\M2_MLP_Flat_predictions.csv",
       "config_path": "C:\\Users\\MSchm\\Documents\\att_project\\config\\model_configs\\m2_mlp_flat.yaml"
     }
   }

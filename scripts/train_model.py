@@ -122,7 +122,9 @@ def main():
     data_module = TimeSeriesDataModule(
         feature_path=str(paths["features"]),
         target_path=str(paths["targets"]),
-        batch_size=config["training"]["batch_size"]
+        sequence_ids_path=str(paths["sequence_ids"]),
+        batch_size=config["training"]["batch_size"],
+        split_seed=data_config.get("split_seed", 0),
     )
 
     # Create model

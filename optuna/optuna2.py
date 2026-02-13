@@ -10,7 +10,7 @@ import gc
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from model.lstm_baseline import LSTMModel
 from model.data_module import TimeSeriesDataModule
-from config.settings import FEATURE_PATH, TARGET_PATH
+from config.settings import FEATURE_PATH, TARGET_PATH, DEFAULT_PATHS
 
 # Enable Tensor Cores optimization
 torch.set_float32_matmul_precision('medium')
@@ -29,7 +29,7 @@ def objective(trial):
     target_path = str(TARGET_PATH)
 
     # Initialize data module with fixed batch size
-    data_module = TimeSeriesDataModule(feature_path, target_path, batch_size=batch_size)
+    data_module = TimeSeriesDataModule(feature_path, target_path, str(DEFAULT_PATHS["sequence_ids"]), batch_size=batch_size)
 
     # Initialize model with suggested hyperparameters
     input_size = 5

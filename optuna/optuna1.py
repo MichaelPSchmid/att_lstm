@@ -25,7 +25,7 @@ def objective(trial):
     target_path = str(paths["targets"])
 
     # Initialize the data module with the suggested batch size
-    data_module = TimeSeriesDataModule(feature_path, target_path, batch_size=batch_size)
+    data_module = TimeSeriesDataModule(feature_path, target_path, str(paths["sequence_ids"]), batch_size=batch_size)
 
     # Initialize the model with suggested hyperparameters
     input_size = 5
