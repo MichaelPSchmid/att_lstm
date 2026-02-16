@@ -2,27 +2,28 @@
 
 ## Projektziel
 
-Dieses Projekt untersucht den Einsatz von Deep-Learning-Modellen zur **Prädiktion des Lenk-Drehmoments (Steer Torque)** für die elektronische Servolenkung (EPS) eines Fahrzeugs. Basierend auf Fahrzeugzustandsgrößen wird das benötigte EPS-Moment vorhergesagt.
+Dieses Projekt untersucht den Einsatz von Deep-Learning-Modellen zur **Praediktion des Lenk-Drehmoments (Steer Torque)** fuer die elektronische Servolenkung (EPS) eines Fahrzeugs. Basierend auf Fahrzeugzustandsgroessen wird das benoetigte EPS-Moment vorhergesagt.
 
 ### Anwendungskontext
-- **Domäne:** Fahrerassistenzsysteme / Autonomes Fahren
+- **Domaene:** Fahrerassistenzsysteme / Autonomes Fahren
 - **Fahrzeug:** Hyundai Sonata 2020
-- **Datenquelle:** Telemetriedaten (vermutlich OpenPilot-kompatibel)
+- **Datenquelle:** Telemetriedaten (OpenPilot-kompatibel)
 
 ### Forschungsfragen
-1. Können neuronale Netze das EPS-Moment aus Fahrzeuggrößen prädizieren?
-2. Verbessern Attention-Mechanismen die Vorhersagegüte?
-3. Wie verhält sich der Trade-off zwischen Modellkomplexität, Genauigkeit und Trainingszeit?
+1. Koennen neuronale Netze das EPS-Moment aus Fahrzeuggroessen praedizieren?
+2. Verbessern Attention-Mechanismen die Vorhersageguete?
+3. Wie verhaelt sich der Trade-off zwischen Modellkomplexitaet, Genauigkeit und Inferenzzeit?
 
 ---
 
-## Schnellübersicht
+## Schnelluebersicht
 
 | Aspekt | Details |
 |--------|---------|
-| **Input** | 5 Features über 50 Zeitschritte |
+| **Input** | 5 Features ueber 50 Zeitschritte (5s @ 10 Hz) |
 | **Output** | 1 Wert: `steerFiltered` (normalisiertes, rate-limitiertes Torque) |
-| **Modelle** | LSTM, LSTM+Attention (3 Varianten), CNN |
+| **Modelle** | 2 MLP-Baselines, 2 LSTM-Baselines, 3 LSTM+Attention, 1 CNN (8 Modelle) |
+| **Evaluation** | Sequenz-Level Split, Block-Bootstrap, 5 Seeds |
 | **Framework** | PyTorch Lightning |
 | **Hyperparameter-Tuning** | Optuna |
 
@@ -35,8 +36,15 @@ Dieses Projekt untersucht den Einsatz von Deep-Learning-Modellen zur **Prädikti
 | [data_pipeline.md](data_pipeline.md) | Datenverarbeitung, Features, Preprocessing |
 | [models.md](models.md) | Modellarchitekturen im Detail |
 | [training.md](training.md) | Training, Hyperparameter, Optuna |
-| [evaluation.md](evaluation.md) | Metriken und Evaluierung |
+| [evaluation_pipeline.md](evaluation_pipeline.md) | Evaluations-Pipeline (Sequenz-Level, 4 Phasen) |
 | [configuration.md](configuration.md) | Setup, Dependencies, Pfade |
+
+### Ergebnisberichte
+
+| Datei | Inhalt |
+|-------|--------|
+| [reports/sequence_level_evaluation_results_no_dropout.md](reports/sequence_level_evaluation_results_no_dropout.md) | Hauptergebnisse (5 Seeds, Sequenz-Level) |
+| [reports/attention_analysis.md](reports/attention_analysis.md) | Attention-Weight-Analyse |
 
 ---
 
@@ -71,13 +79,19 @@ att_project/
 
 ## Implementierte Modelle
 
-| Modell | Beschreibung | Attention-Typ |
-|--------|--------------|---------------|
-| **LSTMModel** | Baseline LSTM | Keine |
-| **LSTMAttentionModel** | LSTM + Simple Attention | Linear → Softmax |
-| **LSTMAttentionModel** (Additive) | LSTM + Bahdanau Attention | W·h_i + U·h_j → tanh → v |
-| **LSTMScaleDotAttentionModel** | LSTM + Scaled Dot-Product | Q·K^T / √d_k |
-| **CNNModel** | 1D CNN mit Global Average Pooling | Keine |
+| ID | Modell | Typ | Parameter | Accuracy |
+|----|--------|-----|-----------|----------|
+| M1 | MLP Last | MLP (5->64->64->1) | 4,609 | 68.98% |
+| M2 | MLP Flat | MLP (250->128->64->1) | 40,449 | 73.44% |
+| M3 | Small Baseline | LSTM (64, 3L) | 84,801 | 79.46% |
+| M4 | Small + Simple Attn | LSTM+Attn (64, 3L) | 84,866 | 79.41% |
+| M5 | Medium Baseline | LSTM (128, 5L) | 597,633 | 79.63% |
+| M6 | Medium + Simple Attn | LSTM+Attn (128, 5L) | 597,762 | 79.60% |
+| M7 | Medium + Additive Attn | LSTM+Additive (128, 5L) | 630,529 | 79.73% |
+| M8 | Medium + Scaled DP | LSTM+ScaledDP (128, 5L) | 597,633 | 79.26% |
+
+> Accuracy: Sequenz-Level Evaluation, 5 Seeds, ohne Dropout.
+> Details: [reports/sequence_level_evaluation_results_no_dropout.md](reports/sequence_level_evaluation_results_no_dropout.md)
 
 ---
 
@@ -85,30 +99,34 @@ att_project/
 
 ```bash
 # Training mit Konfigurationsdatei
-python scripts/train_model.py --config config/model_configs/m1_small_baseline.yaml
+python scripts/train_model.py --config config/model_configs/m3_small_baseline.yaml
 
 # Training mit Attention-Modell
-python scripts/train_model.py --config config/model_configs/m2_small_simple_attn.yaml
+python scripts/train_model.py --config config/model_configs/m7_medium_additive_attn.yaml
 
-# Evaluation
-python scripts/evaluate_model.py --checkpoint path/to/checkpoint.ckpt --config config/model_configs/m1_small_baseline.yaml
-```
+# Batch-Training (alle Modelle, 5 Seeds)
+python scripts/batch_runner.py train --variant no_dropout
 
-Oder programmatisch:
-```python
-from model.lstm_baseline import LSTMModel
-from model.data_module import TimeSeriesDataModule
-import pytorch_lightning as pl
+# Evaluation (Sequenz-Level)
+python scripts/batch_runner.py evaluate --variant no_dropout
 
-data_module = TimeSeriesDataModule(feature_path, target_path, batch_size=32)
-model = LSTMModel(input_size=5, hidden_size=128, num_layers=5, output_size=1)
-
-trainer = pl.Trainer(max_epochs=80, accelerator="gpu")
-trainer.fit(model, data_module)
+# Statistische Vergleiche
+python scripts/sequence_level_evaluation.py --n-bootstrap 1000 --n-permutations 10000
 ```
 
 ---
 
+## Zentrale Ergebnisse
+
+1. **Sequential Modeling ist entscheidend:** LSTM >> MLP (Cohen's d = 1.08, +10.5 pp Accuracy)
+2. **Attention liefert keinen Mehrwert:** Kein Attention-Mechanismus verbessert die LSTM-Baseline signifikant
+3. **Scaled Dot-Product schadet:** M8 ist signifikant schlechter als Baseline (p<0.001)
+4. **Modellgroesse spielt kaum eine Rolle:** Small (85K) vs Medium (598K) nur +0.17 pp bei 3x Inferenzzeit
+5. **Empfehlung:** M3 (Small Baseline LSTM) — bestes Kosten-Nutzen-Verhaeltnis
+
+> Fruhere Evaluation mit Sample-Level-Split zeigte faelschlicherweise Attention-Vorteile.
+> Diese waren ein Artefakt von Data Leakage. Details: [evaluation_pipeline.md](evaluation_pipeline.md)
+
 ## Status
 
-Dieses Projekt wurde im Rahmen einer Masterarbeit entwickelt. Die Dokumentation dient als Grundlage für weiterführende Arbeiten.
+Dieses Projekt wurde im Rahmen einer Masterarbeit entwickelt.
