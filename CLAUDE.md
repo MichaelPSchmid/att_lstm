@@ -1,111 +1,136 @@
-# ATT_PROJECT - COMPARISON of Attention Mechanisms
+# ATT_PROJECT - EPS Torque Prediction mit Attention-Vergleich
 
-> **Detaillierter Plan:** `docs/IMPLEMENTIERUNGSPLAN.md`  
-> **Fortschritt:** `docs/PROGRESS.md`  
+> **Dokumentation:** `docs/README.md`
 > **Aktuelle Notizen:** `docs/aktuell/`
 
 ## Session Start
 
 **Bevor du startest:**
-1. Gibt es einen Notizzettel in `docs/aktuell/`? → Lesen!
-2. Neues Feature/AP? → Notizzettel anlegen (siehe [Task-Tracking](#task-tracking))
-3. Check `docs/PROGRESS.md` für letzten abgeschlossenen Checkpoint
+1. Gibt es einen Notizzettel in `docs/aktuell/`? Lesen!
+2. Neues Feature? Notizzettel anlegen (siehe [Task-Tracking](#task-tracking))
+3. Check `docs/README.md` fuer Projektuebersicht
 
 ---
 
 ## Kernregel: Verstehen vor Handeln
 
-**Bevor du Code schreibst, änderst oder hinzufügst:**
+**Bevor du Code schreibst, aenderst oder hinzufuegst:**
 1. **Lies** den existierenden Code
 2. **Verstehe** warum er so ist
-3. **Ändere** an der richtigen Stelle
+3. **Aendere** an der richtigen Stelle
 
 ### Warnsignale
 
-Wenn du dabei bist, eines davon zu tun → **STOPP**:
+Wenn du dabei bist, eines davon zu tun, **STOPP**:
 
 - "Ich erstelle eine neue Version von..."
 - "Ich wrappe das mal um..."
 - "Ich bin nicht sicher was das tut, aber..."
 - "Das cast ich einfach..."
-- "Ich füge das hier schnell ein..."
+- "Ich fuege das hier schnell ein..."
 
 Diese Impulse zeigen: Du hast noch nicht genug verstanden.
 
 ### Beispiele
 
 ```python
-# ❌ Wrapper statt Fix
-def generate_event_v2(params):
+# FALSCH: Wrapper statt Fix
+def train_model_v2(config):
     ...
 
-# ✅ Original fixen
-def generate_event(params):
+# RICHTIG: Original fixen
+def train_model(config):
     ...
 
-# ❌ Unsafe Type-Ignorierung
-result = signal  # type: ignore
+# FALSCH: Unsafe Type-Ignorierung
+result = tensor  # type: ignore
 
-# ✅ Proper Type Handling
-if not isinstance(signal, np.ndarray):
-    raise TypeError(f"Expected ndarray, got {type(signal)}")
-result = signal
+# RICHTIG: Proper Type Handling
+if not isinstance(tensor, torch.Tensor):
+    raise TypeError(f"Expected Tensor, got {type(tensor)}")
+result = tensor
 
-# ❌ Direkter Zugriff überall
-events = generator.generate_events(...)
+# FALSCH: Pfade hardcoden
+features = pd.read_pickle("data/prepared_dataset/HYUNDAI_SONATA_2020/50_1_1_sF/features.pkl")
 
-# ✅ Durch bestehende Struktur
-dataset = EventDataset.from_config(config)
-events = dataset.train_events
+# RICHTIG: Durch config/settings.py
+from config.settings import get_preprocessed_paths
+paths = get_preprocessed_paths(variant="paper")
+features = pd.read_pickle(paths["features"])
 ```
 
 ### Vor dem Erstellen neuer Dateien
 
-**Prüfe zuerst:**
-1. Gibt es bereits eine Datei für diesen Zweck?
+**Pruefe zuerst:**
+1. Gibt es bereits eine Datei fuer diesen Zweck?
 2. Kann ich eine existierende Datei erweitern?
 3. Folgt mein Dateiname dem bestehenden Pattern?
 
 **Typische Fehler:**
-- `generator_v2.py` statt `generator.py` zu fixen
-- `utils/new_helpers.py` statt in passende `utils/*.py` einzufügen
-- `features/swt_extract.py` statt `features/extractor.py` zu erweitern
+- `lstm_baseline_v2.py` statt `lstm_baseline.py` zu fixen
+- `scripts/new_evaluate.py` statt `scripts/evaluate_model.py` zu erweitern
+- `scripts/helpers.py` statt in `scripts/shared/` einzufuegen
 
 **Grep vor Create:**
 ```bash
-# Bevor du erstellst, suche nach Ähnlichem
-grep -r "class.*Generator" wend/
-grep -r "def extract_features" wend/
+# Bevor du erstellst, suche nach Aehnlichem
+grep -r "class.*Model" model/
+grep -r "def evaluate" scripts/
 ```
 
 ---
 
 ## Projektziel
 
-Pipeline für unüberwachte Novelty Detection in hochfrequenten Zeitseriendaten (2000 Hz) mit Dataset-Completeness-Schätzung.
+Praediktion des EPS-Lenk-Drehmoments (Steer Torque) fuer die elektronische Servolenkung eines Hyundai Sonata 2020. Vergleich von LSTM-Baselines mit verschiedenen Attention-Mechanismen.
 
-**Aktueller Status:** Phase 1 - Synthetischer Proof of Concept  
-**Check:** `docs/PROGRESS.md` für Details
+### Forschungsfragen
+1. Koennen neuronale Netze das EPS-Moment aus Fahrzeuggroessen praedizieren?
+2. Verbessern Attention-Mechanismen die Vorhersageguete?
+3. Trade-off zwischen Modellkomplexitaet, Genauigkeit und Inferenzzeit?
 
 ### Architektur
 
 ```
-Signal → Event-Extraktion → SWT → Features (74-dim) → k-NN Novelty → Coverage
-                              ↓
-                    Duration-Klassen (5)
+CSV-Fahrsequenzen -> Preprocessing -> Sliding Window (50 Steps, 5 Features)
+                                          |
+                            Train/Val/Test Split (Sequenz-Level)
+                                          |
+                          8 Modelle (M1-M8): MLP, LSTM, LSTM+Attention
+                                          |
+                          Evaluation: Sequenz-Level, Block-Bootstrap, 5 Seeds
 ```
 
 ### Kernparameter
 
-| Parameter | Wert | 
+| Parameter | Wert |
 |-----------|------|
-| k (k-NN) | 5 |
-| Wavelet | coif5, Level 5 |
-| Duration-Klassen | 5 (IMPULSE, TRANSIENT, SHORT, MEDIUM, LONG) |
-| Event-Typen | 15 (3 pro Klasse) |
-| Power-law α | 1.5 |
-| SNR Default | 20 dB |
-| Train/Test | 70/30 stratified |
+| Input | 5 Features, 50 Zeitschritte (5s @ 10 Hz) |
+| Output | 1 Wert: `steerFiltered` (normalisiertes Torque, [-1, 1]) |
+| Features | vEgo, aEgo, steeringAngleDeg, roll, latAccelLocalizer |
+| Split | 70/20/10 (Train/Val/Test), Sequenz-Level, split_seed=0 |
+| Seeds | [42, 94, 123, 7, 231] |
+| Accuracy-Schwelle | 0.05 (5% des normalisierten Bereichs) |
+| Framework | PyTorch Lightning |
+| Batch Size | 32 |
+| Max Epochs | 80 |
+| Early Stopping | Patience 15 |
+
+### Modelle (8)
+
+| ID | Name | Architektur | Parameter |
+|----|------|-------------|-----------|
+| M1 | MLP Last | MLP (5->64->64->1) | 4.6K |
+| M2 | MLP Flat | MLP (250->128->64->1) | 40K |
+| M3 | Small Baseline | LSTM (64, 3 Layers) | 85K |
+| M4 | Small + Simple Attn | LSTM + Simple Attention (64, 3L) | 85K |
+| M5 | Medium Baseline | LSTM (128, 5 Layers) | 598K |
+| M6 | Medium + Simple Attn | LSTM + Simple Attention (128, 5L) | 598K |
+| M7 | Medium + Additive Attn | LSTM + Bahdanau Attention (128, 5L) | 631K |
+| M8 | Medium + Scaled DP | LSTM + Scaled Dot-Product (128, 5L) | 598K |
+
+> Modell-Details: `docs/models.md`
+> Konfigurationen: `config/model_configs/`
 
 ---
 
@@ -117,123 +142,140 @@ Signal → Event-Extraktion → SWT → Features (74-dim) → k-NN Novelty → C
 # Docstrings: Google-Style (ENGLISCH)
 def function(param: type) -> return_type:
     """Short description.
-    
+
     Args:
         param: Description
-        
+
     Returns:
         Description
-        
+
     Raises:
         ValueError: If param is invalid
     """
 
 # Type Hints: IMMER verwenden
 from typing import List, Dict, Optional, Tuple
-import numpy.typing as npt
-
-# Dataclasses: Für Datenstrukturen
-from dataclasses import dataclass
-
-@dataclass
-class Event:
-    event_id: int
-    signal: npt.NDArray[np.float64]
-    ...
 
 # Logging: logging Modul, KEIN print()
 import logging
 logger = logging.getLogger(__name__)
-logger.info("Processing event %d", event_id)
+logger.info("Training model %s with seed %d", model_name, seed)
 
 # Error Handling: Spezifische Exceptions
-class InvalidEventError(ValueError):
-    """Raised when event validation fails."""
+class ConfigError(ValueError):
+    """Raised when configuration is invalid."""
     pass
 ```
 
 ### Verzeichnisstruktur
 
 ```
-wend/
-├── wend/                    # Hauptpaket
-│   ├── data/                # AP1: Event-Generator
-│   ├── features/            # AP2: Feature-Extraktion  
-│   ├── detection/           # AP3: Novelty Detection
-│   ├── coverage/            # AP4: Coverage Estimation
-│   ├── evaluation/          # AP5: Evaluation
-│   └── utils/               # Hilfsfunktionen
-├── tests/                   # Pytest Tests
-├── notebooks/               # Jupyter Notebooks
-├── configs/                 # YAML Konfigurationen
-├── docs/                    # Dokumentation
-│   ├── aktuell/             # Session-Notizen (temporär)
-│   ├── archiv/              # Abgeschlossene Notizen
-│   ├── IMPLEMENTIERUNGSPLAN.md
-│   ├── PROGRESS.md          # Checkpoint-Tracking
-│   └── ARCHITECTURE.md
-└── results/                 # Experiment-Ergebnisse
+att_project/
+|-- config/                     # Konfiguration
+|   |-- settings.py             # Zentrale Pfad-Konfiguration
+|   |-- loader.py               # Config-Loader fuer YAML
+|   |-- base_config.yaml        # Basis-Konfiguration
+|   +-- model_configs/          # Modell-spezifische Configs (m1-m8)
+|-- model/                      # Neuronale Netzwerk-Implementierungen
+|   |-- lstm_baseline.py        # LSTM Baseline (M3, M5)
+|   |-- lstm_simple_attention.py    # LSTM + Simple Attention (M4, M6)
+|   |-- lstm_additive_attention.py  # LSTM + Additive/Bahdanau (M7)
+|   |-- lstm_scaled_dp_attention.py # LSTM + Scaled Dot-Product (M8)
+|   |-- mlp_baseline.py         # MLP Baselines (M1, M2)
+|   +-- data_module.py          # PyTorch Lightning DataModule
+|-- scripts/                    # Ausfuehrbare Skripte
+|   |-- train_model.py          # Training einzelner Modelle
+|   |-- batch_runner.py         # Batch-Training/Evaluation (alle Modelle)
+|   |-- evaluate_model.py       # Modell-Evaluation
+|   |-- sequence_level_evaluation.py  # Statistische Vergleiche
+|   |-- bootstrap_evaluation.py # Bootstrap CIs & Permutationstests
+|   |-- compare_results.py      # Ergebnis-Vergleiche
+|   |-- generate_figures.py     # Visualisierungen
+|   |-- threshold_sensitivity.py # Schwellwert-Analyse
+|   |-- shared/                 # Geteilte Utilities
+|   |   |-- models.py           # Modell-Registry (Single Source of Truth)
+|   |   |-- metrics.py          # Metriken-Berechnung
+|   |   |-- checkpoints.py      # Checkpoint-Verwaltung
+|   |   +-- paths.py            # Pfad-Utilities
+|   +-- callbacks/
+|       +-- attention_callback.py  # Attention-Weights speichern
+|-- preprocess/                 # Datenaufbereitung
+|   |-- preprocess_parallel.py  # Parallele Vorverarbeitung
+|   +-- inspect_dataset.py      # Dataset-Inspektion
+|-- tests/                      # Pytest Tests
+|-- notebooks/                  # Jupyter Notebooks
+|-- data/                       # Daten (nicht in Git)
+|   |-- dataset/                # Rohe CSV-Dateien
+|   +-- prepared_dataset/       # Vorverarbeitete Pickle-Dateien
+|-- results/                    # Experiment-Ergebnisse
+|   |-- no_dropout/             # Ergebnisse ohne Dropout
+|   |-- bootstrap/              # Bootstrap/Statistik-Ergebnisse
+|   +-- paper/                  # Paper-Figures
+|-- docs/                       # Dokumentation
+|   |-- aktuell/                # Session-Notizen (temporaer)
+|   |-- archiv/                 # Abgeschlossene Notizen
+|   |-- reports/                # Ergebnisberichte
+|   +-- paper/                  # Paper-Referenzen
+|-- optuna/                     # Hyperparameter-Optimierung
+|-- lightning_logs/             # Training Logs & Checkpoints
+|-- plot/                       # Visualisierungsscripts
++-- attention_weights/          # Gespeicherte Attention-Weights
 ```
 
 ### Test-First Workflow
 
 1. **Schreibe erst den Test**
    ```bash
-   # Test schreiben in tests/test_*.py
    pytest tests/test_new_feature.py -v
    ```
 
 2. **Implementiere die Funktion**
    ```python
-   # Code in wend/*/
+   # Code in model/ oder scripts/
    # Mit Type Hints, Docstrings, Logging
    ```
 
-3. **Prüfe Checkpoint-Kriterium**
+3. **Pruefe ob Tests gruen sind**
    ```bash
-   pytest tests/test_*.py -v
-   # Kriterium erfüllt? → Weiter zu Schritt 4
+   pytest tests/ -v
    ```
 
 4. **Dokumentiere (VOR Commit)**
    - Notizzettel in `docs/aktuell/` aktualisieren
-   - `docs/PROGRESS.md`: Status ⬜ → ✅, Datum, Notizen
-   - NICHT: CLAUDE.md ändern (außer bei Methodik-Änderung)
+   - NICHT: CLAUDE.md aendern (ausser bei Methodik-Aenderung)
 
-5. **Commit mit aussagekräftiger Message**
+5. **Commit mit aussagekraeftiger Message**
    ```bash
-   git add .
-   git commit -m "feat(AP2): CP2.1 - SWT Implementierung"
+   git commit -m "feat(eval): Sequenz-Level Bootstrap implementiert"
    ```
 
 ---
 
 ## Task-Tracking
 
-### Drei-Ebenen-System
+### Zwei-Ebenen-System
 
 | Datei | Zweck | Lebensdauer | Wer pflegt? |
 |-------|-------|-------------|-------------|
-| **CLAUDE.md** | Arbeitsanweisungen, Kriterien (statisch) | Permanent | Bei Methodik-Änderung |
-| **docs/PROGRESS.md** | Checkpoint-Status, Logbuch (dynamisch) | Permanent | Nach jedem Checkpoint |
-| **docs/aktuell/*.md** | Session-Kontext, TODOs (temporär) | Bis Feature fertig | Während Arbeit |
+| **CLAUDE.md** | Arbeitsanweisungen, Konventionen (statisch) | Permanent | Bei Methodik-Aenderung |
+| **docs/aktuell/*.md** | Session-Kontext, TODOs (temporaer) | Bis Feature fertig | Waehrend Arbeit |
 
 ### Wann Notizzettel anlegen?
 
 **Immer wenn:**
-- Neues Arbeitspaket (AP) startest
-- Nach Pause/Unterbrechung zurückkommst
-- Checkpoint umfangreicher ist (>1h Arbeit)
+- Neues groesseres Feature startest
+- Nach Pause/Unterbrechung zurueckkommst
+- Aufgabe umfangreicher ist (>1h Arbeit)
 - Mehrere Teilaufgaben parallel laufen
 
-**Template für Notizzettel:**
+**Template fuer Notizzettel:**
 
 ```markdown
-# [AP-Nummer] [Titel] - [Datum]
+# [Titel] - [Datum]
 
 ## Status
-- Aktiver Checkpoint: CPx.y
-- Nächster: CPx.z
+- Aktuelle Phase: ...
+- Naechster Schritt: ...
 
 ## Kontext
 - Warum arbeite ich daran?
@@ -245,9 +287,9 @@ wend/
 
 ## Entscheidungen/Erkenntnisse
 - [Timestamp] Entscheidung: ...
-- [Timestamp] Problem: ... → Lösung: ...
+- [Timestamp] Problem: ... -> Loesung: ...
 
-## Nächste Session
+## Naechste Session
 - Wo weitermachen?
 - Was fehlt noch?
 ```
@@ -255,272 +297,112 @@ wend/
 **Workflow:**
 ```bash
 # 1. Notizzettel erstellen
-touch docs/aktuell/ap2-features-2026-01-13.md
+# Dateiname: thema-YYYY-MM-DD.md
 
-# 2. Während Arbeit aktualisieren
+# 2. Waehrend Arbeit aktualisieren
 # - Checkboxen abhaken
 # - Erkenntnisse notieren
 
-# 3. Bei AP-Abschluss archivieren
-mv docs/aktuell/ap2-features-2026-01-13.md docs/archiv/
-
-# 4. Check: README in docs/aktuell/ für Details
+# 3. Bei Abschluss archivieren
+mv docs/aktuell/thema-2026-02-16.md docs/archiv/
 ```
 
 ---
 
-## Prüfliste vor Abschluss
+## Pruef-Checkliste
 
-**Bevor du einen Checkpoint als erledigt meldest:**
+**Bevor du eine Aufgabe als erledigt meldest:**
 
 ### 1. Funktioniert es?
 
 ```bash
-# Type Checking
-mypy wend/
-
 # Tests
-pytest tests/test_*.py -v
+pytest tests/ -v
 
 # Spezifischer Test
-pytest tests/test_generator.py::test_snr_validation -v
+pytest tests/test_data_module.py::TestSequenceLevelSplit -v
 
-# Coverage (optional)
-pytest --cov=wend --cov-report=term-missing
+# Code-Qualitaet
+black model/ scripts/ tests/
+ruff check model/ scripts/
 ```
 
-### 2. Ist es vollständig?
+### 2. Ist es vollstaendig?
 
-| Prüfen | Bei Problem → |
-|--------|---------------|
-| Erfüllt Checkpoint-Kriterium? | `docs/PROGRESS.md` prüfen |
-| Alle betroffenen Stellen gefunden? | `grep -r "function_name" wend/` |
-| Imports aktualisiert? | `__init__.py` Dateien prüfen |
+| Pruefen | Bei Problem |
+|---------|-------------|
+| Alle betroffenen Stellen gefunden? | `grep -r "function_name" model/ scripts/` |
+| Imports aktualisiert? | `__init__.py` Dateien pruefen |
 | Kein toter Code? | Ungenutzte Imports/Funktionen entfernen |
+| Config angepasst? | `config/base_config.yaml` pruefen |
 
 ### 3. Ist es sauber?
 
-| Prüfen | Bei Problem → |
-|--------|---------------|
-| Folgt bestehenden Patterns? | Vergleiche mit ähnlichem Code |
-| Type Hints vollständig? | `mypy --strict` |
+| Pruefen | Bei Problem |
+|---------|-------------|
+| Folgt bestehenden Patterns? | Vergleiche mit aehnlichem Code |
+| Type Hints vollstaendig? | Alle public Functions/Classes |
 | Docstrings vorhanden? | Alle public Functions/Classes |
-| Logging statt print()? | `grep -r "print(" wend/` (sollte leer sein) |
-| Keine TODO/FIXME? | Entweder fixen oder Issue erstellen |
+| Logging statt print()? | `grep -r "print(" model/ scripts/` |
 
 ### 4. Bei Problemen
 
 ```
-Type-Fehler?
-├── Fehler-Message komplett lesen
-├── Betroffene Datei öffnen
-└── Type-Definition nachverfolgen
-
 Tests schlagen fehl?
-├── pytest -v für Details
-├── pytest --pdb für Debugging
-└── Einzelnen Test isoliert laufen lassen
+|-- pytest -v fuer Details
+|-- pytest --pdb fuer Debugging
++-- Einzelnen Test isoliert laufen lassen
 
 In einer Sackgasse?
-├── STOPP - nicht weiterwursteln
-├── Notizzettel: Problem dokumentieren
-├── Gibt es einfacheren Weg?
-└── Bei Unsicherheit: Fragen
+|-- STOPP - nicht weiterwursteln
+|-- Notizzettel: Problem dokumentieren
+|-- Gibt es einfacheren Weg?
++-- Bei Unsicherheit: Fragen
 
-Mehrere Ansätze möglich?
-├── Gibt es bestehendes Pattern im Code?
-├── Wenn ja → diesem folgen
-├── Wenn nein → einfachsten Ansatz wählen
-└── Bei Architektur-Entscheidung: Fragen
+Mehrere Ansaetze moeglich?
+|-- Gibt es bestehendes Pattern im Code?
+|-- Wenn ja -> diesem folgen
+|-- Wenn nein -> einfachsten Ansatz waehlen
++-- Bei Architektur-Entscheidung: Fragen
 ```
 
 ---
 
 ## Dokumentations-Pflicht
 
-**Nach JEDEM abgeschlossenen Checkpoint:**
+**Nach abgeschlossener Aufgabe:**
 
 ### 1. Notizzettel aktualisieren
 
 ```markdown
 ## Status
-- ✅ CP2.1 abgeschlossen (2026-01-13)
-- Nächster: CP2.2
-
-## Erkenntnisse
-- SWT mit pywt funktioniert gut
-- coif5 Level 5 gibt 74 Features
+- Phase 1 (DataModule Fix): KOMPLETT
+- Naechster: Phase 2 (Training)
 ```
 
-### 2. PROGRESS.md aktualisieren
-
-```markdown
-# Beispiel:
-| CP2.1 | ✅ | 2026-01-13 | SWT implementiert, 74 Features extrahiert |
-```
-
-**Format:**
-- Status: ⬜ → ✅
-- Datum: YYYY-MM-DD
-- Notizen: Was wurde gemacht, Besonderheiten, Probleme gelöst
-
-### 3. Git Commit (nach Bestätigung)
+### 2. Git Commit (nach Bestaetigung)
 
 ```bash
-# Format:
-git add .
-git commit -m "feat(APx): CPx.y - Kurzbeschreibung"
-
-# Beispiele:
-git commit -m "feat(AP1): CP1.8 - Alle Tests bestehen"
-git commit -m "feat(AP2): CP2.1 - SWT Implementierung"
-git commit -m "fix(AP2): Feature-Extraktion Reihenfolge korrigiert"
-git commit -m "test(AP1): SNR-Validierung erweitert"
-git commit -m "docs(AP2): Wavelet-Auswahl dokumentiert"
+# Format: Conventional Commits
+git commit -m "feat(eval): Sequenz-Level Evaluation implementiert"
+git commit -m "fix(data): Split-Seed Parameter weitergeben"
+git commit -m "test(eval): Bootstrap-Tests hinzugefuegt"
+git commit -m "docs: Evaluation-Pipeline Dokumentation"
+git commit -m "refactor(model): Attention-Module vereinheitlicht"
 ```
 
-### 4. Wann CLAUDE.md ändern?
+### 3. Wann CLAUDE.md aendern?
 
 **NUR bei:**
 - Neue Arbeitsweise/Methodik
 - Neue Konventionen
-- Änderung der Checkpoint-Kriterien
 - Neue Tools/Dependencies
+- Strukturelle Aenderungen am Projekt
 
 **NICHT bei:**
-- Status-Updates (→ PROGRESS.md)
-- TODOs (→ Notizzettel)
-- Code-Änderungen
-
----
-
-## Arbeitspakete
-
-| AP | Name | Status | Abhängigkeit |
-|----|------|--------|--------------|
-| AP1 | Event-Generator | ✅ | - |
-| AP2 | Feature-Extraktion | ✅ | AP1 |
-| AP3 | Novelty Detection | ✅ | AP2 |
-| AP4 | Coverage Estimation | ✅ | AP3 |
-| AP5 | Evaluation Framework | ✅ | AP4 |
-| AP6 | Erweiterungen | ⬜ | AP5 |
-
-**Details:** Siehe `docs/IMPLEMENTIERUNGSPLAN.md`
-
----
-
-## AP1: Event-Generator ✅
-
-### Checkpoints
-
-| CP | Kriterium | Command |
-|----|-----------|---------|
-| CP1.1 | Projekt läuft | `pip install -e . && pytest` |
-| CP1.2 | 15 Typen generieren Signale | `pytest tests/test_event_types.py` |
-| CP1.3 | Länge/Amplitude valide | `pytest tests/test_generator.py -k "length or amplitude"` |
-| CP1.4 | Variation funktioniert | `pytest tests/test_generator.py -k "variation"` |
-| CP1.5 | SNR korrekt (±1dB) | `pytest tests/test_generator.py -k "snr"` |
-| CP1.6 | Verteilungen korrekt | `pytest tests/test_generator.py -k "distribution"` |
-| CP1.7 | Reproduzierbar | `pytest tests/test_generator.py -k "seed"` |
-| CP1.8 | Alle Tests grün | `pytest tests/` |
-
-### Event-Typen (15)
-
-**IMPULSE (<10ms):** exponential_spike, dirac_approximation, bipolar_pulse  
-**TRANSIENT (10-100ms):** damped_oscillation, inrush_current, chirp_burst  
-**SHORT (100ms-1s):** trapezoidal, pwm_burst, multi_peak_envelope  
-**MEDIUM (1-10s):** sawtooth_train, modulated_sine, step_sequence  
-**LONG (>10s):** slow_ramp_hold, periodic_bursts, wandering_baseline
-
----
-
-## AP2: Feature-Extraktion ✅
-
-**Status:** Abgeschlossen - 106 Tests, 74 Features pro Event
-
-### Checkpoints
-
-| CP | Kriterium | Command |
-|----|-----------|---------|
-| CP2.1 | SWT funktioniert | `pytest tests/test_swt.py` |
-| CP2.2 | 74 Features pro Event | `pytest tests/test_features.py -k "dimension"` |
-| CP2.3 | Features normalisiert | `pytest tests/test_features.py -k "normalization"` |
-| CP2.4 | Duration-Klassen korrekt | `pytest tests/test_features.py -k "duration"` |
-| CP2.5 | Batch-Verarbeitung | `pytest tests/test_features.py -k "batch"` |
-| CP2.6 | Performance OK (<100ms/Event) | `pytest tests/test_performance.py` |
-
-**Details:** Siehe Notizzettel in `docs/aktuell/`
-
----
-
-## Datenstrukturen
-
-```python
-# wend/data/event_types.py
-
-from dataclasses import dataclass
-from enum import Enum
-import numpy as np
-import numpy.typing as npt
-
-class DurationClass(Enum):
-    """Event duration categories."""
-    IMPULSE = "impulse"       # < 10 ms
-    TRANSIENT = "transient"   # 10-100 ms
-    SHORT = "short"           # 100 ms - 1 s
-    MEDIUM = "medium"         # 1-10 s
-    LONG = "long"             # > 10 s
-
-@dataclass
-class Event:
-    """Container for a single event with metadata."""
-    event_id: int
-    type_id: int
-    signal: npt.NDArray[np.float64]
-    duration_samples: int
-    duration_ms: float
-    amplitude: float
-    snr_db: float
-    duration_class: DurationClass
-    is_novel: bool = False
-```
-
----
-
-## Wichtige Formeln
-
-```python
-# Power-law Verteilung
-def powerlaw_probs(n_types: int, alpha: float = 1.5) -> np.ndarray:
-    """Generate power-law distributed probabilities.
-    
-    Args:
-        n_types: Number of event types
-        alpha: Power-law exponent (higher = more skewed)
-        
-    Returns:
-        Array of probabilities summing to 1
-    """
-    ranks = np.arange(1, n_types + 1)
-    probs = ranks ** (-alpha)
-    return probs / probs.sum()
-
-# SNR in dB
-def calculate_snr_db(signal: np.ndarray, noise: np.ndarray) -> float:
-    """Calculate SNR in decibels."""
-    signal_power = np.mean(signal ** 2)
-    noise_power = np.mean(noise ** 2)
-    return 10 * np.log10(signal_power / noise_power)
-
-# Rauschen für gewünschtes SNR hinzufügen
-def add_noise(signal: np.ndarray, snr_db: float, 
-              rng: np.random.Generator) -> np.ndarray:
-    """Add white noise to achieve target SNR."""
-    signal_power = np.mean(signal ** 2)
-    noise_power = signal_power / (10 ** (snr_db / 10))
-    noise = rng.normal(0, np.sqrt(noise_power), len(signal))
-    return signal + noise
-```
+- Status-Updates (Notizzettel)
+- TODOs (Notizzettel)
+- Code-Aenderungen
 
 ---
 
@@ -529,64 +411,88 @@ def add_noise(signal: np.ndarray, snr_db: float,
 ### Typische Kommandos
 
 ```bash
-# Entwicklung
-pytest tests/ -v                    # Alle Tests
-pytest tests/test_X.py -v           # Spezifischer Test
-pytest -k "keyword" -v              # Tests mit Keyword
-pytest --cov=wend --cov-report=html # Coverage Report
+# Training
+python scripts/train_model.py --config config/model_configs/m3_small_baseline.yaml
+python scripts/train_model.py --config config/model_configs/m7_medium_additive_attn.yaml --save-attention
 
-# Code-Qualität
-mypy wend/                          # Type Checking
-mypy --strict wend/module.py        # Strict Mode für Datei
-black wend/ tests/                  # Formatting
-ruff check wend/                    # Linting
+# Batch-Training (alle Modelle, 5 Seeds)
+python scripts/batch_runner.py train --variant no_dropout
+python scripts/batch_runner.py train --variant no_dropout --models m3 m5 m7
 
-# Suchen
-grep -r "pattern" wend/             # Text-Suche
-grep -r "class.*Event" wend/        # Regex-Suche
-find wend/ -name "*.py" -type f     # Dateien finden
+# Evaluation
+python scripts/batch_runner.py evaluate --variant no_dropout
+python scripts/evaluate_model.py --checkpoint path/to/checkpoint.ckpt --config config/model_configs/m3_small_baseline.yaml
+
+# Statistische Vergleiche (Sequenz-Level)
+python scripts/sequence_level_evaluation.py --n-bootstrap 1000 --n-permutations 10000
+
+# Batch: Train + Evaluate
+python scripts/batch_runner.py all --variant no_dropout
+
+# Verfuegbare Modelle/Checkpoints auflisten
+python scripts/batch_runner.py list --variant no_dropout
+
+# Tests
+pytest tests/ -v
+pytest tests/test_data_module.py -v
+pytest tests/test_sequence_level_evaluation.py -v
+
+# Code-Qualitaet
+black model/ scripts/ tests/
+ruff check model/ scripts/
 
 # Projekt-Status
-git status                          # Geänderte Dateien
-git diff                            # Änderungen anzeigen
-git log --oneline -10               # Letzte Commits
+git status
+git diff
+git log --oneline -10
 ```
 
 ### Bei Fehlern
 
 ```bash
 # Test fehlgeschlagen
-pytest tests/test_X.py::test_func -v  # Einzelnen Test
-pytest --pdb                           # Debugger bei Fehler
-
-# Type-Fehler
-mypy wend/module.py                    # Spezifische Datei
-mypy --show-error-codes wend/          # Mit Error-Codes
+pytest tests/test_X.py::test_func -v   # Einzelnen Test
+pytest --pdb                            # Debugger bei Fehler
 
 # Import-Fehler
-python -c "import wend; print(wend.__file__)"  # Package-Location
-pip list | grep pywt                            # Dependency check
+python -c "from config.settings import print_config; print_config()"
+pip list | grep torch
+
+# CUDA-Probleme
+python -c "import torch; print(torch.cuda.is_available())"
 ```
 
 ---
 
 ## Konventionen
 
-- **Sprache Code:** Englisch (Docstrings, Variable, Funktionen)
-- **Sprache Docs:** Deutsch (außer Docstrings im Code)
+- **Sprache Code:** Englisch (Docstrings, Variablen, Funktionen)
+- **Sprache Docs:** Deutsch (ausser Docstrings im Code)
 - **Commit-Messages:** Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`)
-- **Branch-Namen:** `ap1/event-generator`, `ap2/features`, `fix/snr-calculation`
+- **Branch-Namen:** `feature/beschreibung`, `fix/beschreibung`
 - **Test-Dateien:** `test_<module>.py` in `tests/`
-- **Config-Dateien:** YAML in `configs/`
+- **Config-Dateien:** YAML in `config/model_configs/`
+- **Modell-Registry:** `scripts/shared/models.py` ist Single Source of Truth fuer Modell-IDs
+- **Pfade:** Immer ueber `config/settings.py`, nie hardcoden
+
+---
+
+## Wichtige Architektur-Entscheidungen
+
+- **Sequenz-Level Split:** Train/Val/Test Split auf Sequenz-Ebene (nicht Sample-Ebene), um Data Leakage zu vermeiden. `split_seed=0` ist unabhaengig vom Trainings-Seed.
+- **5 Seeds:** Jedes Modell wird mit 5 verschiedenen Seeds trainiert fuer robuste Statistik.
+- **Sequenz-Level Evaluation:** Metriken werden pro Testsequenz aggregiert (~500 unabhaengige Datenpunkte), dann Block-Bootstrap und Permutationstests auf dieser Ebene.
+- **Keine Dropout-Variante als Default:** Die Hauptergebnisse verwenden `no_dropout`. Dropout-Varianten existieren als Vergleich.
 
 ---
 
 ## Bei Problemen
 
-1. **Prüfe `docs/PROGRESS.md`** für letzten Status
-2. **Prüfe Notizzettel** in `docs/aktuell/` für Kontext
-3. **Checkpoint-Kriterien sind verbindlich**
-4. **Bei Unklarheiten: Frage nach, bevor du implementierst**
+1. **Pruefe Notizzettel** in `docs/aktuell/` fuer aktuellen Kontext
+2. **Pruefe `docs/README.md`** fuer Projektuebersicht
+3. **Bei Unklarheiten: Frage nach, bevor du implementierst**
+4. **Modell-Definitionen:** `scripts/shared/models.py`
+5. **Pfad-Konfiguration:** `config/settings.py`
 
 ---
 
@@ -595,14 +501,20 @@ pip list | grep pywt                            # Dependency check
 | Was? | Wo? |
 |------|-----|
 | Arbeitsanweisungen | Diese Datei |
-| Detaillierter Plan | `docs/IMPLEMENTIERUNGSPLAN.md` |
-| Checkpoint-Status | `docs/PROGRESS.md` |
+| Projektuebersicht | `docs/README.md` |
+| Modellarchitekturen | `docs/models.md` |
+| Daten-Pipeline | `docs/data_pipeline.md` |
+| Training-Doku | `docs/training.md` |
+| Evaluation-Pipeline | `docs/evaluation_pipeline.md` |
+| Setup & Konfiguration | `docs/configuration.md` |
 | Session-Kontext | `docs/aktuell/*.md` |
-| Architektur | `docs/ARCHITECTURE.md` |
-| Event-Typen | `wend/data/event_types.py` |
+| Ergebnisberichte | `docs/reports/` |
+| Modell-Registry | `scripts/shared/models.py` |
+| Basis-Konfiguration | `config/base_config.yaml` |
+| Modell-Configs | `config/model_configs/` |
+| Pfad-Konfiguration | `config/settings.py` |
 | Tests | `tests/` |
-| Konfiguration | `configs/` |
 
 ---
 
-*Letzte Aktualisierung: 2026-01-14*
+*Letzte Aktualisierung: 2026-02-16*
