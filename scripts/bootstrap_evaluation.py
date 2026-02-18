@@ -335,35 +335,72 @@ def _significance_stars(p: float) -> str:
     return ""
 
 
-def compute_cohens_d(
-    y_true: np.ndarray,
-    y_pred_a: np.ndarray,
-    y_pred_b: np.ndarray,
-) -> float:
-    """Compute paired Cohen's d on per-sample absolute errors.
-
-    Measures how much model B improves over model A in standardized units.
-    Positive d means B has smaller errors (B is better).
+def compute_paired_cohens_d(
+    values_a: np.ndarray,
+    values_b: np.ndarray,
+) -> Dict[str, Any]:
+    """Compute paired Cohen's d + Hedge's g on per-sample metric arrays.
 
     Args:
-        y_true: Ground truth values
-        y_pred_a: Predictions from model A
-        y_pred_b: Predictions from model B
+        values_a: Per-sample metric values for model A [N]
+        values_b: Per-sample metric values for model B [N]
 
     Returns:
-        Paired Cohen's d (positive = B better)
+        Dictionary with cohens_d, hedges_g, effect_size
+    """
+    diffs = values_b - values_a
+    n = len(diffs)
+    std_diffs = float(np.std(diffs, ddof=1))
+
+    if std_diffs < 1e-12:
+        d = 0.0
+    else:
+        d = float(np.mean(diffs) / std_diffs)
+
+    # Hedge's g: bias-corrected Cohen's d
+    df = n - 1
+    correction = 1.0 - 3.0 / (4.0 * df - 1.0) if df > 1 else 1.0
+    g = d * correction
+
+    return {
+        "cohens_d": d,
+        "hedges_g": float(g),
+        "effect_size": effect_size_category(abs(d)),
+    }
+
+
+def _per_sample_metric_values(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    metric: str,
+    threshold: float = 0.05,
+) -> np.ndarray:
+    """Compute per-sample metric values for Cohen's d calculation.
+
+    Args:
+        y_true: Ground truth values [N]
+        y_pred: Predicted values [N]
+        metric: One of 'accuracy', 'rmse', 'r2'
+        threshold: Accuracy threshold
+
+    Returns:
+        Per-sample metric values [N].
+        - accuracy: binary (1 if |error| <= threshold, else 0)
+        - rmse: squared error (per-sample component of RMSE)
+        - r2: squared residual (identical to rmse; R² is a global metric,
+               so per-sample squared residuals are the best decomposition)
     """
     y_true = y_true.flatten()
-    y_pred_a = y_pred_a.flatten()
-    y_pred_b = y_pred_b.flatten()
+    y_pred = y_pred.flatten()
 
-    errors_a = np.abs(y_true - y_pred_a)
-    errors_b = np.abs(y_true - y_pred_b)
-
-    # Paired differences: positive = B has smaller error = B is better
-    diffs = errors_a - errors_b
-    d = float(np.mean(diffs) / np.std(diffs, ddof=1))
-    return d
+    if metric == "accuracy":
+        return (np.abs(y_true - y_pred) <= threshold).astype(float)
+    elif metric == "rmse":
+        return (y_true - y_pred) ** 2
+    elif metric == "r2":
+        return (y_true - y_pred) ** 2
+    else:
+        raise ValueError(f"Unknown metric: {metric}")
 
 
 def effect_size_category(d: float) -> str:
@@ -391,7 +428,9 @@ def run_all_comparisons(
 ) -> List[Dict[str, Any]]:
     """Run permutation tests for all comparison pairs.
 
-    Skips pairs where one or both models have no predictions.
+    Computes Cohen's d + Hedge's g per metric. Sign convention:
+        - Accuracy: positive d = B higher (better). No flip.
+        - RMSE, R²: positive d = B better. Sign-flip for error metrics.
 
     Args:
         pairs: List of (model_a, model_b, category) tuples
@@ -403,6 +442,9 @@ def run_all_comparisons(
     Returns:
         List of comparison result dicts
     """
+    # Error metrics where lower = better (need sign-flip for d)
+    error_metrics = {"rmse", "r2"}
+
     comparison_results = []
 
     for model_a, model_b, category in pairs:
@@ -412,25 +454,40 @@ def run_all_comparisons(
         pred_a = all_predictions[model_a]
         pred_b = all_predictions[model_b]
 
-        # Cohen's d on paired per-sample absolute errors
-        d = compute_cohens_d(y_true, pred_a, pred_b)
-
         pair_result = {
             "model_a": model_a,
             "model_b": model_b,
             "category": category,
-            "cohens_d": d,
-            "effect_size": effect_size_category(d),
         }
 
         for metric in ["accuracy", "rmse", "r2"]:
-            result = permutation_test(
+            # Permutation test
+            perm = permutation_test(
                 y_true, pred_a, pred_b,
                 metric=metric,
                 n_permutations=n_permutations,
                 seed=seed,
             )
-            pair_result[metric] = result
+
+            # Cohen's d on per-sample values
+            vals_a = _per_sample_metric_values(y_true, pred_a, metric)
+            vals_b = _per_sample_metric_values(y_true, pred_b, metric)
+            d_result = compute_paired_cohens_d(vals_a, vals_b)
+
+            # Sign-flip for error metrics: positive d = B better (lower)
+            if metric in error_metrics:
+                d_result["cohens_d"] = -d_result["cohens_d"]
+                d_result["hedges_g"] = -d_result["hedges_g"]
+
+            pair_result[metric] = {
+                "observed_diff": perm["observed_diff"],
+                "p_value": perm["p_value"],
+                "significant": perm["significant"],
+                "metric": metric,
+                "cohens_d": d_result["cohens_d"],
+                "hedges_g": d_result["hedges_g"],
+                "effect_size": d_result["effect_size"],
+            }
 
         comparison_results.append(pair_result)
 
@@ -440,8 +497,10 @@ def run_all_comparisons(
 def generate_comparison_markdown(comparison_results: List[Dict[str, Any]]) -> str:
     """Generate Markdown table for permutation test results."""
     lines = [
-        "| Comparison | Category | \u0394 Acc (%) | \u0394 RMSE | \u0394 R\u00b2 | Cohen's d | Effect |",
-        "|------------|----------|-----------|--------|------|-----------|--------|",
+        "| Comparison | Category | \u0394 Acc (%) | \u0394 RMSE | \u0394 R\u00b2 "
+        "| d(Acc) | d(RMSE) | d(R\u00b2) |",
+        "|------------|----------|-----------|--------|------"
+        "|--------|---------|------|",
     ]
 
     for c in comparison_results:
@@ -451,15 +510,25 @@ def generate_comparison_markdown(comparison_results: List[Dict[str, Any]]) -> st
         acc_diff = f"{c['accuracy']['observed_diff']:+.2f}"
         rmse_diff = f"{c['rmse']['observed_diff']:+.4f}"
         r2_diff = f"{c['r2']['observed_diff']:+.3f}"
-        d = f"{c['cohens_d']:+.3f}"
-        effect = c["effect_size"]
+
+        d_acc = f"{c['accuracy']['cohens_d']:+.3f}"
+        d_rmse = f"{c['rmse']['cohens_d']:+.3f}"
+        d_r2 = f"{c['r2']['cohens_d']:+.3f}"
 
         lines.append(
-            f"| {label} | {cat} | {acc_diff} | {rmse_diff} | {r2_diff} | {d} | {effect} |"
+            f"| {label} | {cat} | {acc_diff} | {rmse_diff} | {r2_diff} "
+            f"| {d_acc} | {d_rmse} | {d_r2} |"
         )
 
     lines.append("")
-    lines.append("Cohen's d: |d|<0.2 negligible, 0.2-0.5 small, 0.5-0.8 medium, >0.8 large")
+    lines.append(
+        "Cohen's d: |d|<0.2 negligible, 0.2-0.5 small, "
+        "0.5-0.8 medium, >0.8 large"
+    )
+    lines.append(
+        "d sign convention: positive = B better "
+        "(higher accuracy, lower RMSE/R\u00b2 error)"
+    )
 
     return "\n".join(lines)
 
@@ -468,15 +537,16 @@ def generate_comparison_latex(
     comparison_results: List[Dict[str, Any]],
     caption: str = "Pairwise Model Comparisons",
 ) -> str:
-    """Generate LaTeX table for comparison results with effect sizes."""
+    """Generate LaTeX table for comparison results with per-metric effect sizes."""
     lines = [
         "\\begin{table}[htbp]",
         "\\centering",
         f"\\caption{{{caption}}}",
         "\\label{tab:model_comparisons}",
-        "\\begin{tabular}{llrrrc}",
+        "\\begin{tabular}{llrrrrrr}",
         "\\toprule",
-        "Comparison & Category & $\\Delta$ Acc (\\%) & $\\Delta$ R$^2$ & Cohen's $d$ & Effect \\\\",
+        "Comparison & Category & $\\Delta$ Acc (\\%) & $\\Delta$ R$^2$ "
+        "& $d$(Acc) & $d$(RMSE) & $d$(R$^2$) \\\\",
         "\\midrule",
     ]
 
@@ -492,17 +562,21 @@ def generate_comparison_latex(
 
         acc_diff = f"{c['accuracy']['observed_diff']:+.2f}"
         r2_diff = f"{c['r2']['observed_diff']:+.3f}"
-        d = f"{c['cohens_d']:+.3f}"
-        effect = c["effect_size"]
+        d_acc = f"{c['accuracy']['cohens_d']:+.3f}"
+        d_rmse = f"{c['rmse']['cohens_d']:+.3f}"
+        d_r2 = f"{c['r2']['cohens_d']:+.3f}"
 
         lines.append(
-            f"{label} & {cat} & {acc_diff} & {r2_diff} & {d} & {effect} \\\\"
+            f"{label} & {cat} & {acc_diff} & {r2_diff} "
+            f"& {d_acc} & {d_rmse} & {d_r2} \\\\"
         )
 
     lines.extend([
         "\\bottomrule",
-        "\\multicolumn{6}{l}{\\footnotesize Cohen's $d$: $|d|<0.2$ negligible, "
+        "\\multicolumn{7}{l}{\\footnotesize Cohen's $d$: $|d|<0.2$ negligible, "
         "$0.2$--$0.5$ small, $0.5$--$0.8$ medium, $>0.8$ large} \\\\",
+        "\\multicolumn{7}{l}{\\footnotesize Positive $d$ = B better "
+        "(higher accuracy, lower RMSE/R$^2$ error)} \\\\",
         "\\end{tabular}",
         "\\end{table}",
     ])
@@ -892,16 +966,14 @@ def main():
 
             # Print results
             for c in comparison_results:
-                d = c["cohens_d"]
-                effect = c["effect_size"]
-                print(f"\n  {c['model_a']} vs {c['model_b']}  [{c['category']}]"
-                      f"  Cohen's d={d:+.3f} ({effect})")
+                print(f"\n  {c['model_a']} vs {c['model_b']}  [{c['category']}]")
                 for metric in ["accuracy", "rmse", "r2"]:
                     m = c[metric]
                     stars = _significance_stars(m["p_value"])
                     fmt = ".2f" if metric == "accuracy" else (".4f" if metric == "rmse" else ".3f")
                     print(f"    {metric.upper():>8}: \u0394={m['observed_diff']:{fmt}}  "
-                          f"p={m['p_value']:.4f} {stars}")
+                          f"p={m['p_value']:.4f} {stars}  "
+                          f"d={m['cohens_d']:+.3f} ({m['effect_size']})")
 
             # Print comparison tables
             print("\n" + "-" * 70)
@@ -927,6 +999,7 @@ def main():
     # JSON results (bootstrap + comparisons)
     json_path = output_dir / f"bootstrap_results_{model_set_name}.json"
     # Strip non-serializable fields from comparison results
+    # d/g/effect are now inside each metric dict
     comparison_for_json = []
     for c in comparison_results:
         c_clean = {

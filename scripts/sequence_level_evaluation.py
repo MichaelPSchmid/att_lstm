@@ -353,8 +353,12 @@ def run_all_comparisons(
 ) -> List[Dict[str, Any]]:
     """Run pairwise comparisons on sequence-level metrics.
 
-    For each pair of models, runs permutation tests on all metrics
-    and computes Cohen's d + Hedge's g on MAE.
+    For each pair of models, runs permutation tests and computes
+    Cohen's d + Hedge's g per metric.
+
+    Sign convention for Cohen's d:
+        - Accuracy: positive d = B higher (better). No flip.
+        - RMSE, MAE: positive d = B lower (better). Sign-flip applied.
 
     Args:
         pairs: List of (model_a, model_b, category) tuples
@@ -365,6 +369,9 @@ def run_all_comparisons(
     Returns:
         List of comparison result dicts
     """
+    # Error metrics where lower = better (need sign-flip)
+    error_metrics = {"rmse", "mae"}
+
     comparison_results = []
 
     for model_a, model_b, category in pairs:
@@ -374,33 +381,39 @@ def run_all_comparisons(
         metrics_a = all_seq_metrics[model_a]
         metrics_b = all_seq_metrics[model_b]
 
-        # Cohen's d on MAE (positive d = B has smaller MAE = B is better)
-        d_result = cohens_d_paired_sequences(
-            metrics_a["mae"], metrics_b["mae"]
-        )
-        # Flip sign: positive = improvement (smaller error)
-        d_result["cohens_d"] = -d_result["cohens_d"]
-        d_result["hedges_g"] = -d_result["hedges_g"]
-
         pair_result = {
             "model_a": model_a,
             "model_b": model_b,
             "category": category,
-            "cohens_d": d_result["cohens_d"],
-            "hedges_g": d_result["hedges_g"],
-            "effect_size": d_result["effect_size"],
-            "n_sequences": d_result["n_sequences"],
+            "n_sequences": len(metrics_a[METRICS[0]]),
         }
 
-        # Permutation tests for each metric
+        # Permutation tests + Cohen's d for each metric
         for metric in METRICS:
-            result = permutation_test_sequences(
+            perm = permutation_test_sequences(
                 metrics_a[metric], metrics_b[metric],
                 n_permutations=n_permutations,
                 seed=seed,
             )
-            result["metric"] = metric
-            pair_result[metric] = result
+
+            d_result = cohens_d_paired_sequences(
+                metrics_a[metric], metrics_b[metric],
+            )
+
+            # Sign-flip for error metrics: positive d = B better (lower)
+            if metric in error_metrics:
+                d_result["cohens_d"] = -d_result["cohens_d"]
+                d_result["hedges_g"] = -d_result["hedges_g"]
+
+            pair_result[metric] = {
+                "observed_diff": perm["observed_diff"],
+                "p_value": perm["p_value"],
+                "significant": perm["significant"],
+                "metric": metric,
+                "cohens_d": d_result["cohens_d"],
+                "hedges_g": d_result["hedges_g"],
+                "effect_size": d_result["effect_size"],
+            }
 
         comparison_results.append(pair_result)
 
@@ -483,10 +496,10 @@ def generate_comparison_markdown(comparison_results: List[Dict[str, Any]]) -> st
     lines = [
         "| Comparison | Category | Seqs "
         "| \u0394 Acc (%) | \u0394 RMSE | \u0394 MAE "
-        "| Cohen's d | Hedge's g | Effect |",
+        "| d(Acc) | d(RMSE) | d(MAE) |",
         "|------------|----------|------"
         "|-----------|--------|------"
-        "|-----------|-----------|--------|",
+        "|--------|---------|--------|",
     ]
 
     for c in comparison_results:
@@ -497,24 +510,31 @@ def generate_comparison_markdown(comparison_results: List[Dict[str, Any]]) -> st
         acc_diff = f"{c['accuracy']['observed_diff']:+.2f}"
         rmse_diff = f"{c['rmse']['observed_diff']:+.4f}"
         mae_diff = f"{c['mae']['observed_diff']:+.4f}"
-        d = f"{c['cohens_d']:+.3f}"
-        g = f"{c['hedges_g']:+.3f}"
-        effect = c["effect_size"]
+
+        d_acc = f"{c['accuracy']['cohens_d']:+.3f}"
+        d_rmse = f"{c['rmse']['cohens_d']:+.3f}"
+        d_mae = f"{c['mae']['cohens_d']:+.3f}"
 
         # Add significance stars from permutation test
-        acc_p = c["accuracy"]["p_value"]
-        acc_stars = _significance_stars(acc_p)
+        acc_stars = _significance_stars(c["accuracy"]["p_value"])
+        rmse_stars = _significance_stars(c["rmse"]["p_value"])
+        mae_stars = _significance_stars(c["mae"]["p_value"])
 
         lines.append(
             f"| {label} | {cat} | {n_seq} "
-            f"| {acc_diff}{acc_stars} | {rmse_diff} | {mae_diff} "
-            f"| {d} | {g} | {effect} |"
+            f"| {acc_diff}{acc_stars} | {rmse_diff}{rmse_stars} "
+            f"| {mae_diff}{mae_stars} "
+            f"| {d_acc} | {d_rmse} | {d_mae} |"
         )
 
     lines.append("")
     lines.append(
         "Cohen's d: |d|<0.2 negligible, 0.2-0.5 small, "
         "0.5-0.8 medium, >0.8 large"
+    )
+    lines.append(
+        "d sign convention: positive = B better "
+        "(higher accuracy, lower RMSE/MAE)"
     )
     lines.append("Significance: * p<0.05, ** p<0.01, *** p<0.001")
 
@@ -531,10 +551,10 @@ def generate_comparison_latex(
         "\\centering",
         f"\\caption{{{caption}}}",
         "\\label{tab:sequence_level_comparisons}",
-        "\\begin{tabular}{llrrrrc}",
+        "\\begin{tabular}{llrrrrrr}",
         "\\toprule",
         "Comparison & Category & $\\Delta$ Acc (\\%) & $\\Delta$ MAE "
-        "& Cohen's $d$ & Hedge's $g$ & Effect \\\\",
+        "& $d$(Acc) & $d$(RMSE) & $d$(MAE) \\\\",
         "\\midrule",
     ]
 
@@ -549,21 +569,21 @@ def generate_comparison_latex(
 
         acc_diff = f"{c['accuracy']['observed_diff']:+.2f}"
         mae_diff = f"{c['mae']['observed_diff']:+.4f}"
-        d = f"{c['cohens_d']:+.3f}"
-        g = f"{c['hedges_g']:+.3f}"
-        effect = c["effect_size"]
+        d_acc = f"{c['accuracy']['cohens_d']:+.3f}"
+        d_rmse = f"{c['rmse']['cohens_d']:+.3f}"
+        d_mae = f"{c['mae']['cohens_d']:+.3f}"
 
         lines.append(
             f"{label} & {cat} & {acc_diff} & {mae_diff} "
-            f"& {d} & {g} & {effect} \\\\"
+            f"& {d_acc} & {d_rmse} & {d_mae} \\\\"
         )
 
     lines.extend([
         "\\bottomrule",
         "\\multicolumn{7}{l}{\\footnotesize Cohen's $d$: $|d|<0.2$ negligible, "
         "$0.2$--$0.5$ small, $0.5$--$0.8$ medium, $>0.8$ large} \\\\",
-        "\\multicolumn{7}{l}{\\footnotesize Hedge's $g$: bias-corrected $d$ "
-        "for small sample sizes} \\\\",
+        "\\multicolumn{7}{l}{\\footnotesize Positive $d$ = B better "
+        "(higher accuracy, lower RMSE/MAE)} \\\\",
         "\\end{tabular}",
         "\\end{table}",
     ])
@@ -892,18 +912,15 @@ def main():
             )
 
             for c in comparison_results:
-                d = c["cohens_d"]
-                g = c["hedges_g"]
-                effect = c["effect_size"]
-                print(f"\n  {c['model_a']} vs {c['model_b']}  [{c['category']}]"
-                      f"  d={d:+.3f} g={g:+.3f} ({effect})")
+                print(f"\n  {c['model_a']} vs {c['model_b']}  [{c['category']}]")
                 for metric in METRICS:
                     m = c[metric]
                     stars = _significance_stars(m["p_value"])
                     fmt = ".2f" if metric == "accuracy" else ".4f"
                     print(f"    {metric.upper():>8}: "
                           f"\u0394={m['observed_diff']:{fmt}}  "
-                          f"p={m['p_value']:.4f} {stars}")
+                          f"p={m['p_value']:.4f} {stars}  "
+                          f"d={m['cohens_d']:+.3f} ({m['effect_size']})")
 
             print("\n" + "-" * 70)
             print("Comparison Table (Sequence-Level):")
@@ -939,9 +956,6 @@ def main():
             "model_a": c["model_a"],
             "model_b": c["model_b"],
             "category": c["category"],
-            "cohens_d": c["cohens_d"],
-            "hedges_g": c["hedges_g"],
-            "effect_size": c["effect_size"],
             "n_sequences": c["n_sequences"],
         }
         for metric in METRICS:

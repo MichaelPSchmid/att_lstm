@@ -21,6 +21,7 @@ from scripts.sequence_level_evaluation import (
     cohens_d_paired_sequences,
     multi_seed_sequence_analysis,
     permutation_test_sequences,
+    run_all_comparisons,
 )
 
 
@@ -313,3 +314,82 @@ class TestMultiSeedSequenceAnalysis:
 
         assert result["accuracy"]["per_seed_values"] == [90.0]
         assert result["rmse"]["per_seed_values"] == [0.03]
+
+
+class TestRunAllComparisonsPerMetricD:
+    """Tests that run_all_comparisons computes Cohen's d per metric."""
+
+    @pytest.fixture()
+    def seq_metrics(self):
+        """Build synthetic per-sequence metric arrays for two models."""
+        rng = np.random.RandomState(42)
+        n_seq = 100
+
+        # Model A: baseline
+        acc_a = rng.uniform(70, 90, n_seq)
+        rmse_a = rng.uniform(0.03, 0.06, n_seq)
+        mae_a = rng.uniform(0.02, 0.05, n_seq)
+
+        # Model B: better accuracy, lower RMSE/MAE
+        acc_b = acc_a + rng.uniform(0.5, 2.0, n_seq)
+        rmse_b = rmse_a - rng.uniform(0.001, 0.005, n_seq)
+        mae_b = mae_a - rng.uniform(0.001, 0.004, n_seq)
+
+        return {
+            "MA": {"accuracy": acc_a, "rmse": rmse_a, "mae": mae_a},
+            "MB": {"accuracy": acc_b, "rmse": rmse_b, "mae": mae_b},
+        }
+
+    def test_no_top_level_d(self, seq_metrics):
+        """Top-level cohens_d, hedges_g, effect_size should not exist."""
+        pairs = [("MA", "MB", "Test")]
+        results = run_all_comparisons(pairs, seq_metrics, n_permutations=100, seed=42)
+        c = results[0]
+
+        assert "cohens_d" not in c
+        assert "hedges_g" not in c
+        assert "effect_size" not in c
+
+    def test_per_metric_d_present(self, seq_metrics):
+        """Each metric dict should have cohens_d, hedges_g, effect_size."""
+        pairs = [("MA", "MB", "Test")]
+        results = run_all_comparisons(pairs, seq_metrics, n_permutations=100, seed=42)
+        c = results[0]
+
+        for metric in ["accuracy", "rmse", "mae"]:
+            assert "cohens_d" in c[metric], f"Missing cohens_d in {metric}"
+            assert "hedges_g" in c[metric], f"Missing hedges_g in {metric}"
+            assert "effect_size" in c[metric], f"Missing effect_size in {metric}"
+
+    def test_sign_flip_error_metrics(self, seq_metrics):
+        """When B has lower RMSE/MAE, d should be positive (B better)."""
+        pairs = [("MA", "MB", "Test")]
+        results = run_all_comparisons(pairs, seq_metrics, n_permutations=100, seed=42)
+        c = results[0]
+
+        # B has higher accuracy -> positive d (no flip needed)
+        assert c["accuracy"]["cohens_d"] > 0, "Accuracy d should be positive when B is better"
+
+        # B has lower RMSE -> positive d (sign-flip applied)
+        assert c["rmse"]["cohens_d"] > 0, "RMSE d should be positive when B has lower RMSE"
+
+        # B has lower MAE -> positive d (sign-flip applied)
+        assert c["mae"]["cohens_d"] > 0, "MAE d should be positive when B has lower MAE"
+
+    def test_n_sequences_present(self, seq_metrics):
+        """n_sequences should be at top level."""
+        pairs = [("MA", "MB", "Test")]
+        results = run_all_comparisons(pairs, seq_metrics, n_permutations=100, seed=42)
+        c = results[0]
+        assert c["n_sequences"] == 100
+
+    def test_permutation_fields_still_present(self, seq_metrics):
+        """observed_diff and p_value should still be in each metric dict."""
+        pairs = [("MA", "MB", "Test")]
+        results = run_all_comparisons(pairs, seq_metrics, n_permutations=100, seed=42)
+        c = results[0]
+
+        for metric in ["accuracy", "rmse", "mae"]:
+            assert "observed_diff" in c[metric]
+            assert "p_value" in c[metric]
+            assert "significant" in c[metric]
