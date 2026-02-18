@@ -52,21 +52,21 @@
 
 | Vergleich | Kategorie | Delta Acc (pp) | Delta RMSE | Delta MAE | d(Acc) | d(RMSE) | d(MAE) |
 |-----------|-----------|------------|--------|------|--------|---------|--------|
-| M3 -> M4 | Baseline vs Attention | -0.05 | -0.0000 | -0.0000 | -0.005 | +0.006 | +0.005 |
-| M5 -> M6 | Baseline vs Attention | -0.03 | -0.0002 | -0.0001 | -0.003 | +0.042 | +0.029 |
-| M5 -> M7 | Baseline vs Attention | +0.11 | -0.0002\* | -0.0001\* | +0.015 | +0.067 | +0.065 |
-| M5 -> M8 | Baseline vs Attention | -0.37\*\*\* | +0.0004\*\*\* | +0.0004\*\*\* | -0.043 | -0.164 | -0.163 |
-| M6 -> M7 | Attention vs Attention | +0.13 | -0.0000 | -0.0001 | +0.014 | +0.022 | +0.033 |
-| M6 -> M8 | Attention vs Attention | -0.34\*\*\* | +0.0006\*\*\* | +0.0004\*\*\* | -0.040 | -0.240 | -0.224 |
-| M7 -> M8 | Attention vs Attention | -0.48\*\*\* | +0.0006\*\*\* | +0.0005\*\*\* | -0.057 | -0.270 | -0.267 |
-| M1 -> M3 | MLP vs LSTM | +10.48\*\*\* | -0.0134\*\*\* | -0.0106\*\*\* | +1.029 | +1.073 | +1.083 |
-| M2 -> M5 | MLP vs LSTM | +6.19\*\*\* | -0.0069\*\*\* | -0.0057\*\*\* | +0.625 | +0.697 | +0.699 |
+| M3 -> M4 | Baseline vs Attention | -0.05 | -0.0000 | -0.0000 | -0.025 | +0.004 | +0.006 |
+| M5 -> M6 | Baseline vs Attention | -0.03 | -0.0002 | -0.0001 | -0.012 | +0.059 | +0.035 |
+| M5 -> M7 | Baseline vs Attention | +0.11 | -0.0002\* | -0.0001\* | +0.062 | +0.091 | +0.090 |
+| M5 -> M8 | Baseline vs Attention | -0.37\*\*\* | +0.0004\*\*\* | +0.0004\*\*\* | -0.158 | -0.154 | -0.176 |
+| M6 -> M7 | Attention vs Attention | +0.13 | -0.0000 | -0.0001 | +0.072 | +0.020 | +0.047 |
+| M6 -> M8 | Attention vs Attention | -0.34\*\*\* | +0.0006\*\*\* | +0.0004\*\*\* | -0.180 | -0.251 | -0.252 |
+| M7 -> M8 | Attention vs Attention | -0.48\*\*\* | +0.0006\*\*\* | +0.0005\*\*\* | -0.242 | -0.286 | -0.303 |
+| M1 -> M3 | MLP vs LSTM | +10.48\*\*\* | -0.0134\*\*\* | -0.0106\*\*\* | +1.240 | +1.123 | +1.081 |
+| M2 -> M5 | MLP vs LSTM | +6.19\*\*\* | -0.0069\*\*\* | -0.0057\*\*\* | +0.826 | +0.725 | +0.691 |
 
 > *Positive Delta-Werte = Verbesserung von A nach B. Cohen's d wird pro Metrik berechnet.
 > Vorzeichen-Konvention: positiver d-Wert = B besser (hoehere Accuracy, niedrigerer RMSE/MAE).
 > Schwellen nach Cohen (1988): |d| < 0.2 vernachlaessigbar, 0.2-0.5 klein, 0.5-0.8 mittel, > 0.8 gross.
 > Permutation Test: 10.000 Sign-Flip-Permutationen auf Sequenz-Ebene. Signifikanz: \* p<0.05, \*\* p<0.01, \*\*\* p<0.001.
-> d-Werte sind vorlaeufig und werden durch Notebook-Rerun aktualisiert.*
+> Berechnet auf 500 gepaarten Testsequenzen (5 Seeds gemittelt).*
 
 **Detaillierte p-Werte (Permutationstest):**
 
@@ -75,7 +75,7 @@
 | M3 -> M4 | 0.583 | 0.925 | 0.904 |
 | M5 -> M6 | 0.784 | 0.198 | 0.449 |
 | M5 -> M7 | 0.168 | **0.038** | **0.045** |
-| M5 -> M8 | **0.001** | **<0.001** | **<0.001** |
+| M5 -> M8 | **<0.001** | **<0.001** | **<0.001** |
 | M6 -> M7 | 0.110 | 0.655 | 0.292 |
 | M6 -> M8 | **<0.001** | **<0.001** | **<0.001** |
 | M7 -> M8 | **<0.001** | **<0.001** | **<0.001** |
@@ -141,8 +141,8 @@
 **1. Sequential Modeling ist der entscheidende Faktor.**
 
 Der groesste Leistungssprung findet beim Wechsel von MLP auf LSTM statt:
-- M1 -> M3 (MLP Last -> Small LSTM): +10.48 pp Accuracy, d(Acc) = 1.03, d(MAE) = 1.08 (**gross**)
-- M2 -> M5 (MLP Flat -> Medium LSTM): +6.19 pp Accuracy, d(Acc) = 0.63, d(MAE) = 0.70 (**mittel**)
+- M1 -> M3 (MLP Last -> Small LSTM): +10.48 pp Accuracy, d(Acc) = 1.24, d(RMSE) = 1.12, d(MAE) = 1.08 (**gross**)
+- M2 -> M5 (MLP Flat -> Medium LSTM): +6.19 pp Accuracy, d(Acc) = 0.83 (**gross**), d(RMSE) = 0.72, d(MAE) = 0.69 (**mittel**)
 
 Dies bestaetigt, dass temporale Dynamik im Lenkmomentsignal wesentlich ist. Der Effekt ist auf Sequenz-Ebene sogar noch deutlicher als auf Sample-Ebene.
 
@@ -152,11 +152,11 @@ Auf Sequenz-Ebene zeigt keine Attention-Variante eine signifikante Verbesserung 
 
 | Vergleich | Delta Accuracy | d(Acc) | d(RMSE) | d(MAE) | p (Acc) | p (RMSE) | p (MAE) |
 |-----------|---------------|--------|---------|--------|---------|----------|---------|
-| M5 -> M6 (Simple) | -0.03 pp | -0.003 | +0.042 | +0.029 | 0.78 | 0.20 | 0.45 |
-| M5 -> M7 (Additive) | +0.11 pp | +0.015 | +0.067 | +0.065 | 0.17 | **0.038** | **0.045** |
-| M5 -> M8 (Scaled DP) | -0.37 pp | -0.043 | -0.164 | -0.163 | 0.001 | <0.001 | <0.001 |
+| M5 -> M6 (Simple) | -0.03 pp | -0.012 | +0.059 | +0.035 | 0.78 | 0.20 | 0.45 |
+| M5 -> M7 (Additive) | +0.11 pp | +0.062 | +0.091 | +0.090 | 0.17 | **0.038** | **0.045** |
+| M5 -> M8 (Scaled DP) | -0.37 pp | -0.158 | -0.154 | -0.176 | <0.001 | <0.001 | <0.001 |
 
-M7 (Additive) ist bei Accuracy nicht signifikant besser, zeigt aber **signifikante RMSE/MAE-Reduktion** (p<0.05). Dies bedeutet: Additive Attention verringert die mittlere Fehlergroesse, ohne dass mehr Samples unter die Accuracy-Schwelle (0.05) fallen. Der Effekt ist jedoch mit d(RMSE) = 0.067 und d(MAE) = 0.065 **vernachlaessigbar** und die 95%-CIs ueberlappen vollstaendig. M8 (Scaled DP) ist signifikant **schlechter** als die Baseline ueber alle Metriken.
+M7 (Additive) ist bei Accuracy nicht signifikant besser, zeigt aber **signifikante RMSE/MAE-Reduktion** (p<0.05). Dies bedeutet: Additive Attention verringert die mittlere Fehlergroesse, ohne dass mehr Samples unter die Accuracy-Schwelle (0.05) fallen. Der Effekt ist jedoch mit d(RMSE) = 0.091 und d(MAE) = 0.090 **vernachlaessigbar** (|d| < 0.2) und die 95%-CIs ueberlappen vollstaendig. M8 (Scaled DP) ist signifikant **schlechter** als die Baseline ueber alle Metriken (p < 0.001, d(Acc) = -0.16, d(RMSE) = -0.15, d(MAE) = -0.18).
 
 **3. Modellkapazitaet Small vs Medium spielt kaum eine Rolle.**
 
@@ -172,7 +172,12 @@ Der Accuracy-Gewinn ist minimal, die Inferenzzeit verdreifacht sich.
 
 **4. Scaled Dot-Product Attention (M8) schadet konsistent.**
 
-M8 ist das einzige Attention-Modell, das signifikant schlechter als die Baseline abschneidet (p < 0.001). Auch gegenueber den anderen Attention-Varianten zeigt M8 einen kleinen negativen Effekt (d(RMSE) = -0.24 bis -0.27). Der Scaled-DP-Mechanismus scheint fuer diese Zeitreihenaufgabe ungeeignet.
+M8 ist das einzige Attention-Modell, das signifikant schlechter als die Baseline abschneidet (p < 0.001). Auch gegenueber den anderen Attention-Varianten zeigt M8 einen konsistent negativen Effekt:
+
+- M6 -> M8: d(Acc) = -0.18, d(RMSE) = -0.25, d(MAE) = -0.25 (**klein**)
+- M7 -> M8: d(Acc) = -0.24, d(RMSE) = -0.29, d(MAE) = -0.30 (**klein**)
+
+Der Scaled-DP-Mechanismus scheint fuer diese Zeitreihenaufgabe ungeeignet.
 
 **5. R² (sequence) zeigt moderate Erklaerungskraft.**
 
@@ -405,4 +410,4 @@ python scripts/sequence_level_evaluation.py --n-bootstrap 1000 --n-permutations 
 
 ---
 
-*Aktualisiert am: 2026-02-18 (Statistische Tests: detaillierte p-Werte, 95%-Bootstrap-CIs, Signifikanz auf RMSE/MAE ergaenzt)*
+*Aktualisiert am: 2026-02-18 (Cohen's d pro Metrik, aktualisierte d-Werte aus Notebook-Rerun, Signifikanz auf alle Metriken)*
