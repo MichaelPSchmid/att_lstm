@@ -879,6 +879,222 @@ def fig_prediction_timeseries(output_dir: Path) -> List[Path]:
 
 
 # =============================================================================
+# PAPER FIGURES v2 (updated data, AP 4-6)
+# =============================================================================
+
+# AP 5 data: Inference-Accuracy Tradeoff with corrected sequence-level values
+_AP5_DATA = {
+    'M1': {'name': 'MLP Last',            'accuracy': 68.98, 'inference_p95_ms': 0.07, 'type': 'mlp'},
+    'M2': {'name': 'MLP Flat',            'accuracy': 73.44, 'inference_p95_ms': 0.06, 'type': 'mlp'},
+    'M3': {'name': 'Small Baseline',      'accuracy': 79.46, 'inference_p95_ms': 0.79, 'type': 'lstm'},
+    'M4': {'name': 'Small + Simple Attn', 'accuracy': 79.41, 'inference_p95_ms': 0.79, 'type': 'lstm_attn'},
+    'M5': {'name': 'Medium Baseline',     'accuracy': 79.63, 'inference_p95_ms': 2.62, 'type': 'lstm'},
+    'M6': {'name': 'Medium + Simple Attn','accuracy': 79.60, 'inference_p95_ms': 2.68, 'type': 'lstm_attn'},
+    'M7': {'name': 'Medium + Additive',   'accuracy': 79.73, 'inference_p95_ms': 3.83, 'type': 'lstm_attn'},
+    'M8': {'name': 'Medium + Scaled DP',  'accuracy': 79.26, 'inference_p95_ms': 3.59, 'type': 'lstm_attn'},
+}
+
+
+def fig_inference_tradeoff_v2(output_dir: Path) -> List[Path]:
+    """Create updated Accuracy vs. Inference Time scatter plot.
+
+    Uses corrected sequence-level evaluation data. Highlights M3 as
+    Pareto-optimal model (best accuracy-to-cost ratio).
+    """
+    fig, ax = plt.subplots(figsize=(3.5, 2.8))
+
+    marker_sizes = {'mlp': 35, 'lstm': 45, 'lstm_attn': 50}
+
+    plotted_types = set()
+    for model_id, data in _AP5_DATA.items():
+        mtype = data['type']
+
+        label = {
+            'mlp': 'MLP Baseline',
+            'lstm': 'LSTM Baseline',
+            'lstm_attn': 'LSTM + Attention'
+        }.get(mtype) if mtype not in plotted_types else None
+        plotted_types.add(mtype)
+
+        ax.scatter(
+            data['inference_p95_ms'], data['accuracy'],
+            marker=MARKERS[mtype], s=marker_sizes[mtype],
+            c=COLORS[mtype], edgecolors='white', linewidths=0.5,
+            label=label, zorder=4
+        )
+
+    # Highlight M3 as Pareto-optimal
+    m3 = _AP5_DATA['M3']
+    ax.scatter(
+        m3['inference_p95_ms'], m3['accuracy'],
+        marker='o', s=120, facecolors='none',
+        edgecolors=COLORS['highlight'], linewidths=1.5, zorder=5
+    )
+    ax.annotate(
+        'Pareto-optimal',
+        (m3['inference_p95_ms'], m3['accuracy']),
+        xytext=(8, -8), textcoords='offset points',
+        fontsize=6, color=COLORS['highlight'],
+        arrowprops=dict(arrowstyle='->', color=COLORS['highlight'], lw=0.8),
+    )
+
+    # Model labels
+    label_offsets = {
+        'M1': (5, 1),   'M2': (5, 1),
+        'M3': (-5, 5),  'M4': (5, -4),
+        'M5': (-5, 1),  'M6': (-5, -5),
+        'M7': (1, -6),  'M8': (5, 1),
+    }
+
+    for model_id, data in _AP5_DATA.items():
+        if model_id == 'M3':
+            continue  # Already annotated
+        x_off, y_off = label_offsets[model_id]
+        ha = 'left' if x_off > 0 else 'right'
+        va = 'bottom' if y_off > 0 else 'top'
+
+        ax.annotate(
+            model_id,
+            (data['inference_p95_ms'], data['accuracy']),
+            xytext=(x_off, y_off),
+            textcoords='offset points',
+            fontsize=7, ha=ha, va=va
+        )
+
+    ax.set_xscale('log')
+    ax.set_xlim(0.04, 7)
+    ax.set_ylim(67, 81)
+    ax.set_xticks([0.05, 0.1, 0.5, 1, 2, 5])
+    ax.set_xticklabels(['0.05', '0.1', '0.5', '1', '2', '5'])
+
+    ax.set_xlabel(r'Inference Time P95 (ms)')
+    ax.set_ylabel(r'Accuracy (\%)')
+    ax.legend(loc='lower right', fontsize=7)
+
+    return save_figure(fig, output_dir, 'inference_accuracy_tradeoff')
+
+
+def fig_attention_weights_plot(output_dir: Path) -> List[Path]:
+    """Create 3-subplot attention weight comparison (M6, M7, M8).
+
+    Shows distinct attention collapse patterns:
+    - M6 Simple: moderate recency bias
+    - M7 Additive: extreme recency collapse
+    - M8 Scaled DP: near-uniform distribution
+    """
+    import csv as csv_module
+
+    models = [
+        ('M6', 'Simple Attention', COLORS['primary'], '-'),
+        ('M7', 'Additive Attention', COLORS['secondary'], '--'),
+        ('M8', 'Scaled Dot-Product', COLORS['tertiary'], ':'),
+    ]
+
+    fig, axes = plt.subplots(1, 3, figsize=(7.0, 2.2), sharey=True)
+
+    for ax, (model_id, title, color, ls) in zip(axes, models):
+        csv_path = output_dir / f'attention_weights_{model_id}.csv'
+        if not csv_path.exists():
+            print(f"  WARNING: {csv_path.name} not found, skipping subplot")
+            continue
+
+        # Load CSV
+        timesteps = []
+        weights = []
+        with open(csv_path, 'r', encoding='utf-8') as f:
+            reader = csv_module.DictReader(f)
+            for row in reader:
+                timesteps.append(int(row['timestep']))
+                weights.append(float(row['weight']))
+
+        weights = np.array(weights)
+
+        ax.plot(timesteps, weights, color=color, linewidth=1.2, linestyle=ls)
+
+        # Uniform reference line at 1/50 = 0.02
+        ax.axhline(y=0.02, color=COLORS['threshold'], linestyle='--',
+                    linewidth=0.5, alpha=0.7)
+
+        ax.set_title(title, fontsize=8)
+        ax.set_xlabel('Time Step')
+        ax.set_xlim(-1, 50)
+        ax.set_xticks([0, 10, 20, 30, 40, 49])
+
+    axes[0].set_ylabel('Attention Weight')
+    fig.tight_layout()
+
+    return save_figure(fig, output_dir, 'attention_weights_plot')
+
+
+def fig_prediction_timeseries_v2(output_dir: Path) -> List[Path]:
+    """Create prediction timeseries from exported CSVs (good/median/difficult).
+
+    Shows Ground Truth vs predictions from M3, M5, M6 for three
+    representative test sequences with different difficulty levels.
+    """
+    import csv as csv_module
+
+    sequence_types = [
+        ('prediction_seq_good', 'Good Prediction'),
+        ('prediction_seq_median', 'Median Prediction'),
+        ('prediction_seq_difficult', 'Difficult Prediction'),
+    ]
+
+    # Check which CSVs exist
+    available = []
+    for basename, label in sequence_types:
+        csv_path = output_dir / f'{basename}.csv'
+        if csv_path.exists():
+            available.append((csv_path, label))
+
+    if not available:
+        print("  WARNING: No prediction CSVs found in figures/, skipping")
+        return []
+
+    n_plots = len(available)
+    fig, axes = plt.subplots(n_plots, 1, figsize=(3.5, 1.8 * n_plots),
+                              sharex=False)
+    if n_plots == 1:
+        axes = [axes]
+
+    for ax, (csv_path, label) in zip(axes, available):
+        # Load CSV
+        data = {'timestep': [], 'ground_truth': [],
+                'M3_pred': [], 'M5_pred': [], 'M6_pred': []}
+        with open(csv_path, 'r', encoding='utf-8') as f:
+            reader = csv_module.DictReader(f)
+            for row in reader:
+                for key in data:
+                    data[key].append(float(row[key]))
+
+        t = np.array(data['timestep'])
+        gt = np.array(data['ground_truth'])
+        m3 = np.array(data['M3_pred'])
+        m5 = np.array(data['M5_pred'])
+        m6 = np.array(data['M6_pred'])
+
+        # Compute RMSE for M5 (representative)
+        rmse_m5 = float(np.sqrt(np.mean((gt - m5) ** 2)))
+
+        ax.plot(t, gt, color='black', linewidth=1.0, label='Ground Truth')
+        ax.plot(t, m3, color=COLORS['primary'], linewidth=0.8,
+                linestyle='--', label='M3', alpha=0.85)
+        ax.plot(t, m5, color=COLORS['secondary'], linewidth=0.8,
+                linestyle='--', label='M5', alpha=0.85)
+        ax.plot(t, m6, color=COLORS['tertiary'], linewidth=0.8,
+                linestyle=':', label='M6', alpha=0.85)
+
+        ax.set_title(f'{label} (RMSE$_{{M5}}$={rmse_m5:.3f})', fontsize=8)
+        ax.set_ylabel('Torque (norm.)', fontsize=7)
+
+    axes[-1].set_xlabel('Sample Index')
+    axes[0].legend(loc='upper right', fontsize=6, ncol=4)
+
+    fig.tight_layout()
+    return save_figure(fig, output_dir, 'prediction_timeseries')
+
+
+# =============================================================================
 # TRAINING FIGURES
 # =============================================================================
 
@@ -1054,6 +1270,10 @@ PAPER_FIGURES = {
     'att_combined': fig_attention_combined,
     'dropout_effect': fig_dropout_effect,
     'prediction_timeseries': fig_prediction_timeseries,
+    # Updated figures (AP 4-6)
+    'inference_accuracy_tradeoff': fig_inference_tradeoff_v2,
+    'attention_weights_plot': fig_attention_weights_plot,
+    'prediction_timeseries_v2': fig_prediction_timeseries_v2,
 }
 
 
