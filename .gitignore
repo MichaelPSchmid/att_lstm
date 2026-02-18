@@ -19,6 +19,7 @@ evaluation/
 attention_visualization/
 plot/output/
 plot/HYUNDAI_SONATA_2020/
+results/eval_statistics.json
 *.png
 
 # Byte-compiled / optimized / DLL files
