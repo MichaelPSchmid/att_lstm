@@ -777,46 +777,34 @@ def fig_inference_tradeoff_v2(output_dir: Path) -> List[Path]:
             label=label, zorder=4
         )
 
-    # Highlight M3 as Pareto-optimal
-    m3 = _AP5_DATA['M3']
-    ax.scatter(
-        m3['inference_p95_ms'], m3['mae'],
-        marker='o', s=120, facecolors='none',
-        edgecolors=COLORS['highlight'], linewidths=1.5, zorder=5
-    )
-    ax.annotate(
-        'Pareto-optimal',
-        (m3['inference_p95_ms'], m3['mae']),
-        xytext=(8, 8), textcoords='offset points',
-        fontsize=6, color=COLORS['highlight'],
-        arrowprops=dict(arrowstyle='->', color=COLORS['highlight'], lw=0.8),
-    )
+    # Model labels: offset-based; M5/M6/M8 fan out with short leader lines
+    _arrow = dict(arrowstyle='-', color='0.4', lw=0.5, shrinkB=3)
 
-    # Model labels
-    label_offsets = {
-        'M1': (5, -2),  'M2': (5, -2),
-        'M3': (-5, -5), 'M4': (5, 5),
-        'M5': (-5, 5),  'M6': (-5, -5),
-        'M7': (5, -5),  'M8': (5, 5),
+    #                  (x_off, y_off, ha,       va,       arrow?)
+    _lbl = {
+        'M1': (  5,  -3, 'left',   'top',    False),
+        'M2': (  5,  -3, 'left',   'top',    False),
+        'M3': (  0,   8, 'center', 'bottom', False),
+        'M4': (  0,  -8, 'center', 'top',    False),
+        'M5': ( -8,  20, 'right',  'bottom', True),   # above-left
+        'M6': (  0, -16, 'center', 'top',    True),   # below
+        'M8': (  8,  16, 'left',   'bottom', True),   # above-right
+        'M7': (  5,   3, 'left',   'bottom', False),
     }
 
     for model_id, data in _AP5_DATA.items():
-        if model_id == 'M3':
-            continue  # Already annotated
-        x_off, y_off = label_offsets[model_id]
-        ha = 'left' if x_off > 0 else 'right'
-        va = 'bottom' if y_off > 0 else 'top'
-
+        xo, yo, ha, va, use_arrow = _lbl[model_id]
         ax.annotate(
             model_id,
             (data['inference_p95_ms'], data['mae']),
-            xytext=(x_off, y_off),
-            textcoords='offset points',
-            fontsize=7, ha=ha, va=va
+            xytext=(xo, yo), textcoords='offset points',
+            fontsize=7, ha=ha, va=va,
+            arrowprops=_arrow if use_arrow else None,
         )
 
     ax.set_xscale('log')
     ax.set_xlim(0.04, 7)
+    ax.set_ylim(0.030, None)
     ax.set_xticks([0.05, 0.1, 0.5, 1, 2, 5])
     ax.set_xticklabels(['0.05', '0.1', '0.5', '1', '2', '5'])
 
@@ -828,9 +816,9 @@ def fig_inference_tradeoff_v2(output_dir: Path) -> List[Path]:
 
 
 def fig_attention_weights_plot(output_dir: Path) -> List[Path]:
-    """Create 3-subplot attention weight comparison (M6, M7, M8).
+    """Create combined attention weight comparison plot (M6, M7, M8).
 
-    Shows distinct attention collapse patterns:
+    Shows distinct attention collapse patterns in a single figure:
     - M6 Simple: moderate recency bias
     - M7 Additive: extreme recency collapse
     - M8 Scaled DP: near-uniform distribution
@@ -838,17 +826,17 @@ def fig_attention_weights_plot(output_dir: Path) -> List[Path]:
     import csv as csv_module
 
     models = [
-        ('M6', 'Simple Attention', COLORS['primary'], '-'),
-        ('M7', 'Additive Attention', COLORS['secondary'], '--'),
-        ('M8', 'Scaled Dot-Product', COLORS['tertiary'], ':'),
+        ('M6', 'Simple (M6)', COLORS['primary'], '-'),
+        ('M7', 'Additive (M7)', COLORS['secondary'], '--'),
+        ('M8', 'Scaled Dot-Product (M8)', COLORS['tertiary'], ':'),
     ]
 
-    fig, axes = plt.subplots(1, 3, figsize=(7.0, 2.2), sharey=True)
+    fig, ax = plt.subplots(figsize=(3.5, 2.5))
 
-    for ax, (model_id, title, color, ls) in zip(axes, models):
+    for model_id, label, color, ls in models:
         csv_path = output_dir / f'attention_weights_{model_id}.csv'
         if not csv_path.exists():
-            print(f"  WARNING: {csv_path.name} not found, skipping subplot")
+            print(f"  WARNING: {csv_path.name} not found, skipping")
             continue
 
         # Load CSV
@@ -861,20 +849,19 @@ def fig_attention_weights_plot(output_dir: Path) -> List[Path]:
                 weights.append(float(row['weight']))
 
         weights = np.array(weights)
+        ax.plot(timesteps, weights, color=color, linewidth=1.2,
+                linestyle=ls, label=label)
 
-        ax.plot(timesteps, weights, color=color, linewidth=1.2, linestyle=ls)
+    # Uniform reference line at 1/50 = 0.02
+    ax.axhline(y=0.02, color=COLORS['threshold'], linestyle='--',
+                linewidth=0.5, alpha=0.7,
+                label=r'Uniform ($\frac{1}{50}$)')
 
-        # Uniform reference line at 1/50 = 0.02
-        ax.axhline(y=0.02, color=COLORS['threshold'], linestyle='--',
-                    linewidth=0.5, alpha=0.7)
-
-        ax.set_title(title, fontsize=8)
-        ax.set_xlabel('Time Step')
-        ax.set_xlim(-1, 50)
-        ax.set_xticks([0, 10, 20, 30, 40, 49])
-
-    axes[0].set_ylabel('Attention Weight')
-    fig.tight_layout()
+    ax.set_xlabel('Time Step')
+    ax.set_ylabel('Attention Weight')
+    ax.set_xlim(-1, 50)
+    ax.set_ylim(bottom=0)
+    ax.legend(fontsize=6, loc='upper left')
 
     return save_figure(fig, output_dir, 'fig_attention_comparison')
 
@@ -920,13 +907,13 @@ def fig_forest_ci(output_dir: Path) -> List[Path]:
 
         # CI bar
         ax.plot([ci_lo, ci_hi], [y, y], color=color, linewidth=1.5,
-                solid_capstyle='round', zorder=3)
+                linestyle='-', solid_capstyle='round', zorder=3)
         # Caps
         cap_h = 0.2
         ax.plot([ci_lo, ci_lo], [y - cap_h, y + cap_h], color=color,
-                linewidth=1.0, zorder=3)
+                linestyle='-', linewidth=1.0, zorder=3)
         ax.plot([ci_hi, ci_hi], [y - cap_h, y + cap_h], color=color,
-                linewidth=1.0, zorder=3)
+                linestyle='-', linewidth=1.0, zorder=3)
         # Point estimate
         ax.scatter(mae, y, marker=marker, s=30, c=color, edgecolors='white',
                    linewidths=0.4, zorder=4)
