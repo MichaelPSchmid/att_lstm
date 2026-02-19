@@ -1050,9 +1050,10 @@ def fig_prediction_timeseries(output_dir: Path) -> List[Path]:
         ax.set_ylabel('Torque (norm.)', fontsize=7)
 
     axes[-1].set_xlabel('Sample Index')
-    axes[0].legend(loc='upper right', fontsize=6, ncol=3)
-
-    fig.tight_layout()
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, fontsize=6, ncol=5,
+               loc='upper center', bbox_to_anchor=(0.5, 1.0))
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
     return save_figure(fig, output_dir, 'fig_prediction_timeseries')
 
 
