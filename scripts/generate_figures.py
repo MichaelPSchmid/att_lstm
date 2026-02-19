@@ -6,13 +6,13 @@ Generates all figures with consistent styling for LaTeX (PGF) and preview (PDF).
 
 Available figures:
   Paper Figures:
-    - fig_inference_tradeoff    Accuracy vs. Inference Time (all 8 models)
+    - fig_inference_tradeoff    MAE vs. Inference Time (all 8 models)
     - fig_attention_simple      Attention weights XY-plot (M6 Simple Attention)
     - fig_attention_additive    Attention heatmap (M7 Additive Attention)
     - fig_attention_scaled      Attention heatmap (M8 Scaled DP Attention)
     - fig_att_combined          All three attention mechanisms in one line plot
     - fig_dropout_effect        Dropout comparison bar chart
-    - fig_prediction_timeseries Prediction vs. Ground Truth timeseries (M6)
+    - fig_prediction_timeseries Prediction vs. Ground Truth timeseries (M2, M3, M5, M7)
 
   Training Figures (per model):
     - {model}_loss_curves       Training and validation loss
@@ -731,175 +731,29 @@ def fig_dropout_effect(output_dir: Path) -> List[Path]:
     return save_figure(fig, output_dir, 'fig_dropout_effect')
 
 
-def fig_prediction_timeseries(output_dir: Path) -> List[Path]:
-    """
-    Create prediction vs. ground truth timeseries plot.
-
-    Shows M6 predictions overlaid on ground truth with residuals below.
-    Selects a segment with interesting dynamics (high variance, steering both ways).
-    """
-    import torch
-    import pytorch_lightning as pl
-    from config.loader import load_config, get_model_class
-    from config.settings import get_preprocessed_paths
-    from model.data_module import TimeSeriesDataModule
-
-    # Configuration - M6 is the best model (Medium + Simple Attention)
-    checkpoint_dir = PROJECT_ROOT / 'lightning_logs' / 'M6_Medium_Simple_Attention' / 'version_2' / 'checkpoints'
-    config_path = PROJECT_ROOT / 'config' / 'model_configs' / 'm6_medium_simple_attn.yaml'
-    num_samples = 800  # ~80 seconds @ 10Hz
-
-    # Find best checkpoint
-    checkpoints = list(checkpoint_dir.glob('*.ckpt'))
-    if not checkpoints:
-        print("  WARNING: No M6 checkpoints found, using synthetic data")
-        # Synthetic fallback
-        time = np.linspace(0, 80, num_samples)
-        targets = 0.3 * np.sin(0.1 * time) + 0.1 * np.sin(0.5 * time)
-        predictions = targets + 0.02 * np.random.randn(num_samples)
-    else:
-        checkpoint = min(checkpoints, key=lambda p: float(p.stem.split('val_loss=')[1]))
-        print(f"  Using checkpoint: {checkpoint.name}")
-
-        # Load config and set seed
-        config = load_config(str(config_path))
-        pl.seed_everything(config["training"]["seed"])
-
-        # Load data
-        data_config = config["data"]
-        paths = get_preprocessed_paths(
-            vehicle=data_config["vehicle"],
-            window_size=data_config["window_size"],
-            predict_size=data_config["predict_size"],
-            step_size=data_config["step_size"],
-            suffix="sF",
-            variant=data_config["variant"]
-        )
-
-        data_module = TimeSeriesDataModule(
-            feature_path=str(paths["features"]),
-            target_path=str(paths["targets"]),
-            sequence_ids_path=str(paths["sequence_ids"]),
-            batch_size=512,
-            split_seed=data_config.get("split_seed", 0),
-        )
-        data_module.setup()
-
-        # Load model
-        model_class = get_model_class(config["model"]["type"])
-        model = model_class.load_from_checkpoint(str(checkpoint))
-        model.eval()
-        model.cpu()
-
-        # Get test data
-        all_features = []
-        all_targets = []
-        for batch in data_module.test_dataloader():
-            X_batch, Y_batch = batch
-            all_features.append(X_batch)
-            all_targets.append(Y_batch)
-
-        all_features = torch.cat(all_features, dim=0)
-        all_targets = torch.cat(all_targets, dim=0).numpy().flatten()
-
-        # Find segment with high variance and bidirectional steering
-        best_start = 0
-        best_score = 0
-        for start in range(0, len(all_targets) - num_samples, num_samples // 4):
-            segment = all_targets[start:start + num_samples]
-            variance = np.var(segment)
-            has_dynamics = np.max(segment) > 0.1 and np.min(segment) < -0.1
-            score = variance * (1.5 if has_dynamics else 0.5)
-            if score > best_score:
-                best_score = score
-                best_start = start
-
-        print(f"  Selected segment {best_start}:{best_start + num_samples}")
-
-        # Generate predictions
-        segment_features = all_features[best_start:best_start + num_samples]
-        targets = all_targets[best_start:best_start + num_samples]
-        with torch.no_grad():
-            predictions = model(segment_features).numpy().flatten()
-
-        time = np.arange(num_samples) / 10.0
-
-    # Calculate metrics
-    residuals = predictions - targets
-    rmse = np.sqrt(np.mean(residuals**2))
-    r2 = 1 - np.sum(residuals**2) / np.sum((targets - np.mean(targets))**2)
-    accuracy = np.mean(np.abs(residuals) < 0.05) * 100
-
-    # Create figure
-    fig, axes = plt.subplots(2, 1, figsize=(3.5, 3.0), sharex=True,
-                              gridspec_kw={'height_ratios': [2, 1], 'hspace': 0.1})
-
-    # Top: Predictions vs Ground Truth
-    ax1 = axes[0]
-    ax1.plot(time, targets, color=COLORS['ground_truth'], linewidth=0.8,
-             label='Ground Truth', alpha=0.9)
-    ax1.plot(time, predictions, color=COLORS['prediction'], linewidth=0.8,
-             linestyle='--', label='Prediction', alpha=0.9)
-    ax1.set_ylabel('Steering Torque\n(normalized)', fontsize=8)
-    ax1.legend(loc='upper right', fontsize=6)
-    ax1.set_ylim(-0.6, 0.6)
-
-
-    # Metrics annotation
-    metrics_text = f'RMSE: {rmse:.3f}\n$R^2$: {r2:.3f}\nAcc: {accuracy:.1f}\\%'
-    ax1.text(0.02, 0.98, metrics_text, transform=ax1.transAxes, fontsize=6,
-             verticalalignment='top', fontfamily='monospace',
-             bbox=dict(boxstyle='round', facecolor='white', alpha=0.8, edgecolor='none'))
-
-    # Bottom: Residuals
-    ax2 = axes[1]
-    ax2.fill_between(time, 0, residuals, where=(residuals >= 0),
-                     color=COLORS['residual_pos'], alpha=0.5, linewidth=0)
-    ax2.fill_between(time, 0, residuals, where=(residuals < 0),
-                     color=COLORS['residual_neg'], alpha=0.5, linewidth=0)
-    ax2.plot(time, residuals, color='black', linewidth=0.3, alpha=0.5)
-
-    # Threshold lines
-    ax2.axhline(y=0.05, color=COLORS['threshold'], linestyle='--', linewidth=0.5)
-    ax2.axhline(y=-0.05, color=COLORS['threshold'], linestyle='--', linewidth=0.5)
-    ax2.axhline(y=0, color='black', linestyle='-', linewidth=0.3)
-    ax2.fill_between(time, -0.05, 0.05, color=COLORS['threshold'], alpha=0.1)
-
-    ax2.set_ylabel('Residual', fontsize=8)
-    ax2.set_xlabel('Time (s)')
-    ax2.set_ylim(-0.15, 0.15)
-    ax2.set_yticks([-0.1, -0.05, 0, 0.05, 0.1])
-    ax2.text(time[-1] * 0.99, 0.055, r'$\pm 0.05$', fontsize=5, ha='right',
-             va='bottom', color=COLORS['threshold'])
-
-
-    fig.align_ylabels(axes)
-
-    return save_figure(fig, output_dir, 'fig_prediction_timeseries')
-
 
 # =============================================================================
 # PAPER FIGURES v2 (updated data, AP 4-6)
 # =============================================================================
 
-# AP 5 data: Inference-Accuracy Tradeoff with corrected sequence-level values
+# Sequence-level MAE and inference times from eval_metrics.csv
 _AP5_DATA = {
-    'M1': {'name': 'MLP Last',            'accuracy': 68.98, 'inference_p95_ms': 0.07, 'type': 'mlp'},
-    'M2': {'name': 'MLP Flat',            'accuracy': 73.44, 'inference_p95_ms': 0.06, 'type': 'mlp'},
-    'M3': {'name': 'Small Baseline',      'accuracy': 79.46, 'inference_p95_ms': 0.79, 'type': 'lstm'},
-    'M4': {'name': 'Small + Simple Attn', 'accuracy': 79.41, 'inference_p95_ms': 0.79, 'type': 'lstm_attn'},
-    'M5': {'name': 'Medium Baseline',     'accuracy': 79.63, 'inference_p95_ms': 2.62, 'type': 'lstm'},
-    'M6': {'name': 'Medium + Simple Attn','accuracy': 79.60, 'inference_p95_ms': 2.68, 'type': 'lstm_attn'},
-    'M7': {'name': 'Medium + Additive',   'accuracy': 79.73, 'inference_p95_ms': 3.83, 'type': 'lstm_attn'},
-    'M8': {'name': 'Medium + Scaled DP',  'accuracy': 79.26, 'inference_p95_ms': 3.59, 'type': 'lstm_attn'},
+    'M1': {'name': 'MLP Last',            'mae': 0.0434, 'inference_p95_ms': 0.07, 'type': 'mlp'},
+    'M2': {'name': 'MLP Flat',            'mae': 0.0384, 'inference_p95_ms': 0.06, 'type': 'mlp'},
+    'M3': {'name': 'Small Baseline',      'mae': 0.0328, 'inference_p95_ms': 0.79, 'type': 'lstm'},
+    'M4': {'name': 'Small + Simple Attn', 'mae': 0.0328, 'inference_p95_ms': 0.89, 'type': 'lstm_attn'},
+    'M5': {'name': 'Medium Baseline',     'mae': 0.0327, 'inference_p95_ms': 2.75, 'type': 'lstm'},
+    'M6': {'name': 'Medium + Simple Attn','mae': 0.0326, 'inference_p95_ms': 2.92, 'type': 'lstm_attn'},
+    'M7': {'name': 'Medium + Additive',   'mae': 0.0325, 'inference_p95_ms': 4.12, 'type': 'lstm_attn'},
+    'M8': {'name': 'Medium + Scaled DP',  'mae': 0.0330, 'inference_p95_ms': 3.01, 'type': 'lstm_attn'},
 }
 
 
 def fig_inference_tradeoff_v2(output_dir: Path) -> List[Path]:
-    """Create updated Accuracy vs. Inference Time scatter plot.
+    """Create MAE vs. Inference Time scatter plot.
 
     Uses corrected sequence-level evaluation data. Highlights M3 as
-    Pareto-optimal model (best accuracy-to-cost ratio).
+    Pareto-optimal model (lowest MAE-to-cost ratio).
     """
     fig, ax = plt.subplots(figsize=(3.5, 2.8))
 
@@ -917,7 +771,7 @@ def fig_inference_tradeoff_v2(output_dir: Path) -> List[Path]:
         plotted_types.add(mtype)
 
         ax.scatter(
-            data['inference_p95_ms'], data['accuracy'],
+            data['inference_p95_ms'], data['mae'],
             marker=MARKERS[mtype], s=marker_sizes[mtype],
             c=COLORS[mtype], edgecolors='white', linewidths=0.5,
             label=label, zorder=4
@@ -926,24 +780,24 @@ def fig_inference_tradeoff_v2(output_dir: Path) -> List[Path]:
     # Highlight M3 as Pareto-optimal
     m3 = _AP5_DATA['M3']
     ax.scatter(
-        m3['inference_p95_ms'], m3['accuracy'],
+        m3['inference_p95_ms'], m3['mae'],
         marker='o', s=120, facecolors='none',
         edgecolors=COLORS['highlight'], linewidths=1.5, zorder=5
     )
     ax.annotate(
         'Pareto-optimal',
-        (m3['inference_p95_ms'], m3['accuracy']),
-        xytext=(8, -8), textcoords='offset points',
+        (m3['inference_p95_ms'], m3['mae']),
+        xytext=(8, 8), textcoords='offset points',
         fontsize=6, color=COLORS['highlight'],
         arrowprops=dict(arrowstyle='->', color=COLORS['highlight'], lw=0.8),
     )
 
     # Model labels
     label_offsets = {
-        'M1': (5, 1),   'M2': (5, 1),
-        'M3': (-5, 5),  'M4': (5, -4),
-        'M5': (-5, 1),  'M6': (-5, -5),
-        'M7': (1, -6),  'M8': (5, 1),
+        'M1': (5, -2),  'M2': (5, -2),
+        'M3': (-5, -5), 'M4': (5, 5),
+        'M5': (-5, 5),  'M6': (-5, -5),
+        'M7': (5, -5),  'M8': (5, 5),
     }
 
     for model_id, data in _AP5_DATA.items():
@@ -955,7 +809,7 @@ def fig_inference_tradeoff_v2(output_dir: Path) -> List[Path]:
 
         ax.annotate(
             model_id,
-            (data['inference_p95_ms'], data['accuracy']),
+            (data['inference_p95_ms'], data['mae']),
             xytext=(x_off, y_off),
             textcoords='offset points',
             fontsize=7, ha=ha, va=va
@@ -963,15 +817,14 @@ def fig_inference_tradeoff_v2(output_dir: Path) -> List[Path]:
 
     ax.set_xscale('log')
     ax.set_xlim(0.04, 7)
-    ax.set_ylim(67, 81)
     ax.set_xticks([0.05, 0.1, 0.5, 1, 2, 5])
     ax.set_xticklabels(['0.05', '0.1', '0.5', '1', '2', '5'])
 
     ax.set_xlabel(r'Inference Time P95 (ms)')
-    ax.set_ylabel(r'Accuracy (\%)')
-    ax.legend(loc='lower right', fontsize=7)
+    ax.set_ylabel(r'MAE')
+    ax.legend(loc='upper right', fontsize=7)
 
-    return save_figure(fig, output_dir, 'inference_accuracy_tradeoff')
+    return save_figure(fig, output_dir, 'fig_inference_mae_tradeoff')
 
 
 def fig_attention_weights_plot(output_dir: Path) -> List[Path]:
@@ -1023,13 +876,13 @@ def fig_attention_weights_plot(output_dir: Path) -> List[Path]:
     axes[0].set_ylabel('Attention Weight')
     fig.tight_layout()
 
-    return save_figure(fig, output_dir, 'attention_weights_plot')
+    return save_figure(fig, output_dir, 'fig_attention_comparison')
 
 
-def fig_prediction_timeseries_v2(output_dir: Path) -> List[Path]:
+def fig_prediction_timeseries(output_dir: Path) -> List[Path]:
     """Create prediction timeseries from exported CSVs (good/median/difficult).
 
-    Shows Ground Truth vs predictions from M3, M5, M6 for three
+    Shows Ground Truth vs predictions from M2, M3, M5, M7 for three
     representative test sequences with different difficulty levels.
     """
     import csv as csv_module
@@ -1057,10 +910,30 @@ def fig_prediction_timeseries_v2(output_dir: Path) -> List[Path]:
     if n_plots == 1:
         axes = [axes]
 
+    pred_keys = ['M2_pred', 'M3_pred', 'M5_pred', 'M7_pred']
+    pred_colors = {
+        'M2_pred': COLORS['neutral'],
+        'M3_pred': COLORS['primary'],
+        'M5_pred': COLORS['secondary'],
+        'M7_pred': COLORS['tertiary'],
+    }
+    pred_styles = {
+        'M2_pred': ':',
+        'M3_pred': '--',
+        'M5_pred': '-.',
+        'M7_pred': (0, (3, 1, 1, 1)),
+    }
+    pred_labels = {
+        'M2_pred': 'M2 (MLP)',
+        'M3_pred': 'M3 (Small)',
+        'M5_pred': 'M5 (Medium)',
+        'M7_pred': 'M7 (+ Attn)',
+    }
+
     for ax, (csv_path, label) in zip(axes, available):
         # Load CSV
-        data = {'timestep': [], 'ground_truth': [],
-                'M3_pred': [], 'M5_pred': [], 'M6_pred': []}
+        all_keys = ['timestep', 'ground_truth'] + pred_keys
+        data = {k: [] for k in all_keys}
         with open(csv_path, 'r', encoding='utf-8') as f:
             reader = csv_module.DictReader(f)
             for row in reader:
@@ -1069,29 +942,25 @@ def fig_prediction_timeseries_v2(output_dir: Path) -> List[Path]:
 
         t = np.array(data['timestep'])
         gt = np.array(data['ground_truth'])
-        m3 = np.array(data['M3_pred'])
         m5 = np.array(data['M5_pred'])
-        m6 = np.array(data['M6_pred'])
 
         # Compute RMSE for M5 (representative)
         rmse_m5 = float(np.sqrt(np.mean((gt - m5) ** 2)))
 
         ax.plot(t, gt, color='black', linewidth=1.0, label='Ground Truth')
-        ax.plot(t, m3, color=COLORS['primary'], linewidth=0.8,
-                linestyle='--', label='M3', alpha=0.85)
-        ax.plot(t, m5, color=COLORS['secondary'], linewidth=0.8,
-                linestyle='--', label='M5', alpha=0.85)
-        ax.plot(t, m6, color=COLORS['tertiary'], linewidth=0.8,
-                linestyle=':', label='M6', alpha=0.85)
+        for key in pred_keys:
+            ax.plot(t, np.array(data[key]), color=pred_colors[key],
+                    linewidth=0.8, linestyle=pred_styles[key],
+                    label=pred_labels[key], alpha=0.85)
 
         ax.set_title(f'{label} (RMSE$_{{M5}}$={rmse_m5:.3f})', fontsize=8)
         ax.set_ylabel('Torque (norm.)', fontsize=7)
 
     axes[-1].set_xlabel('Sample Index')
-    axes[0].legend(loc='upper right', fontsize=6, ncol=4)
+    axes[0].legend(loc='upper right', fontsize=6, ncol=3)
 
     fig.tight_layout()
-    return save_figure(fig, output_dir, 'prediction_timeseries')
+    return save_figure(fig, output_dir, 'fig_prediction_timeseries')
 
 
 # =============================================================================
@@ -1269,11 +1138,10 @@ PAPER_FIGURES = {
     'attention_scaled': fig_attention_scaled,
     'att_combined': fig_attention_combined,
     'dropout_effect': fig_dropout_effect,
-    'prediction_timeseries': fig_prediction_timeseries,
     # Updated figures (AP 4-6)
-    'inference_accuracy_tradeoff': fig_inference_tradeoff_v2,
-    'attention_weights_plot': fig_attention_weights_plot,
-    'prediction_timeseries_v2': fig_prediction_timeseries_v2,
+    'fig_inference_mae_tradeoff': fig_inference_tradeoff_v2,
+    'fig_attention_comparison': fig_attention_weights_plot,
+    'fig_prediction_timeseries': fig_prediction_timeseries,
 }
 
 
