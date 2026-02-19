@@ -68,7 +68,9 @@ COMPARISON_PAIRS = [
 ]
 
 # Metrics used for sequence-level analysis
-METRICS = ["accuracy", "rmse", "mae"]
+# accuracy, r2: higher = better (no sign-flip for Cohen's d)
+# rmse, mae: lower = better (sign-flip applied)
+METRICS = ["accuracy", "rmse", "mae", "r2"]
 
 
 # =============================================================================
@@ -298,15 +300,35 @@ def _compute_seq_metric_arrays(
         threshold: Accuracy threshold
 
     Returns:
-        Dictionary mapping metric name to per-sequence values array
+        Dictionary mapping metric name to per-sequence values array.
+        Note: r2 array may be shorter than others if sequences with
+        near-constant targets (SS_tot < 1e-12) are excluded.
     """
     rows, _ = aggregate_metrics_per_sequence(
         predictions, targets, sequence_ids, threshold
     )
+
+    # Per-sequence R² (excludes sequences with near-constant targets)
+    preds = predictions.flatten()
+    targs = targets.flatten()
+    seq_ids = np.asarray(sequence_ids)
+    unique_ids = np.unique(seq_ids)
+    r2_values = []
+    for sid in unique_ids:
+        mask = seq_ids == sid
+        p = preds[mask]
+        t = targs[mask]
+        ss_res = np.sum((t - p) ** 2)
+        ss_tot = np.sum((t - np.mean(t)) ** 2)
+        if ss_tot < 1e-12:
+            continue
+        r2_values.append(1.0 - ss_res / ss_tot)
+
     return {
         "accuracy": np.array([r["accuracy"] for r in rows]),
         "rmse": np.array([r["rmse"] for r in rows]),
         "mae": np.array([r["mae"] for r in rows]),
+        "r2": np.array(r2_values),
     }
 
 
@@ -432,8 +454,8 @@ def format_metric_with_ci(stats: Dict[str, Any], fmt: str = ".2f") -> str:
 def generate_markdown_table(results: List[Dict]) -> str:
     """Generate Markdown table from sequence-level bootstrap results."""
     lines = [
-        "| Model | Seeds | Seqs | Accuracy (%) | RMSE | MAE |",
-        "|-------|-------|------|-------------|------|-----|",
+        "| Model | Seeds | Seqs | Accuracy (%) | RMSE | MAE | R² |",
+        "|-------|-------|------|-------------|------|-----|-----|",
     ]
 
     for r in results:
@@ -443,7 +465,11 @@ def generate_markdown_table(results: List[Dict]) -> str:
         acc = format_metric_with_ci(r["accuracy"], ".2f")
         rmse = format_metric_with_ci(r["rmse"], ".4f")
         mae = format_metric_with_ci(r["mae"], ".4f")
-        lines.append(f"| {name} | {n_seeds} | {n_seq} | {acc} | {rmse} | {mae} |")
+        r2 = format_metric_with_ci(r["r2"], ".3f")
+        lines.append(
+            f"| {name} | {n_seeds} | {n_seq} "
+            f"| {acc} | {rmse} | {mae} | {r2} |"
+        )
 
     return "\n".join(lines)
 
@@ -458,9 +484,10 @@ def generate_latex_table(
         "\\centering",
         f"\\caption{{{caption}}}",
         "\\label{tab:sequence_level_ci}",
-        "\\begin{tabular}{llccccc}",
+        "\\begin{tabular}{llcccccc}",
         "\\toprule",
-        "Model & Description & Seeds & Seqs & Accuracy (\\%) & RMSE & MAE \\\\",
+        "Model & Description & Seeds & Seqs "
+        "& Accuracy (\\%) & RMSE & MAE & $R^2$ \\\\",
         "\\midrule",
     ]
 
@@ -476,10 +503,12 @@ def generate_latex_table(
                     f"{r['rmse']['std']:.4f}$")
         mae_str = (f"${r['mae']['mean']:.4f} \\pm "
                    f"{r['mae']['std']:.4f}$")
+        r2_str = (f"${r['r2']['mean']:.3f} \\pm "
+                  f"{r['r2']['std']:.3f}$")
 
         lines.append(
             f"{model_id} & {name} & {n_seeds} & {n_seq} "
-            f"& {acc_str} & {rmse_str} & {mae_str} \\\\"
+            f"& {acc_str} & {rmse_str} & {mae_str} & {r2_str} \\\\"
         )
 
     lines.extend([
@@ -495,11 +524,11 @@ def generate_comparison_markdown(comparison_results: List[Dict[str, Any]]) -> st
     """Generate Markdown table for sequence-level comparison results."""
     lines = [
         "| Comparison | Category | Seqs "
-        "| \u0394 Acc (%) | \u0394 RMSE | \u0394 MAE "
-        "| d(Acc) | d(RMSE) | d(MAE) |",
+        "| \u0394 Acc (%) | \u0394 RMSE | \u0394 MAE | \u0394 R\u00b2 "
+        "| d(Acc) | d(RMSE) | d(MAE) | d(R\u00b2) |",
         "|------------|----------|------"
-        "|-----------|--------|------"
-        "|--------|---------|--------|",
+        "|-----------|--------|------|------"
+        "|--------|---------|--------|--------|",
     ]
 
     for c in comparison_results:
@@ -510,21 +539,24 @@ def generate_comparison_markdown(comparison_results: List[Dict[str, Any]]) -> st
         acc_diff = f"{c['accuracy']['observed_diff']:+.2f}"
         rmse_diff = f"{c['rmse']['observed_diff']:+.4f}"
         mae_diff = f"{c['mae']['observed_diff']:+.4f}"
+        r2_diff = f"{c['r2']['observed_diff']:+.4f}"
 
         d_acc = f"{c['accuracy']['cohens_d']:+.3f}"
         d_rmse = f"{c['rmse']['cohens_d']:+.3f}"
         d_mae = f"{c['mae']['cohens_d']:+.3f}"
+        d_r2 = f"{c['r2']['cohens_d']:+.3f}"
 
         # Add significance stars from permutation test
         acc_stars = _significance_stars(c["accuracy"]["p_value"])
         rmse_stars = _significance_stars(c["rmse"]["p_value"])
         mae_stars = _significance_stars(c["mae"]["p_value"])
+        r2_stars = _significance_stars(c["r2"]["p_value"])
 
         lines.append(
             f"| {label} | {cat} | {n_seq} "
             f"| {acc_diff}{acc_stars} | {rmse_diff}{rmse_stars} "
-            f"| {mae_diff}{mae_stars} "
-            f"| {d_acc} | {d_rmse} | {d_mae} |"
+            f"| {mae_diff}{mae_stars} | {r2_diff}{r2_stars} "
+            f"| {d_acc} | {d_rmse} | {d_mae} | {d_r2} |"
         )
 
     lines.append("")
@@ -534,7 +566,7 @@ def generate_comparison_markdown(comparison_results: List[Dict[str, Any]]) -> st
     )
     lines.append(
         "d sign convention: positive = B better "
-        "(higher accuracy, lower RMSE/MAE)"
+        "(higher accuracy/R\u00b2, lower RMSE/MAE)"
     )
     lines.append("Significance: * p<0.05, ** p<0.01, *** p<0.001")
 
@@ -551,10 +583,10 @@ def generate_comparison_latex(
         "\\centering",
         f"\\caption{{{caption}}}",
         "\\label{tab:sequence_level_comparisons}",
-        "\\begin{tabular}{llrrrrrr}",
+        "\\begin{tabular}{llrrrrrrr}",
         "\\toprule",
         "Comparison & Category & $\\Delta$ Acc (\\%) & $\\Delta$ MAE "
-        "& $d$(Acc) & $d$(RMSE) & $d$(MAE) \\\\",
+        "& $d$(Acc) & $d$(RMSE) & $d$(MAE) & $d$($R^2$) \\\\",
         "\\midrule",
     ]
 
@@ -572,18 +604,19 @@ def generate_comparison_latex(
         d_acc = f"{c['accuracy']['cohens_d']:+.3f}"
         d_rmse = f"{c['rmse']['cohens_d']:+.3f}"
         d_mae = f"{c['mae']['cohens_d']:+.3f}"
+        d_r2 = f"{c['r2']['cohens_d']:+.3f}"
 
         lines.append(
             f"{label} & {cat} & {acc_diff} & {mae_diff} "
-            f"& {d_acc} & {d_rmse} & {d_mae} \\\\"
+            f"& {d_acc} & {d_rmse} & {d_mae} & {d_r2} \\\\"
         )
 
     lines.extend([
         "\\bottomrule",
-        "\\multicolumn{7}{l}{\\footnotesize Cohen's $d$: $|d|<0.2$ negligible, "
+        "\\multicolumn{8}{l}{\\footnotesize Cohen's $d$: $|d|<0.2$ negligible, "
         "$0.2$--$0.5$ small, $0.5$--$0.8$ medium, $>0.8$ large} \\\\",
-        "\\multicolumn{7}{l}{\\footnotesize Positive $d$ = B better "
-        "(higher accuracy, lower RMSE/MAE)} \\\\",
+        "\\multicolumn{8}{l}{\\footnotesize Positive $d$ = B better "
+        "(higher accuracy/$R^2$, lower RMSE/MAE)} \\\\",
         "\\end{tabular}",
         "\\end{table}",
     ])
@@ -762,6 +795,7 @@ def main():
             print(f"      Accuracy: {point['accuracy']:.2f}%")
             print(f"      RMSE:     {point['rmse']:.4f}")
             print(f"      MAE:      {point['mae']:.4f}")
+            print(f"      R²:       {point['r2']:.4f}")
 
             # Block bootstrap CIs
             print(f"    Block bootstrap CIs ({args.n_bootstrap} samples)...")
@@ -781,6 +815,8 @@ def main():
                   f"\u00b1 {ci['rmse']['std']:.4f}")
             print(f"      MAE:      {ci['mae']['mean']:.4f} "
                   f"\u00b1 {ci['mae']['std']:.4f}")
+            print(f"      R²:       {ci['r2']['mean']:.4f} "
+                  f"\u00b1 {ci['r2']['std']:.4f}")
 
             del model
             if device == "cuda":

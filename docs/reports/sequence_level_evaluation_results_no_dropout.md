@@ -2,7 +2,7 @@
 
 > **Ziel:** Vergleich von LSTM-Architekturen mit verschiedenen Attention-Mechanismen und MLP-Baselines
 > **Task:** Steering Torque Prediction (normiertes Lenkmoment)
-> **Stand:** 2026-02-18
+> **Stand:** 2026-02-19
 > **Methode:** Multi-Seed Training (Seeds: 7, 42, 94, 123, 231), Sequenz-Level Metriken, Block-Bootstrap (n=1000) fuer stat. Tests
 > **Vorgaenger:** `model_evaluation_results_no_dropout.md` (Sample-Level, 3 Seeds, **zurueckgezogen wegen Data Leakage**)
 
@@ -50,39 +50,39 @@
 
 ### 2.1 Paarweise Modellvergleiche (Sequenz-Ebene)
 
-| Vergleich | Kategorie | Delta Acc (pp) | Delta RMSE | Delta MAE | d(Acc) | d(RMSE) | d(MAE) |
-|-----------|-----------|------------|--------|------|--------|---------|--------|
-| M3 -> M4 | Baseline vs Attention | -0.05 | -0.0000 | -0.0000 | -0.025 | +0.004 | +0.006 |
-| M5 -> M6 | Baseline vs Attention | -0.03 | -0.0002 | -0.0001 | -0.012 | +0.059 | +0.035 |
-| M5 -> M7 | Baseline vs Attention | +0.11 | -0.0002\* | -0.0001\* | +0.062 | +0.091 | +0.090 |
-| M5 -> M8 | Baseline vs Attention | -0.37\*\*\* | +0.0004\*\*\* | +0.0004\*\*\* | -0.158 | -0.154 | -0.176 |
-| M6 -> M7 | Attention vs Attention | +0.13 | -0.0000 | -0.0001 | +0.072 | +0.020 | +0.047 |
-| M6 -> M8 | Attention vs Attention | -0.34\*\*\* | +0.0006\*\*\* | +0.0004\*\*\* | -0.180 | -0.251 | -0.252 |
-| M7 -> M8 | Attention vs Attention | -0.48\*\*\* | +0.0006\*\*\* | +0.0005\*\*\* | -0.242 | -0.286 | -0.303 |
-| M1 -> M3 | MLP vs LSTM | +10.48\*\*\* | -0.0134\*\*\* | -0.0106\*\*\* | +1.240 | +1.123 | +1.081 |
-| M2 -> M5 | MLP vs LSTM | +6.19\*\*\* | -0.0069\*\*\* | -0.0057\*\*\* | +0.826 | +0.725 | +0.691 |
+| Vergleich | Kategorie | Delta Acc (pp) | Delta RMSE | Delta MAE | Delta R² | d(Acc) | d(RMSE) | d(MAE) | d(R²) |
+|-----------|-----------|------------|--------|------|----------|--------|---------|--------|--------|
+| M3 -> M4 | Baseline vs Attention | -0.05 | -0.0000 | -0.0000 | +0.002 | -0.025 | +0.004 | +0.006 | +0.023 |
+| M5 -> M6 | Baseline vs Attention | -0.03 | -0.0002 | -0.0001 | -0.000 | -0.012 | +0.059 | +0.035 | -0.004 |
+| M5 -> M7 | Baseline vs Attention | +0.11 | -0.0002\* | -0.0001\* | +0.000 | +0.062 | +0.091 | +0.090 | +0.002 |
+| M5 -> M8 | Baseline vs Attention | -0.37\*\*\* | +0.0004\*\*\* | +0.0004\*\*\* | -0.010\*\* | -0.158 | -0.154 | -0.176 | -0.135 |
+| M6 -> M7 | Attention vs Attention | +0.13 | -0.0000 | -0.0001 | +0.000 | +0.072 | +0.020 | +0.047 | +0.007 |
+| M6 -> M8 | Attention vs Attention | -0.34\*\*\* | +0.0006\*\*\* | +0.0004\*\*\* | -0.010\*\*\* | -0.180 | -0.251 | -0.252 | -0.165 |
+| M7 -> M8 | Attention vs Attention | -0.48\*\*\* | +0.0006\*\*\* | +0.0005\*\*\* | -0.010\*\*\* | -0.242 | -0.286 | -0.303 | -0.183 |
+| M1 -> M3 | MLP vs LSTM | +10.48\*\*\* | -0.0134\*\*\* | -0.0106\*\*\* | +0.280\*\*\* | +1.240 | +1.123 | +1.081 | +1.061 |
+| M2 -> M5 | MLP vs LSTM | +6.19\*\*\* | -0.0069\*\*\* | -0.0057\*\*\* | +0.188\*\*\* | +0.826 | +0.725 | +0.691 | +0.404 |
 
 > *Positive Delta-Werte = Verbesserung von A nach B. Cohen's d wird pro Metrik berechnet.
-> Vorzeichen-Konvention: positiver d-Wert = B besser (hoehere Accuracy, niedrigerer RMSE/MAE).
+> Vorzeichen-Konvention: positiver d-Wert = B besser (hoehere Accuracy/R², niedrigerer RMSE/MAE).
 > Schwellen nach Cohen (1988): |d| < 0.2 vernachlaessigbar, 0.2-0.5 klein, 0.5-0.8 mittel, > 0.8 gross.
 > Permutation Test: 10.000 Sign-Flip-Permutationen auf Sequenz-Ebene. Signifikanz: \* p<0.05, \*\* p<0.01, \*\*\* p<0.001.
 > Berechnet auf 500 gepaarten Testsequenzen (5 Seeds gemittelt).*
 
 **Detaillierte p-Werte (Permutationstest):**
 
-| Vergleich | p (Accuracy) | p (RMSE) | p (MAE) |
-|-----------|-------------|----------|---------|
-| M3 -> M4 | 0.583 | 0.925 | 0.904 |
-| M5 -> M6 | 0.784 | 0.198 | 0.449 |
-| M5 -> M7 | 0.168 | **0.038** | **0.045** |
-| M5 -> M8 | **<0.001** | **<0.001** | **<0.001** |
-| M6 -> M7 | 0.110 | 0.655 | 0.292 |
-| M6 -> M8 | **<0.001** | **<0.001** | **<0.001** |
-| M7 -> M8 | **<0.001** | **<0.001** | **<0.001** |
-| M1 -> M3 | **<0.001** | **<0.001** | **<0.001** |
-| M2 -> M5 | **<0.001** | **<0.001** | **<0.001** |
+| Vergleich | p (Accuracy) | p (RMSE) | p (MAE) | p (R²) |
+|-----------|-------------|----------|---------|--------|
+| M3 -> M4 | 0.583 | 0.925 | 0.904 | 0.615 |
+| M5 -> M6 | 0.784 | 0.198 | 0.449 | 0.935 |
+| M5 -> M7 | 0.168 | **0.038** | **0.045** | 0.960 |
+| M5 -> M8 | **<0.001** | **<0.001** | **<0.001** | **0.002** |
+| M6 -> M7 | 0.110 | 0.655 | 0.292 | 0.878 |
+| M6 -> M8 | **<0.001** | **<0.001** | **<0.001** | **<0.001** |
+| M7 -> M8 | **<0.001** | **<0.001** | **<0.001** | **<0.001** |
+| M1 -> M3 | **<0.001** | **<0.001** | **<0.001** | **<0.001** |
+| M2 -> M5 | **<0.001** | **<0.001** | **<0.001** | **<0.001** |
 
-> *Bemerkenswert: M5 -> M7 zeigt signifikante RMSE/MAE-Verbesserung (p<0.05), obwohl die Accuracy-Differenz nicht signifikant ist. Dies deutet darauf hin, dass Additive Attention die Fehlergroesse (RMSE, MAE) reduziert, ohne die Accuracy-Schwelle (0.05) haeufiger zu unterschreiten.*
+> *Bemerkenswert: M5 -> M7 zeigt signifikante RMSE/MAE-Verbesserung (p<0.05), obwohl weder Accuracy noch R² signifikant sind. Dies deutet darauf hin, dass Additive Attention die Fehlergroesse (RMSE, MAE) reduziert, ohne die Accuracy-Schwelle (0.05) haeufiger zu unterschreiten oder die Varianzerklaerung (R²) messbar zu verbessern.*
 
 ### 2.2 Seed-Stabilitaet (5 Seeds)
 
@@ -118,19 +118,19 @@
 
 ### 2.4 Bootstrap 95%-Konfidenzintervalle
 
-| Modell | Accuracy 95%-CI | RMSE 95%-CI | MAE 95%-CI |
-|--------|----------------|-------------|------------|
-| M1 MLP Last | [67.38, 70.58] | [0.0536, 0.0582] | [0.0417, 0.0452] |
-| M2 MLP Flat | [71.75, 75.13] | [0.0471, 0.0513] | [0.0367, 0.0400] |
-| M3 Small Baseline | [78.03, 80.90] | [0.0409, 0.0441] | [0.0316, 0.0341] |
-| M4 Small + Simple Attn | [78.19, 80.64] | [0.0411, 0.0440] | [0.0317, 0.0339] |
-| M5 Medium Baseline | [78.29, 80.97] | [0.0408, 0.0439] | [0.0315, 0.0338] |
-| M6 Medium + Simple Attn | [78.24, 80.96] | [0.0406, 0.0437] | [0.0314, 0.0338] |
-| **M7 Medium + Additive Attn** | **[78.47, 81.00]** | **[0.0406, 0.0436]** | **[0.0314, 0.0336]** |
-| M8 Medium + Scaled DP | [78.01, 80.50] | [0.0412, 0.0442] | [0.0319, 0.0341] |
+| Modell | Accuracy 95%-CI | RMSE 95%-CI | MAE 95%-CI | R² 95%-CI |
+|--------|----------------|-------------|------------|-----------|
+| M1 MLP Last | [67.38, 70.58] | [0.0536, 0.0582] | [0.0417, 0.0452] | [0.118, 0.237] |
+| M2 MLP Flat | [71.75, 75.13] | [0.0471, 0.0513] | [0.0367, 0.0400] | [0.210, 0.354] |
+| M3 Small Baseline | [78.03, 80.90] | [0.0409, 0.0441] | [0.0316, 0.0341] | [0.403, 0.511] |
+| M4 Small + Simple Attn | [78.19, 80.64] | [0.0411, 0.0440] | [0.0317, 0.0339] | [0.415, 0.503] |
+| M5 Medium Baseline | [78.29, 80.97] | [0.0408, 0.0439] | [0.0315, 0.0338] | [0.425, 0.514] |
+| M6 Medium + Simple Attn | [78.24, 80.96] | [0.0406, 0.0437] | [0.0314, 0.0338] | [0.424, 0.515] |
+| **M7 Medium + Additive Attn** | **[78.47, 81.00]** | **[0.0406, 0.0436]** | **[0.0314, 0.0336]** | **[0.422, 0.517]** |
+| M8 Medium + Scaled DP | [78.01, 80.50] | [0.0412, 0.0442] | [0.0319, 0.0341] | [0.415, 0.504] |
 
 > *95%-Konfidenzintervalle (2.5.--97.5. Perzentil) aus Block-Bootstrap (1000 Samples) aggregiert ueber 5 Seeds mittels Law of Total Variance.
-> Alle LSTM-Modelle (M3--M8) haben stark ueberlappende CIs, was die geringe praktische Differenz bestaetigt.*
+> Alle LSTM-Modelle (M3--M8) haben stark ueberlappende CIs ueber alle vier Metriken, was die geringe praktische Differenz bestaetigt.*
 
 ---
 
@@ -141,8 +141,8 @@
 **1. Sequential Modeling ist der entscheidende Faktor.**
 
 Der groesste Leistungssprung findet beim Wechsel von MLP auf LSTM statt:
-- M1 -> M3 (MLP Last -> Small LSTM): +10.48 pp Accuracy, d(Acc) = 1.24, d(RMSE) = 1.12, d(MAE) = 1.08 (**gross**)
-- M2 -> M5 (MLP Flat -> Medium LSTM): +6.19 pp Accuracy, d(Acc) = 0.83 (**gross**), d(RMSE) = 0.72, d(MAE) = 0.69 (**mittel**)
+- M1 -> M3 (MLP Last -> Small LSTM): +10.48 pp Accuracy, d(Acc) = 1.24, d(RMSE) = 1.12, d(MAE) = 1.08, d(R²) = 1.06 (**gross** ueber alle Metriken)
+- M2 -> M5 (MLP Flat -> Medium LSTM): +6.19 pp Accuracy, d(Acc) = 0.83 (**gross**), d(RMSE) = 0.72, d(MAE) = 0.69 (**mittel**), d(R²) = 0.40 (**klein**)
 
 Dies bestaetigt, dass temporale Dynamik im Lenkmomentsignal wesentlich ist. Der Effekt ist auf Sequenz-Ebene sogar noch deutlicher als auf Sample-Ebene.
 
@@ -150,13 +150,13 @@ Dies bestaetigt, dass temporale Dynamik im Lenkmomentsignal wesentlich ist. Der 
 
 Auf Sequenz-Ebene zeigt keine Attention-Variante eine signifikante Verbesserung der **Accuracy** gegenueber der Baseline:
 
-| Vergleich | Delta Accuracy | d(Acc) | d(RMSE) | d(MAE) | p (Acc) | p (RMSE) | p (MAE) |
-|-----------|---------------|--------|---------|--------|---------|----------|---------|
-| M5 -> M6 (Simple) | -0.03 pp | -0.012 | +0.059 | +0.035 | 0.78 | 0.20 | 0.45 |
-| M5 -> M7 (Additive) | +0.11 pp | +0.062 | +0.091 | +0.090 | 0.17 | **0.038** | **0.045** |
-| M5 -> M8 (Scaled DP) | -0.37 pp | -0.158 | -0.154 | -0.176 | <0.001 | <0.001 | <0.001 |
+| Vergleich | Delta Accuracy | d(Acc) | d(RMSE) | d(MAE) | d(R²) | p (Acc) | p (RMSE) | p (MAE) | p (R²) |
+|-----------|---------------|--------|---------|--------|-------|---------|----------|---------|--------|
+| M5 -> M6 (Simple) | -0.03 pp | -0.012 | +0.059 | +0.035 | -0.004 | 0.78 | 0.20 | 0.45 | 0.94 |
+| M5 -> M7 (Additive) | +0.11 pp | +0.062 | +0.091 | +0.090 | +0.002 | 0.17 | **0.038** | **0.045** | 0.96 |
+| M5 -> M8 (Scaled DP) | -0.37 pp | -0.158 | -0.154 | -0.176 | -0.135 | <0.001 | <0.001 | <0.001 | **0.002** |
 
-M7 (Additive) ist bei Accuracy nicht signifikant besser, zeigt aber **signifikante RMSE/MAE-Reduktion** (p<0.05). Dies bedeutet: Additive Attention verringert die mittlere Fehlergroesse, ohne dass mehr Samples unter die Accuracy-Schwelle (0.05) fallen. Der Effekt ist jedoch mit d(RMSE) = 0.091 und d(MAE) = 0.090 **vernachlaessigbar** (|d| < 0.2) und die 95%-CIs ueberlappen vollstaendig. M8 (Scaled DP) ist signifikant **schlechter** als die Baseline ueber alle Metriken (p < 0.001, d(Acc) = -0.16, d(RMSE) = -0.15, d(MAE) = -0.18).
+M7 (Additive) ist bei Accuracy und R² nicht signifikant besser, zeigt aber **signifikante RMSE/MAE-Reduktion** (p<0.05). Dies bedeutet: Additive Attention verringert die mittlere Fehlergroesse, ohne dass mehr Samples unter die Accuracy-Schwelle (0.05) fallen oder die Varianzerklaerung (R²) steigt. Der Effekt ist jedoch mit d(RMSE) = 0.091 und d(MAE) = 0.090 **vernachlaessigbar** (|d| < 0.2) und die 95%-CIs ueberlappen vollstaendig. M8 (Scaled DP) ist signifikant **schlechter** als die Baseline ueber alle vier Metriken (p < 0.01, d(Acc) = -0.16, d(RMSE) = -0.15, d(MAE) = -0.18, d(R²) = -0.14).
 
 **3. Modellkapazitaet Small vs Medium spielt kaum eine Rolle.**
 
@@ -174,8 +174,8 @@ Der Accuracy-Gewinn ist minimal, die Inferenzzeit verdreifacht sich.
 
 M8 ist das einzige Attention-Modell, das signifikant schlechter als die Baseline abschneidet (p < 0.001). Auch gegenueber den anderen Attention-Varianten zeigt M8 einen konsistent negativen Effekt:
 
-- M6 -> M8: d(Acc) = -0.18, d(RMSE) = -0.25, d(MAE) = -0.25 (**klein**)
-- M7 -> M8: d(Acc) = -0.24, d(RMSE) = -0.29, d(MAE) = -0.30 (**klein**)
+- M6 -> M8: d(Acc) = -0.18, d(RMSE) = -0.25, d(MAE) = -0.25, d(R²) = -0.17 (**klein** bei RMSE/MAE)
+- M7 -> M8: d(Acc) = -0.24, d(RMSE) = -0.29, d(MAE) = -0.30, d(R²) = -0.18 (**klein** bei Acc/RMSE/MAE)
 
 Der Scaled-DP-Mechanismus scheint fuer diese Zeitreihenaufgabe ungeeignet.
 
@@ -353,10 +353,10 @@ Dies behebt Problem P6 (Sample-Resampling ignoriert Autokorrelation).
   ```
 
   **Vorzeichen-Konvention:**
-  - Accuracy: positiver d = B besser (hoeherer Wert). Kein Sign-Flip.
+  - Accuracy, R²: positiver d = B besser (hoeherer Wert). Kein Sign-Flip.
   - RMSE, MAE: positiver d = B besser (niedrigerer Wert). Sign-Flip nach Berechnung.
 
-  Die Tabellen zeigen d(Acc), d(RMSE) und d(MAE) als separate Spalten.
+  Die Tabellen zeigen d(Acc), d(RMSE), d(MAE) und d(R²) als separate Spalten.
 
 Dies behebt Problem P4 (Autokorrelation bei per-Sample-Statistik).
 
@@ -410,4 +410,4 @@ python scripts/sequence_level_evaluation.py --n-bootstrap 1000 --n-permutations 
 
 ---
 
-*Aktualisiert am: 2026-02-18 (Cohen's d pro Metrik, aktualisierte d-Werte aus Notebook-Rerun, Signifikanz auf alle Metriken)*
+*Aktualisiert am: 2026-02-19 (R² in paarweise Vergleiche aufgenommen: Delta R², d(R²), p(R²), Bootstrap 95%-CI)*

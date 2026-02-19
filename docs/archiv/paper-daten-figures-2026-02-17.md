@@ -23,7 +23,7 @@
 | Sequence Metrics (Seed 42) | `results/paper/M{1-8}*/seed_42/*_sequence_metrics.csv` | Per-Sequenz MAE, RMSE, Accuracy |
 | Attention Weights (no_dropout) | `attention_weights/M{4,6,7,8}*_seed{N}/attention_epoch_*.npy` | Per-Epoch Snapshots, 5 Seeds |
 | Attention Weights (dropout) | `attention_weights/M{4,6,7,8}*_Dropout_seed42/attention_test.npy` | Test-Set gemittelt, nur Seed 42 |
-| Bootstrap-Ergebnisse | `results/bootstrap/sequence_level_results_no_dropout.json` | Bootstrap CIs, Permutationstests |
+| Bootstrap-Ergebnisse | `results/eval_statistics.json` | Bootstrap CIs, Permutationstests, Cohen's d (per metric) |
 | Alte Figures | `figures/backup/*.pgf` | Matplotlib-generierte PGF-Dateien |
 | Checkpoints | `lightning_logs/M{1-8}*_seed{N}/version_0/checkpoints/*.ckpt` | Alle 40 Runs vorhanden |
 
