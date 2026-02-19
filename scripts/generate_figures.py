@@ -879,6 +879,112 @@ def fig_attention_weights_plot(output_dir: Path) -> List[Path]:
     return save_figure(fig, output_dir, 'fig_attention_comparison')
 
 
+def fig_forest_ci(output_dir: Path) -> List[Path]:
+    """Create forest plot showing MAE with 95% CIs for all models.
+
+    Visualizes the key finding: MLP-to-LSTM gap is large and significant
+    (non-overlapping CIs), while attention mechanisms add no measurable
+    benefit (fully overlapping CIs within the LSTM cluster).
+
+    Data source: sequence-level bootstrap evaluation (5 seeds, 500 test
+    sequences, 1000 bootstrap samples). Combined uncertainty via the law
+    of total variance.
+    """
+    # Sequence-level bootstrap data (from sequence_level_table_no_dropout.md)
+    # Format: (model_id, label, mean_mae, std_combined, model_type)
+    forest_data = [
+        ('M1', 'M1 MLP Last',             0.0434, 0.0009, 'mlp'),
+        ('M2', 'M2 MLP Flat',             0.0384, 0.0008, 'mlp'),
+        ('M3', 'M3 Small Baseline',       0.0328, 0.0006, 'lstm'),
+        ('M4', 'M4 Small + Simple Attn',  0.0328, 0.0006, 'lstm_attn'),
+        ('M5', 'M5 Medium Baseline',      0.0327, 0.0006, 'lstm'),
+        ('M6', 'M6 Medium + Simple Attn', 0.0326, 0.0006, 'lstm_attn'),
+        ('M7', 'M7 Medium + Additive',    0.0325, 0.0006, 'lstm_attn'),
+        ('M8', 'M8 Medium + Scaled DP',   0.0330, 0.0006, 'lstm_attn'),
+    ]
+
+    n = len(forest_data)
+    fig, ax = plt.subplots(figsize=(3.5, 2.8))
+
+    # Y positions: models bottom-to-top with group gaps
+    # Groups: MLP (M1,M2), Small LSTM (M3,M4), Medium LSTM (M5-M8)
+    y_positions = [7.5, 6.5, 4.5, 3.5, 1.5, 0.5, -0.5, -1.5]  # gap between groups
+
+    for i, (mid, label, mae, std, mtype) in enumerate(forest_data):
+        y = y_positions[i]
+        ci_lo = mae - 1.96 * std
+        ci_hi = mae + 1.96 * std
+
+        color = COLORS[mtype]
+        marker = MARKERS[mtype]
+
+        # CI bar
+        ax.plot([ci_lo, ci_hi], [y, y], color=color, linewidth=1.5,
+                solid_capstyle='round', zorder=3)
+        # Caps
+        cap_h = 0.2
+        ax.plot([ci_lo, ci_lo], [y - cap_h, y + cap_h], color=color,
+                linewidth=1.0, zorder=3)
+        ax.plot([ci_hi, ci_hi], [y - cap_h, y + cap_h], color=color,
+                linewidth=1.0, zorder=3)
+        # Point estimate
+        ax.scatter(mae, y, marker=marker, s=30, c=color, edgecolors='white',
+                   linewidths=0.4, zorder=4)
+
+    # Model labels on Y-axis
+    ax.set_yticks(y_positions)
+    ax.set_yticklabels([d[1] for d in forest_data], fontsize=6.5)
+
+    # Horizontal separator lines between groups
+    for gap_y in [5.5, 2.5]:
+        ax.axhline(y=gap_y, color=COLORS['neutral'], linestyle='-',
+                   linewidth=0.3, alpha=0.3, zorder=0)
+
+    # Shaded band for LSTM CI overlap region
+    lstm_ci_lo = min(d[2] - 1.96 * d[3] for d in forest_data if d[4] != 'mlp')
+    lstm_ci_hi = max(d[2] + 1.96 * d[3] for d in forest_data if d[4] != 'mlp')
+    ax.axvspan(lstm_ci_lo, lstm_ci_hi, color=COLORS['lstm'], alpha=0.06, zorder=0)
+
+    # Annotation: gap arrow between M2 and M3
+    m2_mae = forest_data[1][2]
+    m3_mae = forest_data[2][2]
+    gap_y = (y_positions[1] + y_positions[2]) / 2
+    ax.annotate(
+        '', xy=(m3_mae, gap_y), xytext=(m2_mae, gap_y),
+        arrowprops=dict(arrowstyle='<->', color=COLORS['highlight'],
+                        lw=1.0, shrinkA=1, shrinkB=1),
+    )
+    ax.text(
+        (m2_mae + m3_mae) / 2, gap_y + 0.35,
+        rf'$\Delta$MAE = {m2_mae - m3_mae:.4f}',
+        fontsize=6, ha='center', va='bottom', color=COLORS['highlight'],
+    )
+
+    # Legend (manual, one entry per type)
+    from matplotlib.lines import Line2D
+    legend_elements = [
+        Line2D([0], [0], marker='s', color='w', markerfacecolor=COLORS['mlp'],
+               markersize=5, label='MLP Baseline'),
+        Line2D([0], [0], marker='o', color='w', markerfacecolor=COLORS['lstm'],
+               markersize=5, label='LSTM Baseline'),
+        Line2D([0], [0], marker='^', color='w', markerfacecolor=COLORS['lstm_attn'],
+               markersize=5, label='LSTM + Attention'),
+    ]
+    ax.legend(handles=legend_elements, loc='lower right', fontsize=6,
+              handletextpad=0.3)
+
+    ax.set_xlabel('MAE (95\\% CI)')
+    ax.set_xlim(0.030, 0.046)
+    ax.set_ylim(y_positions[-1] - 0.8, y_positions[0] + 0.8)
+
+    # Remove top/right spines (already done by scienceplots, but ensure)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    fig.tight_layout()
+    return save_figure(fig, output_dir, 'fig_forest_ci')
+
+
 def fig_prediction_timeseries(output_dir: Path) -> List[Path]:
     """Create prediction timeseries from exported CSVs (good/median/difficult).
 
@@ -1142,6 +1248,7 @@ PAPER_FIGURES = {
     'fig_inference_mae_tradeoff': fig_inference_tradeoff_v2,
     'fig_attention_comparison': fig_attention_weights_plot,
     'fig_prediction_timeseries': fig_prediction_timeseries,
+    'fig_forest_ci': fig_forest_ci,
 }
 
 
