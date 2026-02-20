@@ -12,7 +12,8 @@ Available figures:
     - fig_attention_scaled      Attention heatmap (M8 Scaled DP Attention)
     - fig_att_combined          All three attention mechanisms in one line plot
     - fig_dropout_effect        Dropout comparison bar chart
-    - fig_prediction_timeseries Prediction vs. Ground Truth timeseries (M2, M3, M5, M7)
+    - fig_prediction_timeseries      Prediction vs. Ground Truth timeseries (RMSE)
+    - fig_prediction_timeseries_mae  Prediction vs. Ground Truth timeseries (MAE)
 
   Training Figures (per model):
     - {model}_loss_curves       Training and validation loss
@@ -880,14 +881,14 @@ def fig_forest_ci(output_dir: Path) -> List[Path]:
     # Sequence-level bootstrap data (from sequence_level_table_no_dropout.md)
     # Format: (model_id, label, mean_mae, std_combined, model_type)
     forest_data = [
-        ('M1', 'M1 MLP Last',             0.0434, 0.0009, 'mlp'),
-        ('M2', 'M2 MLP Flat',             0.0384, 0.0008, 'mlp'),
-        ('M3', 'M3 Small Baseline',       0.0328, 0.0006, 'lstm'),
-        ('M4', 'M4 Small + Simple Attn',  0.0328, 0.0006, 'lstm_attn'),
-        ('M5', 'M5 Medium Baseline',      0.0327, 0.0006, 'lstm'),
-        ('M6', 'M6 Medium + Simple Attn', 0.0326, 0.0006, 'lstm_attn'),
-        ('M7', 'M7 Medium + Additive',    0.0325, 0.0006, 'lstm_attn'),
-        ('M8', 'M8 Medium + Scaled DP',   0.0330, 0.0006, 'lstm_attn'),
+        ('M1', 'M1', 0.0434, 0.0009, 'mlp'),
+        ('M2', 'M2', 0.0384, 0.0008, 'mlp'),
+        ('M3', 'M3', 0.0328, 0.0006, 'lstm'),
+        ('M4', 'M4', 0.0328, 0.0006, 'lstm_attn'),
+        ('M5', 'M5', 0.0327, 0.0006, 'lstm'),
+        ('M6', 'M6', 0.0326, 0.0006, 'lstm_attn'),
+        ('M7', 'M7', 0.0325, 0.0006, 'lstm_attn'),
+        ('M8', 'M8', 0.0330, 0.0006, 'lstm_attn'),
     ]
 
     n = len(forest_data)
@@ -972,23 +973,39 @@ def fig_forest_ci(output_dir: Path) -> List[Path]:
     return save_figure(fig, output_dir, 'fig_forest_ci')
 
 
-def fig_prediction_timeseries(output_dir: Path) -> List[Path]:
+def _prediction_timeseries(
+    output_dir: Path,
+    metric: str = 'rmse',
+    sequences: Optional[List[str]] = None,
+    show_title: bool = True,
+    fig_name: Optional[str] = None,
+) -> List[Path]:
     """Create prediction timeseries from exported CSVs (good/median/difficult).
 
-    Shows Ground Truth vs predictions from M2, M3, M5, M7 for three
+    Shows Ground Truth vs predictions from M2, M3, M5, M7 for
     representative test sequences with different difficulty levels.
+
+    Args:
+        output_dir: Directory containing prediction CSVs and for output.
+        metric: Error metric for subtitle — 'rmse' or 'mae'.
+        sequences: Which sequences to include ('good', 'median', 'difficult').
+            None means all available.
+        show_title: Whether to show subplot titles.
+        fig_name: Override output filename (without extension).
     """
     import csv as csv_module
 
-    sequence_types = [
-        ('prediction_seq_good', 'Good Prediction'),
-        ('prediction_seq_median', 'Median Prediction'),
-        ('prediction_seq_difficult', 'Difficult Prediction'),
+    all_sequence_types = [
+        ('good', 'prediction_seq_good', 'Good Prediction'),
+        ('median', 'prediction_seq_median', 'Median Prediction'),
+        ('difficult', 'prediction_seq_difficult', 'Difficult Prediction'),
     ]
 
     # Check which CSVs exist
     available = []
-    for basename, label in sequence_types:
+    for key, basename, label in all_sequence_types:
+        if sequences is not None and key not in sequences:
+            continue
         csv_path = output_dir / f'{basename}.csv'
         if csv_path.exists():
             available.append((csv_path, label))
@@ -1017,10 +1034,10 @@ def fig_prediction_timeseries(output_dir: Path) -> List[Path]:
         'M7_pred': (0, (3, 1, 1, 1)),
     }
     pred_labels = {
-        'M2_pred': 'M2 (MLP)',
-        'M3_pred': 'M3 (Small)',
-        'M5_pred': 'M5 (Medium)',
-        'M7_pred': 'M7 (+ Attn)',
+        'M2_pred': 'M2',
+        'M3_pred': 'M3',
+        'M5_pred': 'M5',
+        'M7_pred': 'M7',
     }
 
     for ax, (csv_path, label) in zip(axes, available):
@@ -1037,8 +1054,13 @@ def fig_prediction_timeseries(output_dir: Path) -> List[Path]:
         gt = np.array(data['ground_truth'])
         m5 = np.array(data['M5_pred'])
 
-        # Compute RMSE for M5 (representative)
-        rmse_m5 = float(np.sqrt(np.mean((gt - m5) ** 2)))
+        # Compute error metric for M5 (representative)
+        if metric == 'mae':
+            err_m5 = float(np.mean(np.abs(gt - m5)))
+            metric_label = 'MAE'
+        else:
+            err_m5 = float(np.sqrt(np.mean((gt - m5) ** 2)))
+            metric_label = 'RMSE'
 
         ax.plot(t, gt, color='black', linewidth=1.0, label='Ground Truth')
         for key in pred_keys:
@@ -1046,15 +1068,35 @@ def fig_prediction_timeseries(output_dir: Path) -> List[Path]:
                     linewidth=0.8, linestyle=pred_styles[key],
                     label=pred_labels[key], alpha=0.85)
 
-        ax.set_title(f'{label} (RMSE$_{{M5}}$={rmse_m5:.3f})', fontsize=8)
+        if show_title:
+            ax.set_title(
+                f'{label} ({metric_label}$_{{M5}}$={err_m5:.3f})', fontsize=8
+            )
         ax.set_ylabel('Torque (norm.)', fontsize=7)
 
     axes[-1].set_xlabel('Sample Index')
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, fontsize=6, ncol=5,
-               loc='upper center', bbox_to_anchor=(0.5, 1.0))
-    fig.tight_layout(rect=[0, 0, 1, 0.97])
-    return save_figure(fig, output_dir, 'fig_prediction_timeseries')
+    axes[0].legend(fontsize=6, ncol=3, loc='lower right',
+                   framealpha=1.0, edgecolor='lightgray',
+                   handlelength=1.2, columnspacing=0.8,
+                   handletextpad=0.4)
+    fig.tight_layout()
+
+    if fig_name is None:
+        suffix = '_mae' if metric == 'mae' else ''
+        fig_name = f'fig_prediction_timeseries{suffix}'
+    return save_figure(fig, output_dir, fig_name)
+
+
+def fig_prediction_timeseries(output_dir: Path) -> List[Path]:
+    """Prediction timeseries — Good Prediction only, no title."""
+    return _prediction_timeseries(
+        output_dir, metric='rmse', sequences=['good'], show_title=False,
+    )
+
+
+def fig_prediction_timeseries_mae(output_dir: Path) -> List[Path]:
+    """Prediction timeseries with MAE in subtitle."""
+    return _prediction_timeseries(output_dir, metric='mae')
 
 
 # =============================================================================
@@ -1236,6 +1278,7 @@ PAPER_FIGURES = {
     'fig_inference_mae_tradeoff': fig_inference_tradeoff_v2,
     'fig_attention_comparison': fig_attention_weights_plot,
     'fig_prediction_timeseries': fig_prediction_timeseries,
+    'fig_prediction_timeseries_mae': fig_prediction_timeseries_mae,
     'fig_forest_ci': fig_forest_ci,
 }
 
